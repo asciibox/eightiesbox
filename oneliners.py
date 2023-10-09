@@ -1,0 +1,42 @@
+from pymongo import MongoClient
+
+class OnelinerBBS:
+    def __init__(self, mongo_client: MongoClient, sid_data, goto_next_line, output, askYesNo, ask, wait, launchMenuCallback):
+        self.mongo_client = mongo_client
+        self.db = self.mongo_client["bbs"]
+        self.collection = self.db["oneliners"]
+        self.sid_data = sid_data
+        self.goto_next_line = goto_next_line
+        self.output = output
+        self.askYesNo = askYesNo
+        self.ask = ask
+        self.launchMenuCallback = launchMenuCallback
+
+    def show_oneliners(self):
+        self.output_oneliners()
+
+        self.goto_next_line()
+        self.askYesNo("Do you want to add a new oneliner?", self.oneliner_callback)
+
+    def oneliner_callback(self, result):
+        if result.lower() == 'y':
+            self.goto_next_line()
+            self.ask(40, self.creation_callback)
+
+    def creation_callback(self, result):
+        if result:
+            self.goto_next_line()
+            self.collection.insert_one({"text": result})
+            self.output_oneliners()
+            self.goto_next_line()
+            self.output("Press any button to continue", 3, 0)
+            self.wait(self.launchMenuCallback)
+
+    def output_oneliners(self):
+        cursor = self.collection.find({}).limit(25)
+        counter = 1
+        for document in cursor:
+            self.output(f"{counter}: {document['text']}", 3, 0)
+            self.goto_next_line()
+            counter += 1
+
