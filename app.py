@@ -34,7 +34,6 @@ def index():
 
 @socketio.on('connect')
 def handle_connect():
-    print('New client connected:', request.sid)
     
     socketio.emit('initPage',  [
         {'minWidth': 0, 'x': 40, 'y': 25},
@@ -54,7 +53,9 @@ def onload(data):
     init_utils_listeners(socketio, mongo_client, sid_data)
     init_action_listeners(socketio, mongo_client, sid_data)
     x = data.get('x')
+    sid_data[request.sid].setXWidth(x)
     y = data.get('y')
+    sid_data[request.sid].setYHeight(y)
     data2 = { 'filename' : startFile+'-'+str(x)+'x'+str(y), 'x' : x, 'y': y}
     show_file(data2)
     goto_next_line()

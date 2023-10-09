@@ -1,4 +1,5 @@
 from pymongo import MongoClient
+from datetime import datetime
 
 class OnelinerBBS:
     def __init__(self, mongo_client: MongoClient, sid_data, goto_next_line, output, askYesNo, ask, wait, launchMenuCallback):
@@ -11,6 +12,7 @@ class OnelinerBBS:
         self.askYesNo = askYesNo
         self.ask = ask
         self.launchMenuCallback = launchMenuCallback
+        self.wait = wait
 
     def show_oneliners(self):
         self.output_oneliners()
@@ -22,20 +24,23 @@ class OnelinerBBS:
         if result.lower() == 'y':
             self.goto_next_line()
             self.ask(40, self.creation_callback)
+        else:
+            self.launchMenuCallback()
 
     def creation_callback(self, result):
         if result:
             self.goto_next_line()
-            self.collection.insert_one({"text": result})
+            current_time = datetime.utcnow()
+            self.collection.insert_one({"text": result, "timestamp": current_time})
             self.output_oneliners()
             self.goto_next_line()
             self.output("Press any button to continue", 3, 0)
             self.wait(self.launchMenuCallback)
 
     def output_oneliners(self):
-        cursor = self.collection.find({}).limit(25)
+        cursor = self.collection.find({}).sort("timestamp", -1).limit(25)
         counter = 1
-        for document in cursor:
+        for document in reversed(list(cursor)):
             self.output(f"{counter}: {document['text']}", 3, 0)
             self.goto_next_line()
             counter += 1

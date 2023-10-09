@@ -32,7 +32,6 @@ def code():
 
 
 def keydown(key):
-    print("KEY:"+key)
     if len(sid_data.accept_keys)>0 and key.upper() not in sid_data.accept_keys:
         return 
     if (sid_data.localinput == ''):
@@ -48,9 +47,7 @@ def keydown(key):
 
     elif sid_data.insert:
         # Insert the new character at cursorX position
-        print("IF INSERT")
         if len(sid_data.localinput) < sid_data.maxLength:
-            print("INSERT")
             sid_data.setLocalInput(sid_data.localinput[:sid_data.currentPos] + key + sid_data.localinput[sid_data.currentPos:])
             sid_data.setCurrentPos(sid_data.currentPos+ 1)
             output = sid_data.localinput
@@ -59,16 +56,11 @@ def keydown(key):
             emit_current_string(output, 14, 4, False, sid_data.startX, sid_data.startY)
             sid_data.setCursorX(sid_data.cursorX + 1)
             emit_gotoXY(sid_data.cursorX, sid_data.cursorY)
-            
-            print("INSERT:"+sid_data.localinput)
        
     else:
-        print("IF OVERWRITE")
         # Overwrite the character at cursorX position
         if sid_data.currentPos < sid_data.maxLength:
-            print("OVERWRITE")
             sid_data.setLocalInput(sid_data.localinput[:sid_data.currentPos] + key + sid_data.localinput[sid_data.currentPos + 1:])
-            print("local input:"+sid_data.localinput)
             sid_data.setCurrentPos(sid_data.currentPos + 1)
             output = sid_data.localinput
             if sid_data.inputType=='password':
@@ -86,22 +78,38 @@ def init_action_listeners(sio, my_client, sdata):
 
     @socketio.on('input_keypress')
     def handle_keypress(data):
-        print(data)
-        print(sid_data.current_action)
+        if sid_data.current_action == "wait_for_menu":
+            key = data['key']
+            
+            if key == 'ArrowLeft':
+                sid_data.menu_box.arrow_left()
+                
+            elif key == 'ArrowRight':
+                sid_data.menu_box.arrow_right()
+                
+            elif key == 'ArrowUp':
+                sid_data.menu_box.arrow_up()
+                
+            elif key == 'ArrowDown':
+                sid_data.menu_box.arrow_down()
+                
+            elif key == 'Enter':
+                sid_data.menu_box.edit_field()
+            
+            return
+
         if (sid_data.current_action == "wait_for_yes_no"):
             key = data['key']
             if key=='Y' or key == 'y' or key == 'n' or key == 'N':
                 sid_data.callback(key)
             return
         elif (sid_data.current_action == "wait_for_any_button"):
-            sid_data.callback(key)
+            sid_data.callback()
         elif (sid_data.current_action == "wait_for_input"):
-            print("KEY PRESSED")
             key = data['key']
 
             if key == "ä":
                 # Handle ä
-                print("You pressed the ä key")
                 keydown(chr(132))
                 return
             elif key == "ö":

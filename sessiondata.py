@@ -14,6 +14,28 @@ class SessionData:
         self.callback = None
         self.inputType = ''
         self.accept_keys = []
+        self.menu_current_index = 0  # To keep track of the current selected menu item
+        self.menu_items = []  # To hold the menu items
+        self.menu_box = None
+        self.xWidth = 0
+        self.yHeight = 0
+        self.user_name = ""
+
+    def move_cursor_up(self):
+        self.menu_current_index = (self.menu_current_index - 1) % len(self.menu_items)
+        
+    def move_cursor_down(self):
+        self.menu_current_index = (self.menu_current_index + 1) % len(self.menu_items)
+        
+    def select_menu_item(self):
+        selected_item = self.menu_items[self.menu_current_index]
+        # Perform action for selected item
+
+    def setXWidth(self, x):
+        self.xWidth = x
+
+    def setYHeight(self, y):
+        self.yHeight = y
 
     # Setter methods
     def setCursorX(self, x):
@@ -30,7 +52,6 @@ class SessionData:
 
     def setLocalInput(self, input):
         self.localinput = input
-        print("Set localinput to "+self.localinput)
         
     def setCurrentPos(self, pos):
         self.currentPos = pos
@@ -55,6 +76,10 @@ class SessionData:
 
         for char in char_array:
             uppercase_char_array.append(char.upper())
-        print("Assigned ")
-        print(uppercase_char_array)
         self.accept_keys = uppercase_char_array
+
+    def setMenuBox(self, menuBox):
+        self.menu_box = menuBox
+
+    def setUserName(self, username):
+        self_user_name = username

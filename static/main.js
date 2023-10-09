@@ -13,11 +13,6 @@ let LIMIT_TO_VISIBLE_WIDTH;
 let baseWidth;
 let baseHeight;
 
-function sleep(ms) {
-    var start = new Date().getTime(), expire = start + ms;
-    while (new Date().getTime() < expire) { }
-    return;
-  }
   function updateSizes(x, y) {
 
     TOTAL_WIDTH = x;
@@ -28,7 +23,6 @@ function sleep(ms) {
 
     baseWidth = VISIBLE_WIDTH_CHARACTERS*8;  // The total width space plus 8px for the scrollbar
     baseHeight = VISIBLE_HEIGHT_CHARACTERS*16; // 16px at the bottom for the scrollbar
-    console.log("X:"+x+" Y: "+y);
 
     if ( (mode=="html") || (mode=="timeline") ) {
 

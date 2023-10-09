@@ -2,6 +2,7 @@ from flask import request
 from userregistration import *
 from oneliners import *
 from datetime import datetime
+from menubox import *
 
 socketio = None  # Declare as a global variable
 mongo_client = None
@@ -60,28 +61,42 @@ def output(currentString, currentColor, backgroundColor):
 
 
 def passwordCallback(input):
-    goto_next_line()
-    bbs = OnelinerBBS(mongo_client, sid_data, goto_next_line, output, askYesNo, ask, wait, launchMenuCallback)
-    bbs.show_oneliners()
+    db = mongo_client['bbs']
+    users_collection = db['users']
+    
+    # Retrieve the user document based on the username saved in sid_data
+    user_document = users_collection.find_one({"username": sid_data.user_name})
+    
+    if user_document:
+        # Check if the password matches
+        if input == user_document.get('password'):  # Replace 'password' with the actual field name in your MongoDB document
+            goto_next_line()
+            bbs = OnelinerBBS(mongo_client, sid_data, goto_next_line, output, askYesNo, ask, wait, launchMenuCallback)
+            bbs.show_oneliners()
+        else:
+            goto_next_line()
+            output("Incorrect password. Try again: ", 3, 0)
+            askPassword(40, passwordCallback)  # Prompt again for the password
+    else:
+        # This should not happen, but just in case
+        goto_next_line()
+        output("User not found. Please re-enter username: ", 3, 0)
+        ask(40, usernameCallback)
 
 def usernameCallback(input):
     db = mongo_client['bbs']
     users_collection = db['users']
-    print("usernameCallback")
     if input == '':
         goto_next_line()
         output("Please enter your name: ", 3, 0)
         ask(40, usernameCallback)
         return
-    print("MONGO"+input)
     user_document = users_collection.find_one({"username": input})
-    print("MONGO")
+    sid_data.setUserName(input)
     goto_next_line()
 
-    print("MONGO2")
     if user_document:
         # User exists in the database
-        print("password")
         goto_next_line()
         sid_data.setInputType("password")
         output("Please enter your password: ", 3, 0)
@@ -90,9 +105,7 @@ def usernameCallback(input):
     else:
         # User doesn't exist in the database
         goto_next_line()
-        print("askYesNo")
         registration = UserRegistration(goto_next_line, ask, askPassword, askYesNo, output, usernameCallback, mongo_client, sid_data, wait, launchMenuCallback)
-    print("MONGO DONE")
 
 def map_value(value, list1, list2):
     try:
@@ -104,7 +117,8 @@ def map_value(value, list1, list2):
         return "Index out of range in list2"
 
 def launchMenuCallback():
-    output("MENU", 3,0)
+    sid_data.setCurrentAction("wait_for_menu")
+    sid_data.setMenuBox(MenuBox(sid_data, output, ask))
     
 def emit_gotoXY(x, y):
     sid = request.sid  # Get the Session ID
