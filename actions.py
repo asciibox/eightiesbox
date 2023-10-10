@@ -9,6 +9,7 @@ from ochre import ansi256  # Assuming this is where the colors list is defined
 from utils import *
 from flask import request
 from sessiondata import *
+import random
 
 socketio = None  # Declare as a global variable
 mongo_client = None
@@ -78,6 +79,48 @@ def init_action_listeners(sio, my_client, sdata):
 
     @socketio.on('input_keypress')
     def handle_keypress(data):
+        if sid_data.current_action == "wait_for_layered_menu":
+            key = data['key']
+            if sid_data.menu_box.in_sub_menu:  # in_sub_menu is a new attribute to check if you're in a sub-menu
+                if key == 'ArrowUp':
+                    sid_data.menu_box.sub_menu_arrow_up()
+                    
+                elif key == 'ArrowDown':
+                    sid_data.menu_box.sub_menu_arrow_down()
+                    
+                elif key == 'Enter':
+                    sid_data.menu_box.select_sub_menu_item()
+                    sid_data.menu_box.hide_sub_menu()
+                    sid_data.menu_box.hide_menu()
+                    sid_data.menu_box.in_sub_menu = False
+                    return
+                    
+                elif key == 'Escape':
+                    sid_data.menu_box.hide_sub_menu()
+                    sid_data.menu_box.in_sub_menu = False
+
+            else:
+                if key == 'ArrowLeft':
+                    sid_data.menu_box.main_arrow_left()
+                    
+                elif key == 'ArrowRight':
+                    sid_data.menu_box.main_arrow_right()
+                    
+                elif key == 'ArrowUp':
+                    sid_data.menu_box.main_arrow_up()
+                    
+                elif key == 'ArrowDown':
+                    sid_data.menu_box.main_arrow_down()
+                    
+                elif key == 'Enter':
+                    selected_main_menu = sid_data.menu_box.get_selected_main_menu()
+                    sid_data.menu_box.show_sub_menu()
+                    sid_data.menu_box.in_sub_menu = True
+                    return
+                    
+                elif key == 'Escape':
+                    sid_data.menu_box.hide_menu()
+
         if sid_data.current_action == "wait_for_menu":
             key = data['key']
             
@@ -95,6 +138,7 @@ def init_action_listeners(sio, my_client, sdata):
                 
             elif key == 'Enter':
                 sid_data.menu_box.edit_field()
+                return
             
             return
 
@@ -142,7 +186,6 @@ def init_action_listeners(sio, my_client, sdata):
                 return
                 
             if key == 'Enter':
-                print("CALLING CALLBACK")
                 sid_data.callback(sid_data.localinput)
                 return
 
