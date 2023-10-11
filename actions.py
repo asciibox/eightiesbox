@@ -10,6 +10,7 @@ from utils import *
 from flask import request
 from sessiondata import *
 import random
+from menubar import *
 
 socketio = None  # Declare as a global variable
 mongo_client = None
@@ -38,10 +39,10 @@ def keydown(key):
     if (sid_data.localinput == ''):
         sid_data.setLocalInput(sid_data.localinput + key)
         sid_data.setCurrentPos(sid_data.currentPos + 1)
-        output = sid_data.localinput
+        myoutput = sid_data.localinput
         if sid_data.inputType=='password':
-            output = "*"*len(output)
-        emit_current_string(output, 14, 4, False, sid_data.startX, sid_data.startY)
+            myoutput = "*"*len(myoutput)
+        emit_current_string(myoutput, 14, 4, False, sid_data.startX, sid_data.startY)
         sid_data.setCursorX(sid_data.cursorX + 1)
         emit_gotoXY(sid_data.cursorX, sid_data.cursorY)
             
@@ -51,10 +52,10 @@ def keydown(key):
         if len(sid_data.localinput) < sid_data.maxLength:
             sid_data.setLocalInput(sid_data.localinput[:sid_data.currentPos] + key + sid_data.localinput[sid_data.currentPos:])
             sid_data.setCurrentPos(sid_data.currentPos+ 1)
-            output = sid_data.localinput
+            myoutput = sid_data.localinput
             if sid_data.inputType=='password':
-                output = "*"*len(output)
-            emit_current_string(output, 14, 4, False, sid_data.startX, sid_data.startY)
+                myoutput = "*"*len(myoutput)
+            emit_current_string(myoutput, 14, 4, False, sid_data.startX, sid_data.startY)
             sid_data.setCursorX(sid_data.cursorX + 1)
             emit_gotoXY(sid_data.cursorX, sid_data.cursorY)
        
@@ -63,10 +64,10 @@ def keydown(key):
         if sid_data.currentPos < sid_data.maxLength:
             sid_data.setLocalInput(sid_data.localinput[:sid_data.currentPos] + key + sid_data.localinput[sid_data.currentPos + 1:])
             sid_data.setCurrentPos(sid_data.currentPos + 1)
-            output = sid_data.localinput
+            myoutput = sid_data.localinput
             if sid_data.inputType=='password':
-                output = "*"*len(output)
-            emit_current_string(output, 14, 4, False, sid_data.startX, sid_data.startY)
+                myoutput = "*"*len(myoutput)
+            emit_current_string(myoutput, 14, 4, False, sid_data.startX, sid_data.startY)
             sid_data.setCursorX(sid_data.cursorX + 1)
             emit_gotoXY(sid_data.cursorX, sid_data.cursorY)
       
@@ -79,10 +80,11 @@ def init_action_listeners(sio, my_client, sdata):
 
     @socketio.on('input_keypress')
     def handle_keypress(data):
+        print(sid_data.current_action)
         if sid_data.current_action == "wait_for_layered_menu":
             key = data['key']
             if sid_data.menu_box.in_sub_menu:  # in_sub_menu is a new attribute to check if you're in a sub-menu
-                if key == 'ArrowUp':
+                if key == 'ArrowUp': 
                     sid_data.menu_box.sub_menu_arrow_up()
                     
                 elif key == 'ArrowDown':
@@ -90,7 +92,6 @@ def init_action_listeners(sio, my_client, sdata):
                     
                 elif key == 'Enter':
                     sid_data.menu_box.select_sub_menu_item()
-                    sid_data.menu_box.hide_sub_menu()
                     sid_data.menu_box.hide_menu()
                     sid_data.menu_box.in_sub_menu = False
                     return
@@ -138,6 +139,36 @@ def init_action_listeners(sio, my_client, sdata):
                 
             elif key == 'Enter':
                 sid_data.menu_box.edit_field()
+                return
+
+            elif key == 'Escape':
+                sid_data.menu_bar = MenuBar(sid_data, output, ask, mongo_client, goto_next_line)
+                return
+            
+            return
+
+        if sid_data.current_action == "wait_for_menubar":
+            key = data['key']
+            
+            if key == 'ArrowLeft':
+                sid_data.menu_bar.arrow_left()
+                
+            elif key == 'ArrowRight':
+                sid_data.menu_bar.arrow_right()
+                
+            elif key == 'ArrowUp':
+                sid_data.menu_bar.arrow_up()
+                
+            elif key == 'ArrowDown':
+                sid_data.menu_bar.arrow_down()
+                
+            elif key == 'Enter':
+                sid_data.menu_bar.choose_field()
+                return
+
+            elif key == 'Escape':
+                sid_data.menu_bar.hide_menu_bar()
+                sid_data.setCurrentAction("wait_for_menu")
                 return
             
             return
@@ -195,10 +226,10 @@ def init_action_listeners(sio, my_client, sdata):
 
             if key == 'Delete':
                 sid_data.setLocalInput(sid_data.localinput[:sid_data.currentPos ] + sid_data.localinput[sid_data.currentPos+1:])
-                output = sid_data.localinput
+                myoutput = sid_data.localinput
                 if sid_data.inputType=='password':
-                    output = "*"*len(sid_data.localinput)
-                emit_current_string(output+" ", 14, 4, False, sid_data.startX, sid_data.startY)
+                    myoutput = "*"*len(sid_data.localinput)
+                emit_current_string(myoutput+" ", 14, 4, False, sid_data.startX, sid_data.startY)
                 emit_gotoXY(sid_data.cursorX, sid_data.cursorY)
                 return
                 
@@ -221,10 +252,10 @@ def init_action_listeners(sio, my_client, sdata):
                 # Your backspace logic here
                 if (sid_data.currentPos > 0):
                     sid_data.setLocalInput(sid_data.localinput[:-1])
-                    output = sid_data.localinput
+                    myoutput = sid_data.localinput
                     if sid_data.inputType=='password':
-                        output = "*"*len(sid_data.localinput)
-                    emit_current_string(output+" ", 14, 4, False, sid_data.startX, sid_data.startY)
+                        myoutput = "*"*len(sid_data.localinput)
+                    emit_current_string(myoutput+" ", 14, 4, False, sid_data.startX, sid_data.startY)
                     emit_gotoXY(sid_data.cursorX-1, sid_data.cursorY)
                     sid_data.setCurrentPos(sid_data.currentPos - 1)
                 return

@@ -117,7 +117,6 @@ def map_value(value, list1, list2):
         return "Index out of range in list2"
 
 def launchMenuCallback():
-    sid_data.setCurrentAction("wait_for_menu")
     sid_data.setMenuBox(MenuBox(sid_data, output, ask))
     
 def emit_gotoXY(x, y):

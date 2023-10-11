@@ -1,6 +1,7 @@
 class MenuBox:
     def __init__(self, sid_data, output_function, ask_function):
         self.sid_data = sid_data
+        sid_data.setCurrentAction("wait_for_menu")
         self.output = output_function
         # navigation on the menu on top of the list
         self.ask = ask_function
@@ -168,7 +169,6 @@ class MenuBox:
 
     def show_sub_menu(self):
         self.in_sub_menu = True
-        print("SELF.CURRENT_MAIN_INDEX:"+str(self.current_main_index))
         selected_main_menu = list(self.menu_structure.keys())[self.current_main_index]
         self.current_sub_menu = self.menu_structure[selected_main_menu]
         self.current_sub_index = 0  # Resetting sub menu index
@@ -185,7 +185,14 @@ class MenuBox:
         self.draw_sub_menu()
 
     def select_sub_menu_item(self):
-        selected_item = self.current_sub_menu[self.current_sub_index]
+        field_idx = self.current_field_index
+        first_field = ""
+        if self.current_main_index!=0:
+            first_field = str(self.current_main_index)
+        value = first_field+str(self.current_sub_index+1)
+        self.values[self.current_row_index][field_idx] = value
+        
+        self.draw_row(self.current_row_index)  # Only redraw the updated row
         # Handle the action associated with the selected item
         return
         
@@ -230,4 +237,12 @@ class MenuBox:
 
     def get_selected_main_menu(self):
         # Convert dictionary keys to a list and then return the item at the current index
-        return list(self.menu_structure.keys())[self.current_row_index]
+        return list(self.menu_structure.keys())[self.current_main_index]
+
+    def new_menu(self):
+        for row in self.values:
+            for i, field in enumerate(self.fields):
+                row[i] = ''  # Reset value
+
+        self.draw_row(self.current_row_index)  # Redraw the updated row
+        self.draw_all_rows()

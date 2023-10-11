@@ -6,6 +6,7 @@ from actions import *
 from utils import *
 from sessiondata import *
 from pymongo import MongoClient
+from menubox import *
 
 app = Flask(__name__)
 socketio = SocketIO(app)
@@ -56,11 +57,12 @@ def onload(data):
     sid_data[request.sid].setXWidth(x)
     y = data.get('y')
     sid_data[request.sid].setYHeight(y)
-    data2 = { 'filename' : startFile+'-'+str(x)+'x'+str(y), 'x' : x, 'y': y}
-    show_file(data2)
-    goto_next_line()
-    output("Please enter your name: ", 3, 0)
-    ask(40, usernameCallback)
+    sid_data[request.sid].setMenuBox(MenuBox(sid_data[request.sid], output, ask))
+    #data2 = { 'filename' : startFile+'-'+str(x)+'x'+str(y), 'x' : x, 'y': y}
+    #show_file(data2)
+    #goto_next_line()
+    #output("Please enter your name: ", 3, 0)
+    #ask(40, usernameCallback)
 
 
 @socketio.on('disconnect')
