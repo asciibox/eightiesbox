@@ -142,7 +142,7 @@ def init_action_listeners(sio, my_client, sdata):
                 return
 
             elif key == 'Escape':
-                sid_data.menu_bar = MenuBar(sid_data, output, ask, mongo_client, goto_next_line)
+                sid_data.setMenuBar(MenuBar(sid_data, output, ask, mongo_client, goto_next_line, clear_screen, emit_gotoXY))
                 return
             
             return
@@ -180,6 +180,10 @@ def init_action_listeners(sio, my_client, sdata):
             return
         elif (sid_data.current_action == "wait_for_any_button"):
             sid_data.callback()
+            return
+        elif (sid_data.current_action == "wait_for_menutexteditor"):
+            sid_data.menutexteditor.handle_key(data['key'])
+            return
         elif (sid_data.current_action == "wait_for_input"):
             key = data['key']
 
@@ -213,7 +217,7 @@ def init_action_listeners(sio, my_client, sdata):
                 return
 
             
-            if key == 'Alt' or key =='AltGraph' or key =='Shift' or key == 'Control' or key == 'Dead' or key == 'ArrowDown' or key =='ArrowUp':
+            if key == 'Alt' or key =='AltGraph' or key =='Shift' or key == 'Control' or key == 'Dead' or key == 'ArrowDown' or key =='ArrowUp' or key =='CapsLock' or key=='Tab':
                 return
                 
             if key == 'Enter':

@@ -6,14 +6,16 @@ let drawing = false;
 // Listen for 'draw' events from the server
 socket.on('draw', async (data) => {
     //console.log(data);
-    if (drawing) return;
-    drawing = true;
+    
 
     // console.log(data.ascii_codes+" currentColor:"+data.currentColor+" data.backgroundColor: "+data.backgroundColor+" data.x:"+data.x+" data.y:"+data.y);
     await writeAsciiHTMLPos(data.ascii_codes, data.currentColor, data.backgroundColor, data.x, data.y);
-    drawing = false;
 });
 
 socket.on('initPage', (data) => {
     initPage(data);
+});
+
+socket.on('clear', (data) => {
+    clearScreen();
 });

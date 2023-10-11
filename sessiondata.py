@@ -17,9 +17,13 @@ class SessionData:
         self.menu_current_index = 0  # To keep track of the current selected menu item
         self.menu_items = []  # To hold the menu items
         self.menu_box = None
+        self.menutexteditor = None
         self.xWidth = 0
         self.yHeight = 0
         self.user_name = ""
+        self.menu_bar = None
+        self.input_values = []
+
 
     def move_cursor_up(self):
         self.menu_current_index = (self.menu_current_index - 1) % len(self.menu_items)
@@ -83,3 +87,9 @@ class SessionData:
 
     def setUserName(self, username):
         self_user_name = username
+
+    def setMenuTextEditor(self, menutexteditor):
+        self.menutexteditor = menutexteditor
+
+    def setMenuBar(self, menu_bar):
+        self.menu_bar = menu_bar

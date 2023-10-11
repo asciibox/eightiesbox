@@ -722,6 +722,7 @@ function clearLine(y) {
   function writeAsciiHTMLPos(ascii_codes, currentColor, backgroundColor, x, y) {
     
     return new Promise((resolve, reject) => {
+        console.log("writeASCIIHTMLPOS");
         if (enableScrolling) {
             if (y < TOTAL_HEIGHT_CHARACTERS) {
                 maxReachedY = y;
@@ -747,7 +748,7 @@ function clearLine(y) {
                 clearLine(y - removedYChars);
             }
         }
-
+        console.log("LEN:"+ascii_codes.length);
         if (ascii_codes.length==0) {
             
             currentX = x;
