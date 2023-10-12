@@ -11,15 +11,16 @@ class MenuBar:
         self.ask = ask_function
         self.goto_next_line = goto_next_line
         self.emit_gotoXY = emit_gotoXY
+        self.opened_menu = False
 
         self.current_main_menu_index = 0
-        self.current_sub_menu_index = 0
         self.in_sub_menu = False  # Flag to determine if in sub-menu
         
         self.current_x = 0  # To keep track of the current x-coordinate
         
         # Define main menu and sub-menus
         self.main_menu = ['File', 'Edit']
+        self.current_sub_menu_indexes = [0,0]
         self.sub_menus = {
             'File': ['Load menu', 'Save menu', 'New menu', 'Delete menu'],
             'Edit': ['Edit text', 'Simulate text', 'Clear text', 'View text', 'Leave menu bar'],
@@ -74,7 +75,7 @@ class MenuBar:
             self.sid_data.setStartX(self.current_x)
             self.sid_data.setStartY(1 + idx)
 
-            color = 1 if idx == self.current_sub_menu_index else 7  # Highlight if this sub-menu item is selected
+            color = 1 if idx == self.current_sub_menu_indexes[self.current_main_menu_index] else 7  # Highlight if this sub-menu item is selected
             self.output(item, color, 0)
 
     def hide_menu(self):
@@ -95,27 +96,32 @@ class MenuBar:
         self.hide_menu()
         self.current_main_menu_index = (self.current_main_menu_index - 1) % len(self.main_menu)
         self.draw_menu_bar()
+        self.in_sub_menu = True
         self.draw_sub_menu()
 
     def arrow_right(self):
         self.hide_menu()
         self.current_main_menu_index = (self.current_main_menu_index + 1) % len(self.main_menu)
         self.draw_menu_bar()
+        self.in_sub_menu = True
         self.draw_sub_menu()
 
     def arrow_up(self):
-        if self.in_sub_menu:
-            self.current_sub_menu_index = (self.current_sub_menu_index - 1) % len(self.sub_menus[self.main_menu[self.current_main_menu_index]])
+            current_menu = self.current_main_menu_index
+            self.current_sub_menu_indexes[current_menu] = (self.current_sub_menu_indexes[current_menu] - 1) % len(self.sub_menus[self.main_menu[self.current_main_menu_index]])
             self.draw_sub_menu()
+            self.in_sub_menu = True
 
     def arrow_down(self):
-        if self.in_sub_menu:
-            self.current_sub_menu_index = (self.current_sub_menu_index + 1) % len(self.sub_menus[self.main_menu[self.current_main_menu_index]])
+            current_menu = self.current_main_menu_index
+            self.current_sub_menu_indexes[current_menu] = (self.current_sub_menu_indexes[current_menu] + 1) % len(self.sub_menus[self.main_menu[self.current_main_menu_index]])
             self.draw_sub_menu()
+            self.in_sub_menu = True
 
     def choose_field(self):
         if self.in_sub_menu:
-            selected_option = self.sub_menus[self.main_menu[self.current_main_menu_index]][self.current_sub_menu_index]
+            current_menu = self.current_main_menu_index
+            selected_option = self.sub_menus[self.main_menu[self.current_main_menu_index]][self.current_sub_menu_indexes[current_menu]]
             if selected_option=="Leave menu bar":
                 self.hide_menu_bar()
             elif selected_option=="Load menu":
