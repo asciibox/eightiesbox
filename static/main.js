@@ -545,6 +545,7 @@ function redrawStep() {
     {
         var key = e.key;
         handleKeyCode(key);
+        e.preventDefault();
     },
     false);
 
@@ -762,6 +763,8 @@ function clearLine(y) {
            
             for (var i = 0; i < ascii_codes.length; i++) {
                 var index = getCharIndex(currentColor, ascii_codes[i]);
+
+
                 draw(index, x + i, y, currentColor);
                 console.log(index);
                 var charIndex = getCharIndex(backgroundColor, 219);

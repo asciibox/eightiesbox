@@ -18,19 +18,7 @@ mongo_client = None
 current_action = None
 sid_data = None
 
-def code():
-    codestring = ""
-    for i in range(128, 256):
-        codestring += f"{i}:{chr(i)} "
-    
-    startX = 0  # Assuming startX starts at 0, change as needed
-    startY = 0  # Assuming startY starts at 0, change as needed
-    
-    slice_length = 10  # Number of codes per slice
-    for i in range(0, len(codestring), slice_length * 4):  # 4 characters per code (e.g., "128:A ")
-        slice_str = codestring[i:i + slice_length * 4]
-        emit_current_string(slice_str, 14, 4, False, startX, startY)
-        startY += 1  # Increment startY by 1
+
 
 
 def keydown(key):
