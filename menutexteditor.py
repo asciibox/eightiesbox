@@ -35,40 +35,37 @@ class MenuTextEditor:
         self.update_first_line()
         self.display_editor()
 
+
     def output_with_color(self, x, y, text, color):
         # Initialize variables to keep track of current color and text batch
-        current_color = None
+        current_color = color  # Initialize to the input color
         current_text = ""
 
         for idx, char in enumerate(text):
             cur_x = x + idx
-            cur_y = y
-
-            print(str(cur_y)+"<"+str(len(self.sid_data.color_array)))
-            if cur_y < len(self.sid_data.color_array):
-                print(str(cur_x)+"<"+str(len(self.sid_data.color_array[cur_y])))
+            cur_y = y -1
 
             # Safely get stored color for the current position
-            if cur_y < len(self.color_array) and cur_x < len(self.color_array[cur_y]):
-                stored_color = self.color_array[cur_y][cur_x]
+            if cur_y < len(self.sid_data.color_array) and cur_x < len(self.sid_data.color_array[cur_y]):
+                stored_color = self.sid_data.color_array[cur_y][cur_x]
             else:
                 stored_color = None
 
             # Check if color at the current position matches the new color
-            if stored_color is None or stored_color != color:
-                # If the color changes, output the current text batch and update current color and text
+            if stored_color is not None and stored_color != color:
+                # If the color changes, output the current text batch
                 if current_text:
                     self.output(current_text, current_color, 0)
-                current_color = color
+                # Reset current_text and update the current_color
                 current_text = char
+                current_color = stored_color
             else:
-                # If the color stays the same, append the character to the current text batch
+                # If the color is the same, append the character to the current text batch
                 current_text += char
 
         # Output any remaining text
         if current_text:
             self.output(current_text, current_color, 0)
-
 
     def display_editor(self):
         for idx, char_list in enumerate(self.sid_data.menu_box.values):
