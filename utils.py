@@ -141,16 +141,28 @@ def emit_current_string(currentString, currentColor, backgroundColor, blink, x, 
     sid = request.sid  # Get the Session ID
     if currentString:
         ascii_codes = [ord(char) for char in currentString]
-        mapped_ascii_codes = [map_value(code, list2, list1) for code in ascii_codes]
-        
-        socketio.emit('draw', {
-            'ascii_codes': mapped_ascii_codes,
-            'currentColor': currentColor,
-            'backgroundColor': backgroundColor,
-            'blink': blink,
-            'x': x,
-            'y': y
-        }, room=sid)
+
+        if sid_data.map_character_set == True:
+            mapped_ascii_codes = [map_value(code, list2, list1) for code in ascii_codes]
+            
+            socketio.emit('draw', {
+                'ascii_codes': mapped_ascii_codes,
+                'currentColor': currentColor,
+                'backgroundColor': backgroundColor,
+                'blink': blink,
+                'x': x,
+                'y': y
+            }, room=sid)
+        else:
+            socketio.emit('draw', {
+                'ascii_codes': ascii_codes,
+                'currentColor': currentColor,
+                'backgroundColor': backgroundColor,
+                'blink': blink,
+                'x': x,
+                'y': y
+            }, room=sid)
+
     return []
 
 def strip_sauce(text):

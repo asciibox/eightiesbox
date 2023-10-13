@@ -1,23 +1,9 @@
 class MenuTextEditor:
     def __init__(self, sid_data, output_function, ask_function, goto_next_line, clear_screen, emit_gotoXY):
-        self.characterSet = 0
-        self.foregroundColor = 7
-        self.clear_screen = clear_screen
-        self.sid_data = sid_data
-        self.output = output_function
-        self.ask = ask_function
-        self.goto_next_line = goto_next_line
-        self.emit_gotoXY = emit_gotoXY
-
-        self.current_line_index = 0  # For navigating vertically among characters
-        self.current_line_x = 1
-        self.clear_screen()
-        self.display_editor()
-
         self.keys = {
             0: [49, 50, 51, 52, 53, 54, 55, 56, 57, 48],
             1: [218, 191, 192, 217, 196, 179, 195, 180, 193, 194],
-            2: [201, 203, 200, 188, 205, 186, 204, 185, 202, 203],
+            2: [201, 187, 200, 188, 205, 186, 204, 185, 202, 203],
             3: [251, 184, 212, 190, 205, 179, 198, 181, 207, 209],
             4: [161, 183, 211, 135, 179, 186, 199, 182, 208, 144],
             5: [197, 206, 139, 140, 232, 163, 155, 156, 153, 239],
@@ -33,34 +19,73 @@ class MenuTextEditor:
             15: [147, 148, 149, 224, 167, 150, 129, 151, 163, 154]
         }
 
-    def code(self):
-        codestring = ""
-        for i in range(1, 256):
-            codestring += f"{i}:{chr(i)} "
-        
-        startX = 0  # Assuming startX starts at 0, change as needed
-        startY = 0  # Assuming startY starts at 0, change as needed
-        
-        slice_length = 10  # Number of codes per slice
-        for i in range(0, len(codestring), slice_length * 4):  # 4 characters per code (e.g., "128:A ")
-            slice_str = codestring[i:i + slice_length * 4]
-            self.sid_data.setStartX(startX);
-            self.sid_data.setStartY(startY+1);
-            self.output(slice_str, 14, 4)
-            startY += 1  # Increment startY by 1
+        self.characterSet = 0
+        self.foregroundColor = 7
+        self.clear_screen = clear_screen
+        self.sid_data = sid_data
+        self.output = output_function
+        self.ask = ask_function
+        self.goto_next_line = goto_next_line
+        self.emit_gotoXY = emit_gotoXY
+
+        self.current_line_index = 0  # For navigating vertically among characters
+        self.current_line_x = 1
+
+        self.clear_screen()
+        self.update_first_line()
+        self.display_editor()
+
+    def output_with_color(self, x, y, text, color):
+        # Initialize variables to keep track of current color and text batch
+        current_color = None
+        current_text = ""
+
+        for idx, char in enumerate(text):
+            cur_x = x + idx
+            cur_y = y
+
+            print(str(cur_y)+"<"+str(len(self.sid_data.color_array)))
+            if cur_y < len(self.sid_data.color_array):
+                print(str(cur_x)+"<"+str(len(self.sid_data.color_array[cur_y])))
+
+            # Safely get stored color for the current position
+            if cur_y < len(self.color_array) and cur_x < len(self.color_array[cur_y]):
+                stored_color = self.color_array[cur_y][cur_x]
+            else:
+                stored_color = None
+
+            # Check if color at the current position matches the new color
+            if stored_color is None or stored_color != color:
+                # If the color changes, output the current text batch and update current color and text
+                if current_text:
+                    self.output(current_text, current_color, 0)
+                current_color = color
+                current_text = char
+            else:
+                # If the color stays the same, append the character to the current text batch
+                current_text += char
+
+        # Output any remaining text
+        if current_text:
+            self.output(current_text, current_color, 0)
 
 
     def display_editor(self):
         for idx, char_list in enumerate(self.sid_data.menu_box.values):
             char_value = char_list[2]  # Assuming the 'Key' field is the character.
             self.sid_data.setStartX(0)
-            print("setStartY:"+str(idx))
-            self.sid_data.setStartY(idx+1)
-            self.output(char_value, 6, 0)  # Display the key on the left
+            self.sid_data.setStartY(idx + 1)
+
+            # Display the key on the left with color 6
+            self.output_with_color(self.sid_data.cursorX, idx, char_value, 6)
             self.sid_data.setStartX(2)
-            print("len(self.input_values):"+str(len(self.sid_data.input_values)))
+
             if idx < len(self.sid_data.input_values):
-                self.output(self.sid_data.input_values[idx], 6, 0)  # Display the key on the left
+                # Display the input values with color 6
+                print("PRINTING");
+                print(self.sid_data.input_values[idx])
+                self.output_with_color(self.sid_data.startX, self.sid_data.startY, self.sid_data.input_values[idx], 6)
+
         print("display editor called")
         self.emit_gotoXY(1, 1)
 
@@ -102,7 +127,7 @@ class MenuTextEditor:
             return
 
         elif key == 'Alt':
-            self.code()
+            print(self.sid_data.input_values[self.current_line_index])
             self.characterSet = self.characterSet + 1
             if self.characterSet > 14:
                 self.characterSet = 0
@@ -120,7 +145,7 @@ class MenuTextEditor:
                 # Assign the new string back to the list
                 self.sid_data.input_values[self.current_line_index] = new_str
                 self.sid_data.setStartX(self.current_line_x-1)
-                self.output(' ', 7,0 )
+                self.output(' ', 7, 0 )
                 self.current_line_x -= 1
                 self.emit_gotoXY(self.current_line_x, self.current_line_index+1)
 
@@ -163,7 +188,7 @@ class MenuTextEditor:
 
         # Handle character input
         if len(key) == 1:  # Check if it's a single character input
-
+            current_x = self.current_line_x -1
             while len(self.sid_data.input_values) <= self.current_line_index:
                 self.sid_data.input_values.append("")
 
@@ -172,13 +197,13 @@ class MenuTextEditor:
             # Get the current string at the specified line index
             current_str = self.sid_data.input_values[self.current_line_index]
 
-            # Check if the length of current_str[:self.current_line_x] is shorter than the position of self.current_line_x
-            if len(current_str) <= self.current_line_x:
-                # Pad current_str with spaces until its length matches self.current_line_x
-                current_str += ' ' * (self.current_line_x - len(current_str) + 1)
+            # Check if the length of current_str[:current_x] is shorter than the position of current_x
+            if len(current_str) <= current_x:
+                # Pad current_str with spaces until its length matches current_x
+                current_str += ' ' * (current_x - len(current_str) + 1)
 
             # Construct a new string with the changed character
-            new_str = current_str[:self.current_line_x] + key + current_str[self.current_line_x + 1:]
+            new_str = current_str[:current_x] + key + current_str[current_x + 1:]
 
             # Assign the new string back to the list
             self.sid_data.input_values[self.current_line_index] = new_str
@@ -186,7 +211,8 @@ class MenuTextEditor:
             self.sid_data.setStartX(self.current_line_x)
             self.sid_data.setStartY(self.current_line_index+1)
 
-            self.output(key, 7,0 )
+            self.output(key, self.foregroundColor, 0 )
+            self.set_color_at_position(current_x, self.current_line_index, self.foregroundColor)
             self.current_line_x = self.current_line_x+1
 
     def update_first_line(self):
@@ -207,7 +233,22 @@ class MenuTextEditor:
             self.output(f'{num}=', 7, 0)
             self.output(chr(self.keys[self.characterSet][idx])+" ", 7, 0)
 
+        padded_characterSet = str(self.characterSet+1).zfill(2)
+        self.output(padded_characterSet, 6, 0)
+
         # You may want to reset the cursor to its original position after updating the line
         # Assuming self.sid_data.cursorX and self.sid_data.cursorY store the original cursor position
         self.sid_data.setStartX(self.sid_data.cursorX)
         self.sid_data.setStartY(self.sid_data.cursorY)
+
+    def set_color_at_position(self, x, y, color):
+        # Expand the array to fit the given coordinates, if necessary
+        while len(self.sid_data.color_array) <= y:
+            self.sid_data.color_array.append([])
+
+        while len(self.sid_data.color_array[y]) <= x:
+            self.sid_data.color_array[y].append(None)
+
+        # Set the color at the given coordinates
+        self.sid_data.color_array[y][x] = color
+        print(self.sid_data.color_array)

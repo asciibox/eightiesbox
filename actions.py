@@ -170,6 +170,7 @@ def init_action_listeners(sio, my_client, sdata):
             sid_data.callback()
             return
         elif (sid_data.current_action == "wait_for_menutexteditor"):
+            print(sid_data)
             sid_data.menutexteditor.handle_key(data['key'])
             return
         elif (sid_data.current_action == "wait_for_input"):
@@ -264,6 +265,7 @@ def init_action_listeners(sio, my_client, sdata):
 
 def show_file(data):
 
+    sid_data.setMapCharacterSet(True)
     currentColor = 15
     backgroundColor = 0
     current_action = "show_file"
@@ -400,9 +402,7 @@ def show_file(data):
                 sid_data.setStartX(posX)
                 sid_data.setStartY(posY)
                 continue
-                
-
-
-
-
+        
         emit_current_string(currentString, currentColor, backgroundColor, blink, sid_data.startX, sid_data.startY)
+
+        sid_data.setMapCharacterSet(False)

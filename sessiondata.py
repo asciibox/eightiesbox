@@ -23,6 +23,9 @@ class SessionData:
         self.user_name = ""
         self.menu_bar = None
         self.input_values = []
+        self.map_character_set = False
+        self.color_array = []  # Initialize an empty 2D array
+        
 
 
     def move_cursor_up(self):
@@ -93,3 +96,6 @@ class SessionData:
 
     def setMenuBar(self, menu_bar):
         self.menu_bar = menu_bar
+
+    def setMapCharacterSet(self, value):
+        self.map_character_set = value
