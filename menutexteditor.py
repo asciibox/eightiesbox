@@ -75,7 +75,7 @@ class MenuTextEditor:
 
             # Display the key on the left with color 6
             self.output_with_color(self.sid_data.cursorX, idx, char_value, 6)
-            self.sid_data.setStartX(2)
+            self.sid_data.setStartX(1)
 
             if idx < len(self.sid_data.input_values):
                 # Display the input values with color 6
