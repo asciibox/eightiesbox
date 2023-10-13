@@ -1,5 +1,7 @@
+from menubar import *
+
 class MenuBox:
-    def __init__(self, sid_data, output_function, ask_function):
+    def __init__(self, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line):
         self.sid_data = sid_data
         sid_data.setCurrentAction("wait_for_menu")
         self.output = output_function
@@ -14,11 +16,17 @@ class MenuBox:
         self.fields = ['Type', 'Data', 'Key', 'Sec', 'Flags']
         self.fields_length = [3, 20, 4, 6, 36]
 
+        self.mongo_client = mongo_client
+        self.goto_next_line = goto_next_line
+        self.clear_screen = clear_screen
+        self.emit_gotoXY = emit_gotoXY
+        self.clear_line = clear_line
+
         self.num_rows = 50
 
         # Initialize a 2D array to hold values for each field and each row.
         self.values = [["" for _ in self.fields] for _ in range(self.num_rows)]
-
+        self.clear_screen()
         self.draw_all_rows()
 
         self.menu_structure = {
@@ -113,10 +121,13 @@ class MenuBox:
         self.draw_row(self.current_row_index)  # Redraw same line as it has moved horizontally
 
     def arrow_up(self):
-        prev_row_idx = self.current_row_index
-        self.current_row_index = (self.current_row_index - 1) % self.num_rows
-        self.draw_row(prev_row_idx)  # Redraw the previous line
-        self.draw_row(self.current_row_index)  # Redraw the new line
+        if self.current_row_index >= 1:
+            prev_row_idx = self.current_row_index
+            self.current_row_index = (self.current_row_index - 1) % self.num_rows
+            self.draw_row(prev_row_idx)  # Redraw the previous line
+            self.draw_row(self.current_row_index)  # Redraw the new line
+        else:
+            self.sid_data.setMenuBar(MenuBar(self.sid_data, self.output, self.ask, self.mongo_client, self.goto_next_line, self.clear_screen, self.emit_gotoXY, self.clear_line))
 
     def arrow_down(self):
         prev_row_idx = self.current_row_index

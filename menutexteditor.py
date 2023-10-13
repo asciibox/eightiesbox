@@ -1,3 +1,5 @@
+from menu2ansi import *
+
 class MenuTextEditor:
     def __init__(self, sid_data, output_function, ask_function, goto_next_line, clear_screen, emit_gotoXY, clear_line):
         self.keys = {
@@ -18,7 +20,11 @@ class MenuTextEditor:
             14: [136, 137, 138, 130, 144, 140, 139, 141, 161, 158],
             15: [147, 148, 149, 224, 167, 150, 129, 151, 163, 154]
         }
-
+        self.color_mapping = [
+            'black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white'
+        ]
+        
+        self.ansi_string = ""
         self.characterSet = 0
         self.foregroundColor = 7
         self.clear_screen = clear_screen
@@ -35,7 +41,13 @@ class MenuTextEditor:
         self.clear_screen()
         self.update_first_line()
         self.display_editor()
-        
+    
+    
+    def display_editor(self):
+        for idx, _ in enumerate(self.sid_data.menu_box.values):
+            self.draw_line(idx)
+        self.emit_gotoXY(1, 1)
+
 
     def draw_line(self, line_index):
         # Display the key on the left with color 6
@@ -51,7 +63,6 @@ class MenuTextEditor:
 
 
     def output_with_color(self, x, y, text, color):
-        print("TEXT:"+text)
         if text == None or text == "":
             return
         # Initialize variables to keep track of current color and text batch
@@ -83,15 +94,10 @@ class MenuTextEditor:
 
         # Output any remaining text
         if current_text:
-            print("OUTPUT:"+text)
             self.output(current_text, current_color, 0)
        
 
-    def display_editor(self):
-        for idx, _ in enumerate(self.sid_data.menu_box.values):
-            self.draw_line(idx)
-        self.emit_gotoXY(1, 1)
-
+  
 
     def handle_key(self, key):
         print("handle key claled")
@@ -131,7 +137,7 @@ class MenuTextEditor:
             return
 
         elif key == 'Alt':
-            print(self.sid_data.input_values[self.current_line_index])
+            self.display_ansi()
             self.characterSet = self.characterSet + 1
             if self.characterSet > 14:
                 self.characterSet = 0
@@ -286,4 +292,59 @@ class MenuTextEditor:
 
         # Set the color at the given coordinates
         self.sid_data.color_array[y][x] = color
-        print(self.sid_data.color_array)
+
+
+    def display_ansi(self):
+        print("dispaly_ansi")
+        self.ansi_string = ""
+        self.current_color = 7
+        for idx, _ in enumerate(self.sid_data.menu_box.values):
+            self.draw_ansi_line(idx)
+        with open("ansi_output.ans", "w") as f:
+            f.write(self.ansi_string + '\n')
+
+    def draw_ansi_line(self, line_index):
+        print("draw_ansi_line")
+        if line_index < len(self.sid_data.input_values):
+            self.output_ansi_with_color(1, line_index, self.sid_data.input_values[line_index])
+
+    def output_ansi_with_color(self, x, y, text):
+        if not text:
+            return
+
+        self.current_color = -1  # Starting with no color set
+        current_text = ""
+
+        self.ansi_string += cursor_to(x, y)
+
+        for idx, char in enumerate(text):
+            cur_x = x + idx
+            cur_y = y
+            
+            if cur_y < len(self.sid_data.color_array) and cur_x < len(self.sid_data.color_array[cur_y]):
+                stored_color = self.sid_data.color_array[cur_y][cur_x]
+            else:
+                stored_color = None
+
+            if stored_color != self.current_color:
+                if current_text:
+                    self.ansi_string += self._get_ansi_sequence(self.current_color) + current_text
+                    current_text = ""
+                self.current_color = stored_color
+
+            current_text += char
+
+        if current_text:
+            self.ansi_string += self._get_ansi_sequence(self.current_color) + current_text
+
+    def _get_ansi_sequence(self, color):
+        if color is None:
+            return ""
+        if 0 <= color <= 7:
+            return "\033[22;{}m".format(30 + color)  # Reset bold and set standard colors
+        elif 8 <= color <= 15:
+            return "\033[1;{}m".format(30 + (color - 8))  # Bold for bright colors
+        return ""
+
+
+            

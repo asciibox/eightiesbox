@@ -117,7 +117,7 @@ def map_value(value, list1, list2):
         return "Index out of range in list2"
 
 def launchMenuCallback():
-    sid_data.setMenuBox(MenuBox(sid_data, output, ask))
+    sid_data.setMenuBox(MenuBox(sid_data, output, ask, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line))
     
 def emit_gotoXY(x, y):
     sid = request.sid  # Get the Session ID
