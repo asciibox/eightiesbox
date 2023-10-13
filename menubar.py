@@ -2,7 +2,7 @@ from pymongo import MongoClient
 from menutexteditor import *
 
 class MenuBar:
-    def __init__(self, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY):
+    def __init__(self, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line):
         self.mongo_client = mongo_client
         self.clear_screen = clear_screen
         self.sid_data = sid_data
@@ -17,6 +17,7 @@ class MenuBar:
         self.in_sub_menu = False  # Flag to determine if in sub-menu
         
         self.current_x = 0  # To keep track of the current x-coordinate
+        self.clear_line = clear_line
         
         # Define main menu and sub-menus
         self.main_menu = ['File', 'Edit']
@@ -319,4 +320,4 @@ class MenuBar:
 
     def edit_text(self):
         self.sid_data.setCurrentAction("wait_for_menutexteditor")
-        self.sid_data.setMenuTextEditor(MenuTextEditor(self.sid_data, self.output, self.ask, self.goto_next_line, self.clear_screen, self.emit_gotoXY))
+        self.sid_data.setMenuTextEditor(MenuTextEditor(self.sid_data, self.output, self.ask, self.goto_next_line, self.clear_screen, self.emit_gotoXY, self.clear_line))

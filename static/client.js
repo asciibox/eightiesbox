@@ -19,3 +19,7 @@ socket.on('initPage', (data) => {
 socket.on('clear', (data) => {
     clearScreen();
 });
+
+socket.on('clearline', (data) => {
+    clearLine(data.y);
+});

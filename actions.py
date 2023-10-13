@@ -130,7 +130,7 @@ def init_action_listeners(sio, my_client, sdata):
                 return
 
             elif key == 'Escape':
-                sid_data.setMenuBar(MenuBar(sid_data, output, ask, mongo_client, goto_next_line, clear_screen, emit_gotoXY))
+                sid_data.setMenuBar(MenuBar(sid_data, output, ask, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line))
                 return
             
             return
@@ -206,7 +206,7 @@ def init_action_listeners(sio, my_client, sdata):
                 return
 
             
-            if key == 'Alt' or key =='AltGraph' or key =='Shift' or key == 'Control' or key == 'Dead' or key == 'ArrowDown' or key =='ArrowUp' or key =='CapsLock' or key=='Tab':
+            if key == 'Alt' or key=='Escape' or key =='AltGraph' or key =='Shift' or key == 'Control' or key == 'Dead' or key == 'ArrowDown' or key =='ArrowUp' or key =='CapsLock' or key=='Tab':
                 return
                 
             if key == 'Enter':

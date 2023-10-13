@@ -18,6 +18,7 @@ class MenuBox:
 
         # Initialize a 2D array to hold values for each field and each row.
         self.values = [["" for _ in self.fields] for _ in range(self.num_rows)]
+
         self.draw_all_rows()
 
         self.menu_structure = {

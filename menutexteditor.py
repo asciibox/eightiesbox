@@ -1,5 +1,5 @@
 class MenuTextEditor:
-    def __init__(self, sid_data, output_function, ask_function, goto_next_line, clear_screen, emit_gotoXY):
+    def __init__(self, sid_data, output_function, ask_function, goto_next_line, clear_screen, emit_gotoXY, clear_line):
         self.keys = {
             0: [49, 50, 51, 52, 53, 54, 55, 56, 57, 48],
             1: [218, 191, 192, 217, 196, 179, 195, 180, 193, 194],
@@ -30,13 +30,30 @@ class MenuTextEditor:
 
         self.current_line_index = 0  # For navigating vertically among characters
         self.current_line_x = 1
+        self.clear_line = clear_line
 
         self.clear_screen()
         self.update_first_line()
         self.display_editor()
+        
+
+    def draw_line(self, line_index):
+        # Display the key on the left with color 6
+        char_value = self.sid_data.menu_box.values[line_index][2]  # Assuming 'Key' field is the character.
+        self.sid_data.setStartX(0)
+        self.sid_data.setStartY(line_index + 1)
+        self.output_with_color(0, line_index + 1, char_value, 6)
+        
+        # Display the input value with color 6
+        self.sid_data.setStartX(1)
+        if line_index < len(self.sid_data.input_values):
+            self.output_with_color(1, line_index + 1, self.sid_data.input_values[line_index], None)
 
 
     def output_with_color(self, x, y, text, color):
+        print("TEXT:"+text)
+        if text == None or text == "":
+            return
         # Initialize variables to keep track of current color and text batch
         current_color = color  # Initialize to the input color
         current_text = ""
@@ -56,6 +73,7 @@ class MenuTextEditor:
                 # If the color changes, output the current text batch
                 if current_text:
                     self.output(current_text, current_color, 0)
+
                 # Reset current_text and update the current_color
                 current_text = char
                 current_color = stored_color
@@ -65,26 +83,15 @@ class MenuTextEditor:
 
         # Output any remaining text
         if current_text:
+            print("OUTPUT:"+text)
             self.output(current_text, current_color, 0)
+       
 
     def display_editor(self):
-        for idx, char_list in enumerate(self.sid_data.menu_box.values):
-            char_value = char_list[2]  # Assuming the 'Key' field is the character.
-            self.sid_data.setStartX(0)
-            self.sid_data.setStartY(idx + 1)
-
-            # Display the key on the left with color 6
-            self.output_with_color(self.sid_data.cursorX, idx, char_value, 6)
-            self.sid_data.setStartX(1)
-
-            if idx < len(self.sid_data.input_values):
-                # Display the input values with color 6
-                print("PRINTING");
-                print(self.sid_data.input_values[idx])
-                self.output_with_color(self.sid_data.startX, self.sid_data.startY, self.sid_data.input_values[idx], 6)
-
-        print("display editor called")
+        for idx, _ in enumerate(self.sid_data.menu_box.values):
+            self.draw_line(idx)
         self.emit_gotoXY(1, 1)
+
 
     def handle_key(self, key):
         print("handle key claled")
@@ -111,7 +118,7 @@ class MenuTextEditor:
             return
 
         elif key == 'ArrowLeft':
-            if self.current_line_x > 0:
+            if self.current_line_x > 1:
                 self.current_line_x -= 1
 
                 self.emit_gotoXY(self.current_line_x, self.current_line_index+1)
@@ -132,19 +139,20 @@ class MenuTextEditor:
             return
 
         elif key == 'Backspace':
-            if self.current_line_x > 0:
+            if self.current_line_x > 1:
+
+                current_x = self.current_line_x-2
 
                 current_str = self.sid_data.input_values[self.current_line_index]
 
                 # Construct a new string with the changed character
-                new_str = current_str[:self.current_line_x] + current_str[self.current_line_x + 1:]
+                new_str = current_str[:current_x] + current_str[current_x + 1:]
 
                 # Assign the new string back to the list
                 self.sid_data.input_values[self.current_line_index] = new_str
-                self.sid_data.setStartX(self.current_line_x-1)
-                self.output(' ', 7, 0 )
-                self.current_line_x -= 1
-                self.emit_gotoXY(self.current_line_x, self.current_line_index+1)
+                self.clear_line(self.current_line_index+1)
+                self.draw_line(self.current_line_index)
+                self.emit_gotoXY(self.current_line_x-1, self.current_line_index + 1)
 
         elif key == 'Control':
             self.foregroundColor = self.foregroundColor + 1
@@ -152,6 +160,29 @@ class MenuTextEditor:
                 self.foregroundColor = 0
             self.update_first_line()
             return
+
+        elif key == 'Delete':
+            current_str = self.sid_data.input_values[self.current_line_index]
+            
+            if self.current_line_x <= len(current_str):  # Ensure the cursor is within the line length
+                current_x = self.current_line_x - 1
+                new_str = current_str[:current_x] + current_str[current_x + 1:]
+
+                # Assign the new string back to the list
+                self.sid_data.input_values[self.current_line_index] = new_str
+
+                # Shift color codes to the left in self.sid_data.color_array
+                cur_y = self.current_line_index
+                for idx in range(current_x, len(self.sid_data.color_array[cur_y]) - 1):
+                    self.sid_data.color_array[cur_y][idx] = self.sid_data.color_array[cur_y][idx + 1]
+                self.sid_data.color_array[cur_y][-1] = None  # Clear the last position
+
+                # Use draw_line to redraw the entire line
+                self.clear_line(cur_y+1)
+                self.draw_line(cur_y)
+
+                # Move the cursor back to its original position
+                self.emit_gotoXY(self.current_line_x, self.current_line_index + 1)
 
 
         elif key == 'Escape':
@@ -209,7 +240,7 @@ class MenuTextEditor:
             self.sid_data.setStartY(self.current_line_index+1)
 
             self.output(key, self.foregroundColor, 0 )
-            self.set_color_at_position(current_x, self.current_line_index, self.foregroundColor)
+            self.set_color_at_position(current_x+1, self.current_line_index, self.foregroundColor)
             self.current_line_x = self.current_line_x+1
 
     def update_first_line(self):
