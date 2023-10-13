@@ -150,9 +150,16 @@ class MenuTextEditor:
 
                 # Assign the new string back to the list
                 self.sid_data.input_values[self.current_line_index] = new_str
+
+                cur_y = self.current_line_index
+                for idx in range(current_x+1, len(self.sid_data.color_array[cur_y]) - 1):
+                    self.sid_data.color_array[cur_y][idx] = self.sid_data.color_array[cur_y][idx + 1]
+                self.sid_data.color_array[cur_y][-1] = None  # Clear the last position
+
                 self.clear_line(self.current_line_index+1)
                 self.draw_line(self.current_line_index)
                 self.emit_gotoXY(self.current_line_x-1, self.current_line_index + 1)
+                self.current_line_x = self.current_line_x - 1
 
         elif key == 'Control':
             self.foregroundColor = self.foregroundColor + 1
