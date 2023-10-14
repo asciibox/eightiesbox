@@ -1,4 +1,4 @@
-from menubar import *
+from menubar_menueditor import *
 
 class MenuBox:
     def __init__(self, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line):
@@ -127,7 +127,11 @@ class MenuBox:
             self.draw_row(prev_row_idx)  # Redraw the previous line
             self.draw_row(self.current_row_index)  # Redraw the new line
         else:
-            self.sid_data.setMenuBar(MenuBar(self.sid_data, self.output, self.ask, self.mongo_client, self.goto_next_line, self.clear_screen, self.emit_gotoXY, self.clear_line))
+            sub_menus = {
+            'File': ['Load menu', 'Save menu', 'New menu', 'Delete menu'],
+            'Edit': ['Edit text', 'Simulate text', 'Clear text', 'View text', 'Leave menu bar'],
+            }
+            self.sid_data.setMenuBar(MenuBarMenuEditor(sub_menus, self.sid_data, self.output, self.ask, self.mongo_client, self.goto_next_line, self.clear_screen, self.emit_gotoXY, self.clear_line))
 
     def arrow_down(self):
         prev_row_idx = self.current_row_index

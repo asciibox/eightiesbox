@@ -18,6 +18,7 @@ class SessionData:
         self.menu_items = []  # To hold the menu items
         self.menu_box = None
         self.menutexteditor = None
+        self.ansi_editor = None
         self.xWidth = 0
         self.yHeight = 0
         self.user_name = ""
@@ -26,8 +27,7 @@ class SessionData:
         self.map_character_set = False
         self.color_array = []  # Initialize an empty 2D array
         self.color_bgarray = []  # Initialize an empty 2D array
-        
-
+        self.ansi_editor_values = [] # Todo remove and change two editors to one
 
     def move_cursor_up(self):
         self.menu_current_index = (self.menu_current_index - 1) % len(self.menu_items)
@@ -100,3 +100,6 @@ class SessionData:
 
     def setMapCharacterSet(self, value):
         self.map_character_set = value
+
+    def setANSIEditor(self, value):
+        self.ansi_editor = value

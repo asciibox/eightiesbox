@@ -10,7 +10,7 @@ from utils import *
 from flask import request
 from sessiondata import *
 import random
-from menubar import *
+from menubar_menueditor import *
 
 socketio = None  # Declare as a global variable
 mongo_client = None
@@ -130,7 +130,12 @@ def init_action_listeners(sio, my_client, sdata):
                 return
 
             elif key == 'Escape':
-                sid_data.setMenuBar(MenuBar(sid_data, output, ask, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line))
+                sub_menus = {
+                    'File': ['Load menu', 'Save menu', 'New menu', 'Delete menu'],
+                    'Edit': ['Edit text', 'Simulate text', 'Clear text', 'View text', 'Leave menu bar'],
+                }
+                
+                sid_data.setMenuBar(MenuBarMenuEditor(sub_menus, sid_data, output, ask, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line))
                 return
             
             return
@@ -172,6 +177,9 @@ def init_action_listeners(sio, my_client, sdata):
         elif (sid_data.current_action == "wait_for_menutexteditor"):
             print(sid_data)
             sid_data.menutexteditor.handle_key(data['key'])
+            return
+        elif (sid_data.current_action == "wait_for_ansieditor"):
+            sid_data.ansi_editor.handle_key(data['key'])
             return
         elif (sid_data.current_action == "wait_for_input"):
             key = data['key']

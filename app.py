@@ -7,6 +7,7 @@ from utils import *
 from sessiondata import *
 from pymongo import MongoClient
 from menubox import *
+from ansieditor import *
 
 app = Flask(__name__)
 socketio = SocketIO(app)
@@ -58,6 +59,9 @@ def onload(data):
     y = data.get('y')
     sid_data[request.sid].setYHeight(y)
     #sid_data[request.sid].setMenuBox(MenuBox(sid_data[request.sid], output, ask, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line))
+    # self, sid_data, output_function, ask_function, goto_next_line, clear_screen, emit_gotoXY, clear_line):
+
+    sid_data[request.sid].setANSIEditor(ANSIEditor(sid_data[request.sid], output, ask, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line))
     data2 = { 'filename' : startFile+'-'+str(x)+'x'+str(y), 'x' : x, 'y': y}
     show_file(data2)
     goto_next_line()
