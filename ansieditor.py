@@ -145,9 +145,10 @@ class ANSIEditor:
             return
 
         elif key == 'Enter':
-            self.current_line_x = 1
+            self.current_line_x = 0
             self.current_line_index = self.current_line_index + 1
             self.emit_gotoXY(self.current_line_x, self.current_line_index+1)
+            self.max_height=self.current_line_index+1
             return
         
         elif key == 'Escape':

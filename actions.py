@@ -160,8 +160,7 @@ def init_action_listeners(sio, my_client, sdata):
                 return
 
             elif key == 'Escape':
-                sid_data.menu_bar.hide_menu_bar()
-                sid_data.setCurrentAction("wait_for_menu")
+                sid_data.menu_bar.leave_menu_bar()
                 return
             
             return

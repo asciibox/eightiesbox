@@ -24,12 +24,26 @@ class MenuBarANSIEditor(MenuBar):
                 self.delete_ansi()
             elif selected_option=="Leave menu bar":
                 self.leave_menu_bar()                
+            elif selected_option=="Clear ANSI":
+                self.clear_ansi()                
             else:
                 print("Hello world")
             # Perform the action associated with selected_option here.
         else:
             self.in_sub_menu = True
             self.draw_sub_menu()
+    def clear_ansi(self):
+        self.current_line_x=0
+        self.sid_data.input_values=[]
+        self.current_line_index=0
+        self.sid_data.color_array = []
+        self.sid_data.color_bgarray = []
+        self.sid_data.ansi_editor.clear_screen()
+        self.sid_data.ansi_editor.update_first_line()
+        self.sid_data.ansi_editor.display_editor()
+        self.sid_data.ansi_editor.current_line_x=0
+        self.sid_data.ansi_editor.current_line_index=0
+        self.sid_data.setCurrentAction("wait_for_ansieditor")
 
     def load_ansi(self):
         print("Load ANSI Loaded")
@@ -121,13 +135,13 @@ class MenuBarANSIEditor(MenuBar):
             self.sid_data.color_array = []
             self.sid_data.color_bgarray = []
             self.show_file_content(file_data['ansi_code'], self.emit_current_string)
-            print("INPUT_VALUES:")
-            print(self.sid_data.input_values)
             self.sid_data.ansi_editor.max_height = len(self.sid_data.input_values)
-            print("maxheight: {self.sid_data.ansi_editor.max_height}")
             self.sid_data.ansi_editor.clear_screen()
             self.sid_data.ansi_editor.update_first_line()
             self.sid_data.ansi_editor.display_editor()
+            self.sid_data.setCurrentAction("wait_for_ansieditor")
+            self.sid_data.ansi_editor.current_line_x=0
+            self.sid_data.ansi_editor.current_line_index=0
             
         else:
             self.goto_next_line()
@@ -135,7 +149,7 @@ class MenuBarANSIEditor(MenuBar):
             self.goto_next_line()
             self.ask(11, self.load_filename_callback)  # load_filename_callback is the function to be called if the filename is not found
 
-    def delete_menu(self):
+    def delete_ansi(self):
         collection = self.mongo_client.mydatabase.ansifiles  # Replace with the actual MongoDB database and collection
         filenames = collection.find({}, {'filename': 1})  # Query MongoDB for filenames
         
@@ -192,7 +206,6 @@ class MenuBarANSIEditor(MenuBar):
                 self.sid_data.input_values[current_y] = ""
             # Get the current string at the specified line index
             current_str = self.sid_data.input_values[current_y]
-            print(f"Before: {current_str}, Key: {key}, X: {current_x}, Y: {current_y}")
             # Check if the length of current_str[:current_x] is shorter than the position of current_x
             if len(current_str) <= current_x:
                 # Pad current_str with spaces until its length matches current_x
@@ -200,7 +213,6 @@ class MenuBarANSIEditor(MenuBar):
 
             # Construct a new string with the changed character
             new_str = current_str[:current_x] + key + current_str[current_x + 1:]
-            print(f"After: {new_str}")
 
             # Assign the new string back to the list
             self.sid_data.input_values[current_y] = new_str
