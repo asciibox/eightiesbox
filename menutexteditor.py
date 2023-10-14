@@ -330,6 +330,7 @@ class MenuTextEditor:
         print("dispaly_ansi")
         self.ansi_string = ""
         self.current_color = 7
+        self.current_bgcolor = 0
         for idx, _ in enumerate(self.sid_data.menu_box.values):
             self.draw_ansi_line(idx)
         with open("ansi_output.ans", "w") as f:
@@ -345,6 +346,7 @@ class MenuTextEditor:
             return
 
         self.current_color = -1  # Starting with no color set
+        self.current_bgcolor = 0  # Starting with no color set
         current_text = ""
 
         self.ansi_string += cursor_to(x, y)
@@ -358,25 +360,42 @@ class MenuTextEditor:
             else:
                 stored_color = None
 
+            if cur_y < len(self.sid_data.color_bgarray) and cur_x < len(self.sid_data.color_bgarray[cur_y]):
+                stored_bgcolor = self.sid_data.color_bgarray[cur_y][cur_x]
+            else:
+                stored_bgcolor = None
+
             if stored_color != self.current_color:
                 if current_text:
-                    self.ansi_string += self._get_ansi_sequence(self.current_color) + current_text
+                    self.ansi_string += self._get_ansi_sequence(self.current_color, self.current_bgcolor) + current_text
                     current_text = ""
                 self.current_color = stored_color
+                self.current_bgcolor = stored_bgcolor
 
             current_text += char
 
         if current_text:
-            self.ansi_string += self._get_ansi_sequence(self.current_color) + current_text
+            self.ansi_string += self._get_ansi_sequence(self.current_color, self.current_bgcolor) + current_text
 
-    def _get_ansi_sequence(self, color):
-        if color is None:
-            return ""
-        if 0 <= color <= 7:
-            return "\033[22;{}m".format(30 + color)  # Reset bold and set standard colors
-        elif 8 <= color <= 15:
-            return "\033[1;{}m".format(30 + (color - 8))  # Bold for bright colors
-        return ""
+    def _get_ansi_sequence(self, color, bgcolor):
+        ansi_sequence = ""
+        
+        # Foreground color
+        if color is not None:
+            if 0 <= color <= 7:
+                ansi_sequence += "\033[22;{}m".format(30 + color)  # Reset bold and set standard colors
+            elif 8 <= color <= 15:
+                ansi_sequence += "\033[1;{}m".format(30 + (color - 8))  # Bold for bright colors
+        
+        # Background color
+        if bgcolor is not None:
+            if 0 <= bgcolor <= 7:
+                ansi_sequence += "\033[{}m".format(40 + bgcolor)  # Standard background colors
+            elif 8 <= bgcolor <= 15:
+                ansi_sequence += "\033[{};5;{}m".format(48, bgcolor)  # 256-color mode for bright background colors
+
+        return ansi_sequence
+
 
 
             
