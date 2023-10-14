@@ -15,6 +15,7 @@ def init_utils_listeners(sio, my_client, sdata):
     sid_data = sdata.get(request.sid)
     
 def askinput(mylen, callback, accept_keys):
+    print("Switched to wait_for_inpu")
     sid_data.setCurrentAction("wait_for_input")
     sid_data.setCurrentPos(0)
     sid_data.setMaxLength(mylen)
@@ -22,8 +23,6 @@ def askinput(mylen, callback, accept_keys):
     sid_data.setAcceptKeys(accept_keys)
     sid_data.setCallback(callback)
     mystr = " "*(mylen)
-    #current_time = datetime.now().strftime("%H:%M:%S")
-    #emit_current_string(str(len(sid_data.localinput))+current_time, 1, 0, False, 0, 0)
     emit_current_string(mystr, 14, 4, False, sid_data.startX, sid_data.startY)
     emit_gotoXY(sid_data.startX, sid_data.startY)
 

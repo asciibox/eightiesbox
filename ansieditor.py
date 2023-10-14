@@ -2,7 +2,7 @@ from menu2ansi import *
 from menubar_ansieditor import *
 
 class ANSIEditor:
-    def __init__(self, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file):
+    def __init__(self, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content):
         self.keys = {
             0: [49, 50, 51, 52, 53, 54, 55, 56, 57, 48],
             1: [218, 191, 192, 217, 196, 179, 195, 180, 193, 194],
@@ -28,7 +28,7 @@ class ANSIEditor:
         self.max_height = sid_data.yHeight # len(self.editor_values)
 
 
-        self.show_file = show_file
+        self.show_file_content = show_file_content
         self.startX = 0
         self.ansi_string = ""
         self.characterSet = 0
@@ -55,10 +55,6 @@ class ANSIEditor:
     
     def display_editor(self):
         for idx in range(0, self.max_height):
-            
-            print(idx)
-            print("/")
-            print(str(self.max_height))
             self.draw_line(idx)
         self.emit_gotoXY(0, 1)
 
@@ -69,7 +65,6 @@ class ANSIEditor:
         self.sid_data.setStartX(0)
         self.sid_data.setStartY(line_index+1)
         if line_index < len(self.sid_data.input_values):
-            print(self.sid_data.input_values)
             self.output_with_color(0, line_index, self.sid_data.input_values[line_index], None, 0)
 
 
@@ -166,8 +161,8 @@ class ANSIEditor:
                         'File': ['Load ANSI', 'Save ANSI', 'Delete ANSI'],
                         'Edit': ['Clear ANSI', 'Leave menu bar'],
                     }
-                self.sid_data.setMenuBar(MenuBarANSIEditor(sub_menus, self.sid_data, self.output, self.ask, self.mongo_client, self.goto_next_line, self.clear_screen, self.emit_gotoXY, self.clear_line, self.show_file))
-            return
+                self.sid_data.setMenuBar(MenuBarANSIEditor(sub_menus, self.sid_data, self.output, self.ask, self.mongo_client, self.goto_next_line, self.clear_screen, self.emit_gotoXY, self.clear_line, self.show_file_content))
+                return
 
         elif key == 'Alt':
             self.display_ansi()
@@ -287,7 +282,7 @@ class ANSIEditor:
 
             # Assign the new string back to the list
             self.sid_data.input_values[self.current_line_index] = new_str
-            print(self.sid_data.input_values)
+
             self.sid_data.setStartX(self.current_line_x)
            
             self.sid_data.setStartY(self.current_line_index+1)
@@ -298,7 +293,6 @@ class ANSIEditor:
             if self.current_line_x+1 < self.sid_data.xWidth:
                 self.current_line_x = self.current_line_x+1
             else:
-                print("gotoXY")
                 self.emit_gotoXY(self.sid_data.xWidth-1, self.current_line_index+1)
 
     def update_first_line(self):

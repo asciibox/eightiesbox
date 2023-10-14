@@ -2,11 +2,12 @@ from pymongo import MongoClient
 from menubar import MenuBar
 
 class MenuBarANSIEditor(MenuBar):
-    def __init__(self, sub_menus, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file):
+    def __init__(self, sub_menus, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content):
         # Call the constructor of the parent class (MenuBar)
-        super().__init__(sub_menus, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file)
+        super().__init__(sub_menus, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content)
         # Add any additional properties or methods specific to MenuBarANSI here
-        
+        self.current_line_x = 0
+        self.current_line_index = 0
 
         # Add ANSI-specific methods here if needed
     def choose_field(self):
@@ -114,9 +115,19 @@ class MenuBarANSIEditor(MenuBar):
         
         if file_data:
             # Clear the existing values in MenuBox
-            print("rendering ansi")
-            print(file_data)
-            self.show_file(file_data, self.emit_current_string)
+            self.current_line_x=0
+            self.sid_data.input_values=[]
+            self.current_line_index=0
+            self.sid_data.color_array = []
+            self.sid_data.color_bgarray = []
+            self.show_file_content(file_data['ansi_code'], self.emit_current_string)
+            print("INPUT_VALUES:")
+            print(self.sid_data.input_values)
+            self.sid_data.ansi_editor.max_height = len(self.sid_data.input_values)
+            print("maxheight: {self.sid_data.ansi_editor.max_height}")
+            self.sid_data.ansi_editor.clear_screen()
+            self.sid_data.ansi_editor.update_first_line()
+            self.sid_data.ansi_editor.display_editor()
             
         else:
             self.goto_next_line()
@@ -171,5 +182,54 @@ class MenuBarANSIEditor(MenuBar):
         self.sid_data.ansi_editor.update_first_line()
         self.sid_data.ansi_editor.display_editor()
 
-    def emit_current_string(currentString, currentColor, backgroundColor, blink, x, y):
-        print(currentString)
+    def emit_current_string(self, currentString, currentColor, backgroundColor, blink, current_x, current_y):
+        
+        for key in currentString:
+            while len(self.sid_data.input_values) <= current_y:
+                self.sid_data.input_values.append("")
+
+            if not self.sid_data.input_values[current_y]:
+                self.sid_data.input_values[current_y] = ""
+            # Get the current string at the specified line index
+            current_str = self.sid_data.input_values[current_y]
+            print(f"Before: {current_str}, Key: {key}, X: {current_x}, Y: {current_y}")
+            # Check if the length of current_str[:current_x] is shorter than the position of current_x
+            if len(current_str) <= current_x:
+                # Pad current_str with spaces until its length matches current_x
+                current_str += ' ' * (current_x - len(current_str) + 1)
+
+            # Construct a new string with the changed character
+            new_str = current_str[:current_x] + key + current_str[current_x + 1:]
+            print(f"After: {new_str}")
+
+            # Assign the new string back to the list
+            self.sid_data.input_values[current_y] = new_str
+
+            self.set_color_at_position(current_x+1, current_y, currentColor, backgroundColor)
+            
+            #if self.current_line_x+1 < self.sid_data.xWidth:
+            current_x = current_x+1
+        return []
+    
+    def set_color_at_position(self, x, y, color, bgcolor):
+        # Expand the array to fit the given coordinates, if necessary
+        while len(self.sid_data.color_array) <= y:
+            self.sid_data.color_array.append([])
+
+        while len(self.sid_data.color_array[y]) <= x:
+            self.sid_data.color_array[y].append(None)
+
+        while len(self.sid_data.color_bgarray) <= y:
+            self.sid_data.color_bgarray.append([])
+
+        while len(self.sid_data.color_bgarray[y]) <= x:
+            self.sid_data.color_bgarray[y].append(None)
+
+        # Set the color at the given coordinates
+        self.sid_data.color_array[y][x] = color
+        self.sid_data.color_bgarray[y][x] = bgcolor
+
+    def hide_menu_bar(self):
+        self.in_sub_menu = False
+        self.leave_menu_bar()
+        # Reset to previous state or hide the menu bar

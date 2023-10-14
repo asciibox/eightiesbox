@@ -135,7 +135,7 @@ def init_action_listeners(sio, my_client, sdata):
                     'Edit': ['Edit text', 'Simulate text', 'Clear text', 'View text', 'Leave menu bar'],
                 }
                 
-                sid_data.setMenuBar(MenuBarMenuEditor(sub_menus, sid_data, output, ask, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file))
+                sid_data.setMenuBar(MenuBarMenuEditor(sub_menus, sid_data, output, ask, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content))
                 return
             
             return
@@ -274,9 +274,7 @@ def init_action_listeners(sio, my_client, sdata):
 def show_file(data, emit_current_string):
 
     sid_data.setMapCharacterSet(True)
-    currentColor = 15
-    backgroundColor = 0
-    current_action = "show_file"
+    
     filename = data.get('filename', '') + '.ans'
    
     filepath = os.path.join('ansi', filename)
@@ -284,133 +282,140 @@ def show_file(data, emit_current_string):
     if os.path.exists(filepath):
         with codecs.open(filepath, 'r', 'cp437') as f:
             text_content = f.read()
+            show_file_content(text_content, emit_current_string)
 
-        text_content = strip_sauce(text_content)
 
-        # Filter out the specific ANSI escape code
-        filtered_content = text_content.replace("[?7h", "")
 
-        posX, posY = 0, 0
-        
-        blink = False
-        isBold = False
-        currentString = []
-        storedCursorY = 0
-        storedCursorX = 0
+def show_file_content(text_content, emit_current_string):
+    currentColor = 15
+    backgroundColor = 0
 
-        text = Ansi(filtered_content)
-        
-        for instruction in text.instructions():
+    text_content = strip_sauce(text_content)
 
-            if isinstance(instruction, SetColor):
-                newColor = instruction.color.code if instruction.role == ColorRole.FOREGROUND else None
-                newBackground = instruction.color.code if instruction.role == ColorRole.BACKGROUND else None
+    # Filter out the specific ANSI escape code
+    filtered_content = text_content.replace("[?7h", "")
 
-                # Check if the color has changed before updating currentColor
-                if newColor is not None and newColor != currentColor:
-                    # Emit the string because the color has changed
-                    currentString = emit_current_string(currentString, currentColor, backgroundColor, blink, sid_data.startX, sid_data.startY)
-                    sid_data.setStartX(posX)
-                    sid_data.setStartY(posY)
-                    if isBold:
-                        currentColor = newColor+8  # Now update the currentColor
-                    else:
-                        currentColor = newColor  # Now update the currentColor
+    posX, posY = 0, 0
+    
+    blink = False
+    isBold = False
+    currentString = []
+    storedCursorY = 0
+    storedCursorX = 0
 
-                # Similarly for background color
-                if newBackground is not None and newBackground != backgroundColor:
-                    # Emit the string because the background color has changed
-                    currentString = emit_current_string(currentString, currentColor, backgroundColor, blink, sid_data.startX, sid_data.startY)
-                    sid_data.setStartX(posX)
-                    sid_data.setStartY(posY)
-                    backgroundColor = newBackground  # Now update the backgroundColor
+    text = Ansi(filtered_content)
+    
+    for instruction in text.instructions():
 
-            if isinstance(instruction, str):
-                for char in instruction:
-                    if char != '\r' and char != '\l':
-                        if char == '\n':
-                            posY += 1
-                            posX = 0
-                            currentString = emit_current_string(currentString, currentColor, backgroundColor, blink, sid_data.startX, sid_data.startY)
-                            sid_data.setStartX(posX)
-                            sid_data.setStartY(posY)
-                            continue
-                        elif posX >= data.get('x'):
-                            posY += 1
-                            posX = 1
-                            currentString = emit_current_string(currentString, currentColor, backgroundColor, blink, sid_data.startX, sid_data.startY)
-                            currentString.append(char)
-                            sid_data.setStartX(posX-1)
-                            sid_data.setStartY(posY)
-                            continue
-                        else:
-                            currentString.append(char)
-                            posX += 1
-                            continue
-                
+        if isinstance(instruction, SetColor):
+            newColor = instruction.color.code if instruction.role == ColorRole.FOREGROUND else None
+            newBackground = instruction.color.code if instruction.role == ColorRole.BACKGROUND else None
 
-            elif isinstance(instruction, SetAttribute):
-                if instruction.attribute == Attribute.BLINK:
-                    blink = True
-                elif instruction.attribute == Attribute.NOT_BLINK:
-                    blink = False
-                elif instruction.attribute == Attribute.BOLD:  # Add this line
-                    currentString = emit_current_string(currentString, currentColor, backgroundColor, blink, sid_data.startX, sid_data.startY)
-                    sid_data.setStartX(posX)
-                    sid_data.setStartY(posY)
-                    isBold = True  # Add this line
-                elif instruction.attribute == Attribute.NORMAL:  # Add this line
-                    isBold = False  # Add this line
-                    currentString = emit_current_string(currentString, currentColor, backgroundColor, blink, sid_data.startX, sid_data.startY)
-                    sid_data.setStartX(posX)
-                    sid_data.setStartY(posY)
-                    backgroundColor = 0
-
-            elif isinstance(instruction, SetCursor):
-                move = instruction.move
-                if move.relative:
-                    posX += move.x
-                    posY += move.y
-                    if posX > 80:
-                        posX = posX-80
-                        posY = posY + 1
+            # Check if the color has changed before updating currentColor
+            if newColor is not None and newColor != currentColor:
+                # Emit the string because the color has changed
+                currentString = emit_current_string(currentString, currentColor, backgroundColor, blink, sid_data.startX, sid_data.startY)
+                sid_data.setStartX(posX)
+                sid_data.setStartY(posY)
+                if isBold:
+                    currentColor = newColor+8  # Now update the currentColor
                 else:
-                    posX = move.x
-                    posY = move.y
-                    posX = max(0, posX)
-                    posY = max(0, posY)
+                    currentColor = newColor  # Now update the currentColor
 
-                # Handle specific CursorMove methods
-                if move == CursorMove.to_home():
-                    posX, posY = 0, 0
-                elif move == CursorMove.up():
-                    posY -= 1
-                elif move == CursorMove.up(1):
-                    posY -= 1
-                elif move == CursorMove.to(0, 0):  # Assuming (0, 0) is home
-                    posX, posY = 0, 0
-               
+            # Similarly for background color
+            if newBackground is not None and newBackground != backgroundColor:
+                # Emit the string because the background color has changed
                 currentString = emit_current_string(currentString, currentColor, backgroundColor, blink, sid_data.startX, sid_data.startY)
-               
                 sid_data.setStartX(posX)
                 sid_data.setStartY(posY)
-                if posX>80:
-                    posX=80
+                backgroundColor = newBackground  # Now update the backgroundColor
 
-            elif isinstance(instruction, SaveCursor):
-                storedCursorX = posX
-                storedCursorY = posY
-                continue
+        if isinstance(instruction, str):
+            for char in instruction:
+                if char != '\r' and char != '\l':
+                    if char == '\n':
+                        posY += 1
+                        posX = 0
+                        currentString = emit_current_string(currentString, currentColor, backgroundColor, blink, sid_data.startX, sid_data.startY)
+                        sid_data.setStartX(posX)
+                        sid_data.setStartY(posY)
+                        continue
+                    elif posX >= sid_data.xWidth:
+                        posY += 1
+                        posX = 1
+                        currentString = emit_current_string(currentString, currentColor, backgroundColor, blink, sid_data.startX, sid_data.startY)
+                        currentString.append(char)
+                        sid_data.setStartX(posX-1)
+                        sid_data.setStartY(posY)
+                        continue
+                    else:
+                        currentString.append(char)
+                        posX += 1
+                        continue
+            
 
-
-            elif isinstance(instruction, RestoreCursor):
+        elif isinstance(instruction, SetAttribute):
+            if instruction.attribute == Attribute.BLINK:
+                blink = True
+            elif instruction.attribute == Attribute.NOT_BLINK:
+                blink = False
+            elif instruction.attribute == Attribute.BOLD:  # Add this line
                 currentString = emit_current_string(currentString, currentColor, backgroundColor, blink, sid_data.startX, sid_data.startY)
-                posX = storedCursorX
-                posY = storedCursorY
                 sid_data.setStartX(posX)
                 sid_data.setStartY(posY)
-                continue
-        
-        emit_current_string(currentString, currentColor, backgroundColor, blink, sid_data.startX, sid_data.startY)
+                isBold = True  # Add this line
+            elif instruction.attribute == Attribute.NORMAL:  # Add this line
+                isBold = False  # Add this line
+                currentString = emit_current_string(currentString, currentColor, backgroundColor, blink, sid_data.startX, sid_data.startY)
+                sid_data.setStartX(posX)
+                sid_data.setStartY(posY)
+                backgroundColor = 0
 
-        sid_data.setMapCharacterSet(False)
+        elif isinstance(instruction, SetCursor):
+            move = instruction.move
+            if move.relative:
+                posX += move.x
+                posY += move.y
+                if posX > 80:
+                    posX = posX-80
+                    posY = posY + 1
+            else:
+                posX = move.x
+                posY = move.y
+                posX = max(0, posX)
+                posY = max(0, posY)
+
+            # Handle specific CursorMove methods
+            if move == CursorMove.to_home():
+                posX, posY = 0, 0
+            elif move == CursorMove.up():
+                posY -= 1
+            elif move == CursorMove.up(1):
+                posY -= 1
+            elif move == CursorMove.to(0, 0):  # Assuming (0, 0) is home
+                posX, posY = 0, 0
+            
+            currentString = emit_current_string(currentString, currentColor, backgroundColor, blink, sid_data.startX, sid_data.startY)
+            
+            sid_data.setStartX(posX)
+            sid_data.setStartY(posY)
+            if posX>80:
+                posX=80
+
+        elif isinstance(instruction, SaveCursor):
+            storedCursorX = posX
+            storedCursorY = posY
+            continue
+
+
+        elif isinstance(instruction, RestoreCursor):
+            currentString = emit_current_string(currentString, currentColor, backgroundColor, blink, sid_data.startX, sid_data.startY)
+            posX = storedCursorX
+            posY = storedCursorY
+            sid_data.setStartX(posX)
+            sid_data.setStartY(posY)
+            continue
+    
+    emit_current_string(currentString, currentColor, backgroundColor, blink, sid_data.startX, sid_data.startY)
+
+    sid_data.setMapCharacterSet(False)

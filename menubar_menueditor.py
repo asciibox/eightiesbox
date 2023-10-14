@@ -194,6 +194,13 @@ class MenuBarMenuEditor(MenuBar):
             self.output("Please enter the filename to delete: ", 6, 0)
             self.ask(11, self.delete_filename_callback)  # delete_filename_callback is the function to be called if the filename is not found
 
+
+    def hide_menu_bar(self):
+        self.sid_data.menu_box.draw_all_rows()
+        self.sid_data.setCurrentAction("wait_for_menu")
+        self.in_sub_menu = False
+        # Reset to previous state or hide the menu bar
+
     def edit_text(self):
         self.sid_data.setCurrentAction("wait_for_menutexteditor")
         self.sid_data.setMenuTextEditor(MenuTextEditor(self.sid_data, self.output, self.ask, self.goto_next_line, self.clear_screen, self.emit_gotoXY, self.clear_line))

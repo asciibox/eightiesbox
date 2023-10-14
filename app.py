@@ -6,12 +6,23 @@ from actions import *
 from utils import *
 from sessiondata import *
 from pymongo import MongoClient
+from pymongo.errors import ServerSelectionTimeoutError, ConnectionFailure
 from menubox import *
 from ansieditor import *
+import time
 
 app = Flask(__name__)
 socketio = SocketIO(app)
-mongo_client = MongoClient("mongodb://localhost:27017")
+server_available = True
+try:
+    mongo_client = MongoClient("mongodb://localhost:27017", serverSelectionTimeoutMS=5000)
+    mongo_client.admin.command('ping')  # This should force a connection attempt
+except ServerSelectionTimeoutError:
+    print("Server not available")
+    server_available = False
+except ConnectionFailure:
+    print("Failed to connect to server")
+    server_available = False
 
 sid_data = {}
 
@@ -58,13 +69,16 @@ def onload(data):
     sid_data[request.sid].setXWidth(x)
     y = data.get('y')
     sid_data[request.sid].setYHeight(y)
-
-    #sid_data[request.sid].setANSIEditor(ANSIEditor(sid_data[request.sid], output, ask, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file))
-    data2 = { 'filename' : startFile+'-'+str(x)+'x'+str(y), 'x' : x, 'y': y}
-    show_file(data2, emit_current_string)
-    goto_next_line()
-    output("Please enter your name: ", 3, 0)
-    ask(40, usernameCallback)
+    if server_available == False:
+        output("* Database connection could not get established *", 1,0)
+        print(server_available)
+        time.sleep(3)
+    sid_data[request.sid].setANSIEditor(ANSIEditor(sid_data[request.sid], output, ask, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content))
+    #data2 = { 'filename' : startFile+'-'+str(x)+'x'+str(y), 'x' : x, 'y': y}
+    #show_file(data2, emit_current_string)
+    #goto_next_line()
+    #output("Please enter your name: ", 3, 0)
+    #ask(40, usernameCallback)
 
 @socketio.on('disconnect')
 def disconnect(data):
