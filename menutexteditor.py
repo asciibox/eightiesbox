@@ -27,6 +27,7 @@ class MenuTextEditor:
         self.ansi_string = ""
         self.characterSet = 0
         self.foregroundColor = 7
+        self.backgroundColor = 0
         self.clear_screen = clear_screen
         self.sid_data = sid_data
         self.output = output_function
@@ -54,19 +55,20 @@ class MenuTextEditor:
         char_value = self.sid_data.menu_box.values[line_index][2]  # Assuming 'Key' field is the character.
         self.sid_data.setStartX(0)
         self.sid_data.setStartY(line_index + 1)
-        self.output_with_color(0, line_index + 1, char_value, 6)
+        self.output_with_color(0, line_index + 1, char_value, 6, 4)
         
         # Display the input value with color 6
         self.sid_data.setStartX(1)
         if line_index < len(self.sid_data.input_values):
-            self.output_with_color(1, line_index + 1, self.sid_data.input_values[line_index], None)
+            self.output_with_color(1, line_index + 1, self.sid_data.input_values[line_index], None, 0)
 
 
-    def output_with_color(self, x, y, text, color):
+    def output_with_color(self, x, y, text, color, bgcolor):
         if text == None or text == "":
             return
         # Initialize variables to keep track of current color and text batch
         current_color = color  # Initialize to the input color
+        current_bgcolor = bgcolor  # Initialize to the input color
         current_text = ""
 
         for idx, char in enumerate(text):
@@ -79,22 +81,31 @@ class MenuTextEditor:
             else:
                 stored_color = None
 
+            # Safely get stored color for the current position
+            if cur_y < len(self.sid_data.color_bgarray) and cur_x < len(self.sid_data.color_bgarray[cur_y]):
+                stored_bgcolor = self.sid_data.color_bgarray[cur_y][cur_x]
+            else:
+                stored_bgcolor = None
+
             # Check if color at the current position matches the new color
-            if stored_color is not None and stored_color != color:
+            if (stored_color is not None and stored_color != color) or (stored_bgcolor is not None and stored_bgcolor != bgcolor):
                 # If the color changes, output the current text batch
                 if current_text:
-                    self.output(current_text, current_color, 0)
+                    print(current_text)
+                    print(str(current_color)+"/"+str(current_bgcolor))
+                    self.output(current_text, current_color, current_bgcolor)
 
                 # Reset current_text and update the current_color
                 current_text = char
                 current_color = stored_color
+                current_bgcolor = stored_bgcolor
             else:
                 # If the color is the same, append the character to the current text batch
                 current_text += char
 
         # Output any remaining text
         if current_text:
-            self.output(current_text, current_color, 0)
+            self.output(current_text, current_color, current_bgcolor)
        
 
   
@@ -102,7 +113,7 @@ class MenuTextEditor:
     def handle_key(self, key):
         print("handle key claled")
         print(key)
-        if key in ['AltGraph', 'Shift', 'Dead', 'CapsLock', 'Tab']:
+        if key in ['AltGraph', 'Shift', 'Dead', 'CapsLock']:
             return
 
         if key == 'ArrowDown':
@@ -160,7 +171,9 @@ class MenuTextEditor:
                 cur_y = self.current_line_index
                 for idx in range(current_x+1, len(self.sid_data.color_array[cur_y]) - 1):
                     self.sid_data.color_array[cur_y][idx] = self.sid_data.color_array[cur_y][idx + 1]
+                    self.sid_data.color_bgarray[cur_y][idx] = self.sid_data.color_bgarray[cur_y][idx + 1]
                 self.sid_data.color_array[cur_y][-1] = None  # Clear the last position
+                self.sid_data.color_bgarray[cur_y][-1] = None  # Clear the last position
 
                 self.clear_line(self.current_line_index+1)
                 self.draw_line(self.current_line_index)
@@ -169,8 +182,15 @@ class MenuTextEditor:
 
         elif key == 'Control':
             self.foregroundColor = self.foregroundColor + 1
-            if self.foregroundColor > 14:
+            if self.foregroundColor > 15:
                 self.foregroundColor = 0
+            self.update_first_line()
+            return
+
+        elif key == 'Tab':
+            self.backgroundColor = self.backgroundColor + 1
+            if self.backgroundColor > 15:
+                self.backgroundColor = 0
             self.update_first_line()
             return
 
@@ -188,7 +208,10 @@ class MenuTextEditor:
                 cur_y = self.current_line_index
                 for idx in range(current_x, len(self.sid_data.color_array[cur_y]) - 1):
                     self.sid_data.color_array[cur_y][idx] = self.sid_data.color_array[cur_y][idx + 1]
+                    self.sid_data.color_bgarray[cur_y][idx] = self.sid_data.color_bgarray[cur_y][idx + 1]
+                    
                 self.sid_data.color_array[cur_y][-1] = None  # Clear the last position
+                self.sid_data.color_bgarray[cur_y][-1] = None  # Clear the last position
 
                 # Use draw_line to redraw the entire line
                 self.clear_line(cur_y+1)
@@ -252,8 +275,8 @@ class MenuTextEditor:
             self.sid_data.setStartX(self.current_line_x)
             self.sid_data.setStartY(self.current_line_index+1)
 
-            self.output(key, self.foregroundColor, 0 )
-            self.set_color_at_position(current_x+1, self.current_line_index, self.foregroundColor)
+            self.output(key, self.foregroundColor, self.backgroundColor )
+            self.set_color_at_position(current_x+1, self.current_line_index, self.foregroundColor, self.backgroundColor)
             self.current_line_x = self.current_line_x+1
 
     def update_first_line(self):
@@ -264,6 +287,8 @@ class MenuTextEditor:
         # Output a 5-character block with the current foreground color as background color
         for _ in range(5):
             self.output(' ', self.foregroundColor, self.foregroundColor)
+        for _ in range(5):
+            self.output(' ', 6, self.backgroundColor)
 
         # Output an empty space 15 times with bg colors ranging from 0 to 15
         for bg_color in range(16):
@@ -282,7 +307,7 @@ class MenuTextEditor:
         self.sid_data.setStartX(self.sid_data.cursorX)
         self.sid_data.setStartY(self.sid_data.cursorY)
 
-    def set_color_at_position(self, x, y, color):
+    def set_color_at_position(self, x, y, color, bgcolor):
         # Expand the array to fit the given coordinates, if necessary
         while len(self.sid_data.color_array) <= y:
             self.sid_data.color_array.append([])
@@ -290,8 +315,15 @@ class MenuTextEditor:
         while len(self.sid_data.color_array[y]) <= x:
             self.sid_data.color_array[y].append(None)
 
+        while len(self.sid_data.color_bgarray) <= y:
+            self.sid_data.color_bgarray.append([])
+
+        while len(self.sid_data.color_bgarray[y]) <= x:
+            self.sid_data.color_bgarray[y].append(None)
+
         # Set the color at the given coordinates
         self.sid_data.color_array[y][x] = color
+        self.sid_data.color_bgarray[y][x] = bgcolor
 
 
     def display_ansi(self):

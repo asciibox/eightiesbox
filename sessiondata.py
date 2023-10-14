@@ -25,6 +25,7 @@ class SessionData:
         self.input_values = []
         self.map_character_set = False
         self.color_array = []  # Initialize an empty 2D array
+        self.color_bgarray = []  # Initialize an empty 2D array
         
 
 
