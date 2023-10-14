@@ -2,7 +2,7 @@ from pymongo import MongoClient
 from menutexteditor import *
 
 class MenuBar:
-    def __init__(self, sub_menus, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line):
+    def __init__(self, sub_menus, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file):
         sid_data.setCurrentAction("wait_for_menubar")
         self.mongo_client = mongo_client
         self.clear_screen = clear_screen
@@ -25,6 +25,8 @@ class MenuBar:
         self.current_sub_menu_indexes = [0,0]
         self.sub_menus = sub_menus;
         self.main_menu_positions = {}
+
+        self.show_file = show_file
 
         # Clear the lines where the sub-menus would appear
         max_sub_menu_length = max([len(sub) for sub in self.sub_menus.values()])
@@ -124,58 +126,3 @@ class MenuBar:
         self.sid_data.setCurrentAction("wait_for_menu")
         self.in_sub_menu = False
         # Reset to previous state or hide the menu bar
-    
-    def new_menu(self):
-        self.sid_data.menu_box.new_menu()
-        self.sid_data.setCurrentAction("wait_for_menu")
-        self.in_sub_menu = False
-
-    def load_menu(self):
-        collection = self.mongo_client.mydatabase.myfiles  # Replace with actual MongoDB database and collection
-        filenames = collection.find({}, {'filename': 1})  # Query MongoDB for filenames
-        
-        self.clear_screen()
-
-        self.show_filenames(filenames)
-
-        self.sid_data.setStartX(0)
-        self.sid_data.setStartY(10)  # Assuming you are asking at the 10th line
-        self.output("Pleaes enter the filename to load: ", 6,0)
-        self.ask(11, self.load_filename_callback)  # filename_callback is the function to be called once filename is entered   
-    
-    def save_menu(self):
-        collection = self.mongo_client.mydatabase.myfiles  # Replace with actual MongoDB database and collection
-        filenames = collection.find({}, {'filename': 1})  # Query MongoDB for filenames
-        
-        self.clear_screen()
-
-        self.show_filenames(filenames)
-
-        self.sid_data.setStartX(0)
-        self.sid_data.setStartY(10)  # Assuming you are asking at the 10th line
-        self.output("Please enter the filename to save: ", 6,0)
-        self.ask(11, self.save_filename_callback)  # filename_callback is the function to be called once filename is entered
-
-    def show_filenames(self, filenames):
-        # Display filenames
-        display_filenames = [doc['filename'][:11] for doc in filenames]  # Limit filenames to 11 characters
-
-        for y in range(0, 7):
-            for x in range(0, 7):
-                idx = y * 7 + x
-                if idx < len(display_filenames):
-                    self.sid_data.setStartX(x * 12)  # Assuming each entry takes up 12 spaces
-                    self.sid_data.setStartY(y + 3)  # Start from the 3rd line
-                    self.output(display_filenames[idx], 6, 0)
-
-
-    def generate_menu_box_data(self):
-        menu_box = self.sid_data.menu_box
-        data = {
-            'fields': menu_box.fields,
-            'values': menu_box.values,
-        }
-        return data
-
-
-    

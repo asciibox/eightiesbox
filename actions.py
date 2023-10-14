@@ -135,7 +135,7 @@ def init_action_listeners(sio, my_client, sdata):
                     'Edit': ['Edit text', 'Simulate text', 'Clear text', 'View text', 'Leave menu bar'],
                 }
                 
-                sid_data.setMenuBar(MenuBarMenuEditor(sub_menus, sid_data, output, ask, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line))
+                sid_data.setMenuBar(MenuBarMenuEditor(sub_menus, sid_data, output, ask, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file))
                 return
             
             return
@@ -271,7 +271,7 @@ def init_action_listeners(sio, my_client, sdata):
 
 
 
-def show_file(data):
+def show_file(data, emit_current_string):
 
     sid_data.setMapCharacterSet(True)
     currentColor = 15

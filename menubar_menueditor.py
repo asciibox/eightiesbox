@@ -3,9 +3,9 @@ from menutexteditor import *
 from menubar import MenuBar
 
 class MenuBarMenuEditor(MenuBar):
-    def __init__(self, sub_menus, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line):
+    def __init__(self, sub_menus, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file):
         # Call the constructor of the parent class (MenuBar)
-        super().__init__(sub_menus, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line)
+        super().__init__(sub_menus, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file)
         # Add any additional properties or methods specific to MenuBarANSI here
         
 
@@ -33,13 +33,56 @@ class MenuBarMenuEditor(MenuBar):
             self.in_sub_menu = True
             self.draw_sub_menu()
 
+    def new_menu(self):
+        self.sid_data.menu_box.new_menu()
+        self.sid_data.setCurrentAction("wait_for_menu")
+        self.in_sub_menu = False
+
+    def load_menu(self):
+        collection = self.mongo_client.mydatabase.menufiles  # Replace with actual MongoDB database and collection
+        filenames = collection.find({}, {'filename': 1})  # Query MongoDB for filenames
+        
+        self.clear_screen()
+
+        self.show_filenames(filenames)
+
+        self.sid_data.setStartX(0)
+        self.sid_data.setStartY(10)  # Assuming you are asking at the 10th line
+        self.output("Please enter the filename to load: ", 6,0)
+        self.ask(11, self.load_filename_callback)  # filename_callback is the function to be called once filename is entered   
+    
+    def save_menu(self):
+        collection = self.mongo_client.mydatabase.menufiles  # Replace with actual MongoDB database and collection
+        filenames = collection.find({}, {'filename': 1})  # Query MongoDB for filenames
+        
+        self.clear_screen()
+
+        self.show_filenames(filenames)
+
+        self.sid_data.setStartX(0)
+        self.sid_data.setStartY(10)  # Assuming you are asking at the 10th line
+        self.output("Please enter the filename to save: ", 6,0)
+        self.ask(11, self.save_filename_callback)  # filename_callback is the function to be called once filename is entered
+
+    def show_filenames(self, filenames):
+        # Display filenames
+        display_filenames = [doc['filename'][:11] for doc in filenames]  # Limit filenames to 11 characters
+
+        for y in range(0, 7):
+            for x in range(0, 7):
+                idx = y * 7 + x
+                if idx < len(display_filenames):
+                    self.sid_data.setStartX(x * 12)  # Assuming each entry takes up 12 spaces
+                    self.sid_data.setStartY(y + 3)  # Start from the 3rd line
+                    self.output(display_filenames[idx], 6, 0)
+
     def save_filename_callback(self, entered_filename):
         if entered_filename=='':
             self.sid_data.menu_box.draw_all_rows()
             self.sid_data.setCurrentAction("wait_for_menu")
             self.in_sub_menu = False
             return
-        collection = self.mongo_client.mydatabase.myfiles  # Replace with the actual MongoDB database and collection
+        collection = self.mongo_client.mydatabase.menufiles  # Replace with the actual MongoDB database and collection
 
         # Before saving, you might want to check if this filename already exists and handle accordingly
         if collection.find_one({"filename": entered_filename}):
@@ -47,6 +90,7 @@ class MenuBarMenuEditor(MenuBar):
             self.goto_next_line()
             self.output("File already exists!", 6, 0)
             self.goto_next_line()
+            self.output("Please enter the filename to save: ", 6,0)
             self.ask(11, self.filename_callback)  # filename_callback is the function to be called once a filename is entered
         else:
             # Create a list containing each row and its y-coordinate
@@ -77,7 +121,7 @@ class MenuBarMenuEditor(MenuBar):
             self.sid_data.setCurrentAction("wait_for_menu")
             self.in_sub_menu = False
             return
-        collection = self.mongo_client.mydatabase.myfiles  # Replace with the actual MongoDB database and collection
+        collection = self.mongo_client.mydatabase.menufiles  # Replace with the actual MongoDB database and collection
         
         # Look for the filename in the database
         file_data = collection.find_one({"filename": entered_filename})
@@ -110,7 +154,7 @@ class MenuBarMenuEditor(MenuBar):
             self.ask(11, self.load_filename_callback)  # load_filename_callback is the function to be called if the filename is not found
 
     def delete_menu(self):
-        collection = self.mongo_client.mydatabase.myfiles  # Replace with the actual MongoDB database and collection
+        collection = self.mongo_client.mydatabase.menufiles  # Replace with the actual MongoDB database and collection
         filenames = collection.find({}, {'filename': 1})  # Query MongoDB for filenames
         
         self.clear_screen()
@@ -129,7 +173,7 @@ class MenuBarMenuEditor(MenuBar):
             self.sid_data.setCurrentAction("wait_for_menu")
             self.in_sub_menu = False
             return
-        collection = self.mongo_client.mydatabase.myfiles  # Replace with the actual MongoDB database and collection
+        collection = self.mongo_client.mydatabase.menufiles  # Replace with the actual MongoDB database and collection
 
         # Look for the filename in the database
         file_data = collection.find_one({"filename": entered_filename})

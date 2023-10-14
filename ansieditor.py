@@ -2,7 +2,7 @@ from menu2ansi import *
 from menubar_ansieditor import *
 
 class ANSIEditor:
-    def __init__(self, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line):
+    def __init__(self, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file):
         self.keys = {
             0: [49, 50, 51, 52, 53, 54, 55, 56, 57, 48],
             1: [218, 191, 192, 217, 196, 179, 195, 180, 193, 194],
@@ -28,7 +28,7 @@ class ANSIEditor:
         self.max_height = sid_data.yHeight # len(self.editor_values)
 
 
-        
+        self.show_file = show_file
         self.startX = 0
         self.ansi_string = ""
         self.characterSet = 0
@@ -156,19 +156,17 @@ class ANSIEditor:
             return
         
         elif key == 'Escape':
-            print("BEFORE")
-            print(self.sid_data.input_values)
-            sub_menus = {
-                    'File': ['Load ANSI', 'Save ANSI', 'Clear ANSI'],
-                    'Edit': ['Leave menu bar'],
-                }
-            self.clear_screen()
-            self.update_first_line()
-            self.display_editor()
-            print("AFTER")
-            print(self.sid_data.input_values)
-
-            # self.sid_data.setMenuBar(MenuBarANSIEditor(sub_menus, self.sid_data, self.output, self.ask, self.mongo_client, self.goto_next_line, self.clear_screen, self.emit_gotoXY, self.clear_line))
+            if self.sid_data.current_action == "wait_for_menubar":
+                self.sid_data.setCurrentAction("wait_for_ansieditor")
+                self.sid_data.ansi_editor.clear_screen()
+                self.sid_data.ansi_editor.update_first_line()
+                self.sid_data.ansi_editor.display_editor()
+            else:
+                sub_menus = {
+                        'File': ['Load ANSI', 'Save ANSI', 'Delete ANSI'],
+                        'Edit': ['Clear ANSI', 'Leave menu bar'],
+                    }
+                self.sid_data.setMenuBar(MenuBarANSIEditor(sub_menus, self.sid_data, self.output, self.ask, self.mongo_client, self.goto_next_line, self.clear_screen, self.emit_gotoXY, self.clear_line, self.show_file))
             return
 
         elif key == 'Alt':
@@ -356,11 +354,11 @@ class ANSIEditor:
         self.current_bgcolor = 0
         for idx in range(0, self.max_height):
             self.draw_ansi_line(idx)
-        with open("ansi_output.ans", "w") as f:
-            f.write(self.ansi_string + '\n')
+        return self.ansi_string
 
     def draw_ansi_line(self, line_index):
         print("draw_ansi_line")
+        print(str(line_index)+"<"+str(len(self.sid_data.input_values)))
         if line_index < len(self.sid_data.input_values):
             self.output_ansi_with_color(1, line_index, self.sid_data.input_values[line_index])
 
