@@ -55,8 +55,10 @@ class ANSIEditor:
     
     
     def display_editor(self):
+        self.sid_data.setMapCharacterSet(True)
         for idx in range(0, self.max_height):
             self.draw_line(idx)
+        self.sid_data.setMapCharacterSet(False)
         self.emit_gotoXY(0, 1)
 
 
@@ -160,7 +162,7 @@ class ANSIEditor:
                 self.sid_data.ansi_editor.display_editor()
             else:
                 sub_menus = {
-                        'File': ['Load ANSI', 'Save ANSI', 'Delete ANSI', 'Upload ANSI'],
+                        'File': ['Load ANSI', 'Save ANSI', 'Delete ANSI', 'Upload ANSI','Import uploaded ANSI','Delete uploaded ANSI'],
                         'Edit': ['Clear ANSI', 'Leave menu bar'],
                     }
                 self.sid_data.setMenuBar(MenuBarANSIEditor(sub_menus, self.sid_data, self.output, self.ask, self.mongo_client, self.goto_next_line, self.clear_screen, self.emit_gotoXY, self.clear_line, self.show_file_content, self.emit_upload))

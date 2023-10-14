@@ -111,9 +111,10 @@ def map_value(value, list1, list2):
         index = list1.index(value)
         return list2[index]
     except ValueError:
-        return value
+        return value  # returns the original value if not found in list1
     except IndexError:
-        return "Index out of range in list2"
+        print(f"Index out of range in list2 for value {value}")
+        return value  # returns the original value if index out of range in list2
 
 def launchMenuCallback():
     sid_data.setMenuBox(MenuBox(sid_data, output, ask, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line))

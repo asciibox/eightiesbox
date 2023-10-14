@@ -24,6 +24,10 @@ class MenuBarANSIEditor(MenuBar):
                 self.delete_ansi()
             elif selected_option=="Upload ANSI":
                 self.upload_ansi()
+            elif selected_option=="Import uploaded ANSI":
+                self.import_ansi()
+            elif selected_option=="Delete uploaded ANSI":
+                self.delete_uploaded_ansi()
             elif selected_option=="Leave menu bar":
                 self.leave_menu_bar()                
             elif selected_option=="Clear ANSI":
@@ -62,7 +66,7 @@ class MenuBarANSIEditor(MenuBar):
         self.sid_data.setStartX(0)
         self.sid_data.setStartY(10)  # Assuming you are asking at the 10th line
         self.output("Please enter the filename to load: ", 6,0)
-        self.ask(11, self.load_filename_callback)  # filename_callback is the function to be called once filename is entered   
+        self.ask(20, self.load_filename_callback)  # filename_callback is the function to be called once filename is entered   
     
     def save_ansi(self):
         collection = self.mongo_client.bbs.ansifiles  # Replace with actual MongoDB database and collection
@@ -75,7 +79,7 @@ class MenuBarANSIEditor(MenuBar):
         self.sid_data.setStartX(0)
         self.sid_data.setStartY(10)  # Assuming you are asking at the 10th line
         self.output("Please enter the filename to save: ", 6,0)
-        self.ask(11, self.save_filename_callback)  # filename_callback is the function to be called once filename is entered
+        self.ask(20, self.save_filename_callback)  # filename_callback is the function to be called once filename is entered
 
     def show_filenames(self, filenames):
         # Display filenames
@@ -103,7 +107,7 @@ class MenuBarANSIEditor(MenuBar):
             self.output("File already exists!", 6, 0)
             self.goto_next_line()
             self.output("Please enter the filename to save: ", 6,0)
-            self.ask(11, self.save_filename_callback)  # filename_callback is the function to be called once a filename is entered
+            self.ask(20, self.save_filename_callback)  # filename_callback is the function to be called once a filename is entered
         else:
             # Create a list containing each row and its y-coordinate
             ansi_code = self.sid_data.ansi_editor.display_ansi()
@@ -152,7 +156,7 @@ class MenuBarANSIEditor(MenuBar):
             self.goto_next_line()
             self.output("File not found!", 6, 0)
             self.goto_next_line()
-            self.ask(11, self.load_filename_callback)  # load_filename_callback is the function to be called if the filename is not found
+            self.ask(20, self.load_filename_callback)  # load_filename_callback is the function to be called if the filename is not found
 
     def delete_ansi(self):
         collection = self.mongo_client.bbs.ansifiles  # Replace with the actual MongoDB database and collection
@@ -165,7 +169,46 @@ class MenuBarANSIEditor(MenuBar):
         self.sid_data.setStartX(0)
         self.sid_data.setStartY(10)  # Assuming you are asking at the 10th line
         self.output("Please enter the filename to delete: ", 6, 0)
-        self.ask(11, self.delete_filename_callback)  # delete_filename_callback is the function to be called once filename is entered
+        self.ask(20, self.delete_filename_callback)  # delete_filename_callback is the function to be called once filename is entered
+
+    def delete_uploaded_ansi(self):
+        collection = self.mongo_client.bbs.uploads  # Replace with the actual MongoDB database and collection
+        filenames = collection.find({}, {'filename': 1})  # Query MongoDB for filenames
+        
+        self.clear_screen()
+        
+        self.show_filenames(filenames)
+        
+        self.sid_data.setStartX(0)
+        self.sid_data.setStartY(10)  # Assuming you are asking at the 10th line
+        self.output("Please enter the filename to delete: ", 6, 0)
+        self.ask(20, self.delete_uploaded_ansi_callback)  # delete_filename_callback is the function to be called once filename is entered
+
+    def delete_uploaded_ansi_callback(self, entered_filename):
+        if entered_filename=='':
+            self.leave_menu_bar()
+            self.in_sub_menu = False
+            return
+        collection = self.mongo_client.bbs.uploads  # Replace with the actual MongoDB database and collection
+
+        # Look for the filename in the database
+        file_data = collection.find_one({"filename": entered_filename})
+
+        if file_data:
+            # Delete the file from the database
+            collection.delete_one({"filename": entered_filename})
+            self.goto_next_line()
+            self.output("File "+entered_filename+" deleted successfully!", 6, 0)
+            self.goto_next_line()
+            self.output("Please enter another filename to delete: ", 6, 0)
+            self.ask(20, self.delete_filename_callback)  # delete_filename_callback is the function to be called once filename is entered
+
+        else:
+            self.goto_next_line()
+            self.output("File not found!", 6, 0)
+            self.goto_next_line()
+            self.output("Please enter the filename to delete: ", 6, 0)
+            self.ask(20, self.delete_filename_callback)  # delete_filename_callback is the function to be called if the filename is not found
 
 
     def delete_filename_callback(self, entered_filename):
@@ -185,14 +228,14 @@ class MenuBarANSIEditor(MenuBar):
             self.output("File "+entered_filename+" deleted successfully!", 6, 0)
             self.goto_next_line()
             self.output("Please enter another filename to delete: ", 6, 0)
-            self.ask(11, self.delete_filename_callback)  # delete_filename_callback is the function to be called once filename is entered
+            self.ask(20, self.delete_filename_callback)  # delete_filename_callback is the function to be called once filename is entered
 
         else:
             self.goto_next_line()
             self.output("File not found!", 6, 0)
             self.goto_next_line()
             self.output("Please enter the filename to delete: ", 6, 0)
-            self.ask(11, self.delete_filename_callback)  # delete_filename_callback is the function to be called if the filename is not found
+            self.ask(20, self.delete_filename_callback)  # delete_filename_callback is the function to be called if the filename is not found
 
 
     def leave_menu_bar(self):
@@ -202,7 +245,10 @@ class MenuBarANSIEditor(MenuBar):
         self.sid_data.ansi_editor.display_editor()
 
     def emit_current_string(self, currentString, currentColor, backgroundColor, blink, current_x, current_y):
-        
+        if (current_x < 0):
+            current_x = 0
+        if (current_y < 0):
+            current_y = 0
         for key in currentString:
             while len(self.sid_data.input_values) <= current_y:
                 self.sid_data.input_values.append("")
@@ -229,24 +275,90 @@ class MenuBarANSIEditor(MenuBar):
         return []
     
     def set_color_at_position(self, x, y, color, bgcolor):
-        # Expand the array to fit the given coordinates, if necessary
+        #print(f"Setting color at position: X={x}, Y={y}")
+        
+        # Expand the outer list (for y coordinate) as required
         while len(self.sid_data.color_array) <= y:
             self.sid_data.color_array.append([])
-
+            #print(f"Expanding outer list to {len(self.sid_data.color_array)} due to Y={y}")
+            
+        # Now, expand the inner list (for x coordinate) as required
         while len(self.sid_data.color_array[y]) <= x:
             self.sid_data.color_array[y].append(None)
+            #print(f"Expanding inner list at Y={y} to {len(self.sid_data.color_array[y])} due to X={x}")
 
+        # Print current size
+        #print(f"Current size of color_array: Width={len(self.sid_data.color_array[y])}, Height={len(self.sid_data.color_array)}")
+
+        # Do the same for the background color array
         while len(self.sid_data.color_bgarray) <= y:
             self.sid_data.color_bgarray.append([])
-
+            #print(f"Expanding outer bg list to {len(self.sid_data.color_bgarray)} due to Y={y}")
+            
         while len(self.sid_data.color_bgarray[y]) <= x:
             self.sid_data.color_bgarray[y].append(None)
+            #print(f"Expanding inner bg list at Y={y} to {len(self.sid_data.color_bgarray[y])} due to X={x}")
 
-        # Set the color at the given coordinates
+        # Print current size of bg array
+        #print(f"Current size of color_bgarray: Width={len(self.sid_data.color_bgarray[y])}, Height={len(self.sid_data.color_bgarray)}")
+
+        # Set the color and background color at the given coordinates
         self.sid_data.color_array[y][x] = color
         self.sid_data.color_bgarray[y][x] = bgcolor
+
+        # Print successful setting of color
+        #print(f"Successfully set color {color} and bgcolor {bgcolor} at X={x}, Y={y}")
+
+
 
     def hide_menu_bar(self):
         self.in_sub_menu = False
         self.leave_menu_bar()
         # Reset to previous state or hide the menu bar
+
+    def import_ansi(self):
+        print("Load ANSI Loaded")
+        collection = self.mongo_client.bbs.uploads  # Replace with actual MongoDB database and collection
+        filenames = collection.find({}, {'filename': 1})  # Query MongoDB for filenames
+        
+        self.clear_screen()
+
+        self.show_filenames(filenames)
+
+        self.sid_data.setStartX(0)
+        self.sid_data.setStartY(10)  # Assuming you are asking at the 10th line
+        self.output("Please enter the filename to load: ", 6,0)
+        self.ask(20, self.import_filename_callback)  # filename_callback is the function to be called once filename is entered   
+
+    def import_filename_callback(self, entered_filename):
+        if entered_filename=='':
+            self.leave_menu_bar()
+            self.in_sub_menu = False
+            return
+        collection = self.mongo_client.bbs.uploads  # Replace with the actual MongoDB database and collection
+        
+        # Look for the filename in the database
+        file_data = collection.find_one({"filename": entered_filename})
+
+        if file_data:
+            # Clear the existing values in MenuBox
+            self.current_line_x=0
+            self.sid_data.input_values=[]
+            self.current_line_index=0
+            self.sid_data.color_array = []
+            self.sid_data.color_bgarray = []
+            str_text = file_data['file_data'].decode('cp437', 'ignore')
+            self.show_file_content(str_text, self.emit_current_string)
+            self.sid_data.ansi_editor.max_height = len(self.sid_data.input_values)
+            self.sid_data.ansi_editor.clear_screen()
+            self.sid_data.ansi_editor.update_first_line()
+            self.sid_data.ansi_editor.display_editor()
+            self.sid_data.setCurrentAction("wait_for_ansieditor")
+            self.sid_data.ansi_editor.current_line_x=0
+            self.sid_data.ansi_editor.current_line_index=0
+            
+        else:
+            self.goto_next_line()
+            self.output("File not found!", 6, 0)
+            self.goto_next_line()
+            self.ask(20, self.load_filename_callback)  # load_filename_callback is the function to be called if the filename is not found

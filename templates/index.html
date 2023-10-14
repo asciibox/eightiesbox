@@ -41,11 +41,43 @@
                     socket.emit('upload_finished');
             });
         });
-    // Initialize Dropzone
-    Dropzone.options.uploadForm = {
-        maxFilesize: 1, // MB
-        acceptedFiles: ".ans"
-    };
+        Dropzone.options.uploadForm = {
+            maxFilesize: 1, // MB
+            acceptedFiles: ".ans",
+            init: function() {
+                this.on("addedfile", function(file) {
+                    // Create a FileReader object
+                    var reader = new FileReader();
+                    
+                    // You can access the filename here
+                    var filename = file.name;
+                    
+                    // Read the file as Data URL (Base64)
+                    reader.readAsDataURL(file);
+                    
+                    // Event handler when the reading is complete
+                    reader.onload = function(event) {
+                        // Get the Base64 string, remove the Data URL prefix
+                        var base64String = event.target.result.split(",")[1];
+
+                        var xhr = new XMLHttpRequest();
+                        xhr.open('POST', '/upload', true);
+                        xhr.setRequestHeader('Content-Type', 'application/json');
+                        xhr.onreadystatechange = function() {
+                            if (xhr.readyState == 4 && xhr.status == 200) {
+                                alert('File successfully uploaded');
+                            }
+                        };
+                        // Include the filename in the JSON payload
+                        xhr.send(JSON.stringify({
+                            file_data: base64String,
+                            filename: filename  // Add filename here
+                        }));
+                    };
+                });
+            }
+        };
+
 
     socket.on('upload', (data) => {
         const canvasElements = document.getElementsByTagName('canvas');
