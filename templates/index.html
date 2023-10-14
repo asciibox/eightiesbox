@@ -3,19 +3,60 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Ascii box</title>
+    <title>Eighties box</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" type="text/css" media="screen" href="{{ url_for('static', filename='main.css') }}" />
-    
+    <script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" type="text/css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
-
 </head>
 <body>
     <script src="{{ url_for('static', filename='client.js') }}"></script>
     <script src="{{ url_for('static', filename='phaser.js') }}"></script>
     <script src="{{ url_for('static', filename='main.js') }}"></script>
-    </body>
-    <div id="myhtml"></div>
+    
+    <div id="fileUploadDiv" style="display:none">
+        <button id="toggleButton">Close upload area</button>
+        <form action="/upload" class="dropzone" id="uploadForm" enctype="multipart/form-data">
+            <div class="fallback">
+                <input name="file" type="file">
+                <button type="submit">Upload</button>
+            </div>
+        </form>
+    </div>
 
-    </body>
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function(){
+            const toggleButton = document.getElementById("toggleButton");
+            const fileUploadDiv = document.getElementById("fileUploadDiv");
+
+            toggleButton.addEventListener("click", function(){
+                    fileUploadDiv.style.display = "none";
+                    const canvasElements = document.getElementsByTagName('canvas');
+                    for (let i = 0; i < canvasElements.length; i++) {
+                        canvasElements[i].style.display = 'inline';
+                    }
+                    socket.emit('upload_finished');
+            });
+        });
+    // Initialize Dropzone
+    Dropzone.options.uploadForm = {
+        maxFilesize: 1, // MB
+        acceptedFiles: ".ans"
+    };
+
+    socket.on('upload', (data) => {
+        const canvasElements = document.getElementsByTagName('canvas');
+        for (let i = 0; i < canvasElements.length; i++) {
+            canvasElements[i].style.display = 'none';
+        }
+        
+        const uploadDiv = document.getElementById('fileUploadDiv');
+        uploadDiv.style.display = 'inline';
+    });
+    </script>
+
+</body>
 </html>

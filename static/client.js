@@ -23,3 +23,15 @@ socket.on('clear', (data) => {
 socket.on('clearline', (data) => {
     clearLine(data.y);
 });
+
+socket.on('upload', (data) => {
+    // Hide all canvas elements
+    const canvasElements = document.getElementsByTagName('canvas');
+    for (let i = 0; i < canvasElements.length; i++) {
+        canvasElements[i].style.display = 'none';
+    }
+
+    // Display the fileUploadDiv
+    const uploadDiv = document.getElementById('fileUploadDiv');
+    uploadDiv.style.display = 'inline';
+});

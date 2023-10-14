@@ -135,7 +135,7 @@ def init_action_listeners(sio, my_client, sdata):
                     'Edit': ['Edit text', 'Simulate text', 'Clear text', 'View text', 'Leave menu bar'],
                 }
                 
-                sid_data.setMenuBar(MenuBarMenuEditor(sub_menus, sid_data, output, ask, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content))
+                sid_data.setMenuBar(MenuBarMenuEditor(sub_menus, sid_data, output, ask, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content, emit_upload))
                 return
             
             return

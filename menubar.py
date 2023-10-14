@@ -2,7 +2,7 @@ from pymongo import MongoClient
 from menutexteditor import *
 
 class MenuBar:
-    def __init__(self, sub_menus, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content):
+    def __init__(self, sub_menus, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content, emit_upload):
         sid_data.setCurrentAction("wait_for_menubar")
         self.mongo_client = mongo_client
         self.clear_screen = clear_screen
@@ -27,6 +27,7 @@ class MenuBar:
         self.main_menu_positions = {}
 
         self.show_file_content = show_file_content
+        self.emit_upload = emit_upload
 
         # Clear the lines where the sub-menus would appear
         max_sub_menu_length = max([len(sub) for sub in self.sub_menus.values()])

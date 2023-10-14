@@ -39,7 +39,7 @@ class MenuBarMenuEditor(MenuBar):
         self.in_sub_menu = False
 
     def load_menu(self):
-        collection = self.mongo_client.mydatabase.menufiles  # Replace with actual MongoDB database and collection
+        collection = self.mongo_client.bbs.menufiles  # Replace with actual MongoDB database and collection
         filenames = collection.find({}, {'filename': 1})  # Query MongoDB for filenames
         
         self.clear_screen()
@@ -52,7 +52,7 @@ class MenuBarMenuEditor(MenuBar):
         self.ask(11, self.load_filename_callback)  # filename_callback is the function to be called once filename is entered   
     
     def save_menu(self):
-        collection = self.mongo_client.mydatabase.menufiles  # Replace with actual MongoDB database and collection
+        collection = self.mongo_client.bbs.menufiles  # Replace with actual MongoDB database and collection
         filenames = collection.find({}, {'filename': 1})  # Query MongoDB for filenames
         
         self.clear_screen()
@@ -82,7 +82,7 @@ class MenuBarMenuEditor(MenuBar):
             self.sid_data.setCurrentAction("wait_for_menu")
             self.in_sub_menu = False
             return
-        collection = self.mongo_client.mydatabase.menufiles  # Replace with the actual MongoDB database and collection
+        collection = self.mongo_client.bbs.menufiles  # Replace with the actual MongoDB database and collection
 
         # Before saving, you might want to check if this filename already exists and handle accordingly
         if collection.find_one({"filename": entered_filename}):
@@ -121,7 +121,7 @@ class MenuBarMenuEditor(MenuBar):
             self.sid_data.setCurrentAction("wait_for_menu")
             self.in_sub_menu = False
             return
-        collection = self.mongo_client.mydatabase.menufiles  # Replace with the actual MongoDB database and collection
+        collection = self.mongo_client.bbs.menufiles  # Replace with the actual MongoDB database and collection
         
         # Look for the filename in the database
         file_data = collection.find_one({"filename": entered_filename})
@@ -154,7 +154,7 @@ class MenuBarMenuEditor(MenuBar):
             self.ask(11, self.load_filename_callback)  # load_filename_callback is the function to be called if the filename is not found
 
     def delete_menu(self):
-        collection = self.mongo_client.mydatabase.menufiles  # Replace with the actual MongoDB database and collection
+        collection = self.mongo_client.bbs.menufiles  # Replace with the actual MongoDB database and collection
         filenames = collection.find({}, {'filename': 1})  # Query MongoDB for filenames
         
         self.clear_screen()
@@ -173,7 +173,7 @@ class MenuBarMenuEditor(MenuBar):
             self.sid_data.setCurrentAction("wait_for_menu")
             self.in_sub_menu = False
             return
-        collection = self.mongo_client.mydatabase.menufiles  # Replace with the actual MongoDB database and collection
+        collection = self.mongo_client.bbs.menufiles  # Replace with the actual MongoDB database and collection
 
         # Look for the filename in the database
         file_data = collection.find_one({"filename": entered_filename})

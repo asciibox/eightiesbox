@@ -2,9 +2,9 @@ from pymongo import MongoClient
 from menubar import MenuBar
 
 class MenuBarANSIEditor(MenuBar):
-    def __init__(self, sub_menus, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content):
+    def __init__(self, sub_menus, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content, emit_upload):
         # Call the constructor of the parent class (MenuBar)
-        super().__init__(sub_menus, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content)
+        super().__init__(sub_menus, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content, emit_upload)
         # Add any additional properties or methods specific to MenuBarANSI here
         self.current_line_x = 0
         self.current_line_index = 0
@@ -22,6 +22,8 @@ class MenuBarANSIEditor(MenuBar):
                 self.save_ansi()
             elif selected_option=="Delete ANSI":
                 self.delete_ansi()
+            elif selected_option=="Upload ANSI":
+                self.upload_ansi()
             elif selected_option=="Leave menu bar":
                 self.leave_menu_bar()                
             elif selected_option=="Clear ANSI":
@@ -45,9 +47,12 @@ class MenuBarANSIEditor(MenuBar):
         self.sid_data.ansi_editor.current_line_index=0
         self.sid_data.setCurrentAction("wait_for_ansieditor")
 
+    def upload_ansi(self):
+        self.emit_upload()
+
     def load_ansi(self):
         print("Load ANSI Loaded")
-        collection = self.mongo_client.mydatabase.ansifiles  # Replace with actual MongoDB database and collection
+        collection = self.mongo_client.bbs.ansifiles  # Replace with actual MongoDB database and collection
         filenames = collection.find({}, {'filename': 1})  # Query MongoDB for filenames
         
         self.clear_screen()
@@ -60,7 +65,7 @@ class MenuBarANSIEditor(MenuBar):
         self.ask(11, self.load_filename_callback)  # filename_callback is the function to be called once filename is entered   
     
     def save_ansi(self):
-        collection = self.mongo_client.mydatabase.ansifiles  # Replace with actual MongoDB database and collection
+        collection = self.mongo_client.bbs.ansifiles  # Replace with actual MongoDB database and collection
         filenames = collection.find({}, {'filename': 1})  # Query MongoDB for filenames
         
         self.clear_screen()
@@ -89,7 +94,7 @@ class MenuBarANSIEditor(MenuBar):
             self.leave_menu_bar()
             self.in_sub_menu = False
             return
-        collection = self.mongo_client.mydatabase.ansifiles  # Replace with the actual MongoDB database and collection
+        collection = self.mongo_client.bbs.ansifiles  # Replace with the actual MongoDB database and collection
 
         # Before saving, you might want to check if this filename already exists and handle accordingly
         if collection.find_one({"filename": entered_filename}):
@@ -122,7 +127,7 @@ class MenuBarANSIEditor(MenuBar):
             self.leave_menu_bar()
             self.in_sub_menu = False
             return
-        collection = self.mongo_client.mydatabase.ansifiles  # Replace with the actual MongoDB database and collection
+        collection = self.mongo_client.bbs.ansifiles  # Replace with the actual MongoDB database and collection
         
         # Look for the filename in the database
         file_data = collection.find_one({"filename": entered_filename})
@@ -150,7 +155,7 @@ class MenuBarANSIEditor(MenuBar):
             self.ask(11, self.load_filename_callback)  # load_filename_callback is the function to be called if the filename is not found
 
     def delete_ansi(self):
-        collection = self.mongo_client.mydatabase.ansifiles  # Replace with the actual MongoDB database and collection
+        collection = self.mongo_client.bbs.ansifiles  # Replace with the actual MongoDB database and collection
         filenames = collection.find({}, {'filename': 1})  # Query MongoDB for filenames
         
         self.clear_screen()
@@ -168,7 +173,7 @@ class MenuBarANSIEditor(MenuBar):
             self.leave_menu_bar()
             self.in_sub_menu = False
             return
-        collection = self.mongo_client.mydatabase.ansifiles  # Replace with the actual MongoDB database and collection
+        collection = self.mongo_client.bbs.ansifiles  # Replace with the actual MongoDB database and collection
 
         # Look for the filename in the database
         file_data = collection.find_one({"filename": entered_filename})

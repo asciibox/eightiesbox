@@ -1,6 +1,10 @@
-from flask import Flask, render_template
+from flask import Flask, request, render_template, redirect, url_for
+from werkzeug.utils import secure_filename
+import os
+import bson.binary
 from flask_socketio import SocketIO
 
+from flask import jsonify
 from flask import request
 from actions import *
 from utils import *
@@ -13,6 +17,7 @@ import time
 
 app = Flask(__name__)
 socketio = SocketIO(app)
+MAX_FILE_SIZE = 1024 * 1024  # 1MB in bytes
 server_available = True
 try:
     mongo_client = MongoClient("mongodb://localhost:27017", serverSelectionTimeoutMS=5000)
@@ -25,7 +30,6 @@ except ConnectionFailure:
     server_available = False
 
 sid_data = {}
-
 
 # When a new connection occurs
 def on_new_connection():
@@ -54,6 +58,10 @@ def handle_connect():
         {'minWidth': 960, 'x': 120, 'y': 80}
     ], room=request.sid)
 
+@socketio.on('upload_finished')
+def upload_finished():
+    print("UPLOAD FINISHED")  
+    
 
 
 def oneliners():
@@ -73,7 +81,7 @@ def onload(data):
         output("* Database connection could not get established *", 1,0)
         print(server_available)
         time.sleep(3)
-    sid_data[request.sid].setANSIEditor(ANSIEditor(sid_data[request.sid], output, ask, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content))
+    sid_data[request.sid].setANSIEditor(ANSIEditor(sid_data[request.sid], output, ask, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content, emit_upload))
     #data2 = { 'filename' : startFile+'-'+str(x)+'x'+str(y), 'x' : x, 'y': y}
     #show_file(data2, emit_current_string)
     #goto_next_line()
@@ -84,6 +92,43 @@ def onload(data):
 def disconnect(data):
     on_connection_close()
 
+db = mongo_client["bbs"]  # You can replace "mydatabase" with the name of your database
+uploads_collection = db["uploads"]
+
+ALLOWED_EXTENSIONS = {'ans'}
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    if server_available:
+        if 'file' not in request.files:
+            return jsonify({"error": "No file part"}), 400
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({"error": "No selected file"}), 400
+        if file and allowed_file(file.filename):
+            file.filename = secure_filename(file.filename)
+            file_data = file.read()
+
+            # Check file size
+            if len(file_data) > MAX_FILE_SIZE:
+                return jsonify({"error": "File size exceeds 1MB"}), 400
+            
+            # Save file data and filename to MongoDB
+            new_file = {
+                "filename": file.filename,
+                "file_data": bson.binary.Binary(file_data)
+            }
+            uploads_collection.insert_one(new_file)
+            return jsonify({"success": f"File {file.filename} uploaded successfully"}), 200
+        else:
+            return jsonify({"error": "Wrong file extension (.ANS only)"}), 400
+    else:
+        return jsonify({"error": "Database server not available"}), 500
+    
 
 if __name__ == '__main__':
    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
