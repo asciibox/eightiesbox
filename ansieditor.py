@@ -55,20 +55,20 @@ class ANSIEditor:
     
     
     def display_editor(self):
-        self.sid_data.setMapCharacterSet(True)
         for idx in range(0, self.max_height):
             self.draw_line(idx)
-        self.sid_data.setMapCharacterSet(False)
         self.emit_gotoXY(0, 1)
 
 
     def draw_line(self, line_index):
         # Display the key on the left with color 6
+        self.sid_data.setMapCharacterSet(True)
         # Display the input value with color 6
         self.sid_data.setStartX(0)
         self.sid_data.setStartY(line_index+1)
         if line_index < len(self.sid_data.input_values):
             self.output_with_color(0, line_index, self.sid_data.input_values[line_index], None, 0)
+        self.sid_data.setMapCharacterSet(False)
 
 
     def output_with_color(self, x, y, text, color, bgcolor):
