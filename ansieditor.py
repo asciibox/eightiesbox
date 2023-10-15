@@ -2,7 +2,7 @@ from menu2ansi import *
 from menubar_ansieditor import *
 
 class ANSIEditor:
-    def __init__(self, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content, emit_upload):
+    def __init__(self, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content, emit_upload, emit_current_string):
         self.keys = {
             0: [49, 50, 51, 52, 53, 54, 55, 56, 57, 48],
             1: [218, 191, 192, 217, 196, 179, 195, 180, 193, 194],
@@ -25,6 +25,10 @@ class ANSIEditor:
             'black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white'
         ]
 
+       
+
+
+        self.emit_current_string=emit_current_string
         self.max_height = sid_data.yHeight # len(self.editor_values)
 
 
@@ -52,7 +56,29 @@ class ANSIEditor:
         self.display_editor()
 
         sid_data.setCurrentAction("wait_for_ansieditor")
-    
+
+
+    def code(self):
+            codestring = ""
+            for i in range(128, 256):
+                codestring += f"{i}:{chr(i)} "
+            
+            startX = 0  # Assuming startX starts at 0, change as needed
+            startY = 0  # Assuming startY starts at 0, change as needed
+            
+            slice_length = 10  # Number of codes per slice
+            for i in range(0, len(codestring), slice_length * 4):  # 4 characters per code (e.g., "128:A ")
+                slice_str = codestring[i:i + slice_length * 4]
+                self.emit_current_string(slice_str, 14, 4, False, startX, startY+1)
+                startY += 1  # Increment startY by 1
+
+            startX = 50  # Assuming startX starts at 0, change as needed
+            self.sid_data.setMapCharacterSet(True)
+            for i in range(0, len(codestring), slice_length * 4):  # 4 characters per code (e.g., "128:A ")
+                slice_str = codestring[i:i + slice_length * 4]
+                self.emit_current_string(slice_str, 14, 4, False, startX, startY+1)
+                startY += 1  # Increment startY by 1
+
     
     def display_editor(self):
         for idx in range(0, self.max_height):
@@ -169,6 +195,7 @@ class ANSIEditor:
                 return
 
         elif key == 'Alt':
+            #self.code()
             self.display_ansi()
             self.characterSet = self.characterSet + 1
             if self.characterSet > 14:

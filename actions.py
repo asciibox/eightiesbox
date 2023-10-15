@@ -365,7 +365,7 @@ def show_file_content(text_content, emit_current_string):
                 isBold = True  # Add this line
             elif instruction.attribute == Attribute.NORMAL:  # Add this line
                 isBold = False  # Add this line
-                currentString = emit_current_string(currentString, currentColor, backgroundColor, blink, sid_data.startX, sid_data.startY)
+                currentString = emit_current_string(currentString, currentColor, 0, blink, sid_data.startX, sid_data.startY) #modified 0, backgroundColor?
                 sid_data.setStartX(posX)
                 sid_data.setStartY(posY)
                 backgroundColor = 0
