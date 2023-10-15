@@ -196,6 +196,9 @@ class ANSIEditor:
 
         elif key == 'Alt':
             #self.code()
+            #current_str = self.sid_data.input_values[self.current_line_index][self.current_line_x]
+            #print(ord(current_str[0]))
+
             self.display_ansi()
             self.characterSet = self.characterSet + 1
             if self.characterSet > 14:
