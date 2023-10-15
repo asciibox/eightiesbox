@@ -1,21 +1,24 @@
 from pymongo import MongoClient
 from menubar import MenuBar
+import bson.binary
+import base64
 
 class MenuBarANSIEditor(MenuBar):
-    def __init__(self, sub_menus, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content, emit_upload):
+    def __init__(self, sub_menus, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content, emit_upload, map_value, list1, list2):
         # Call the constructor of the parent class (MenuBar)
         super().__init__(sub_menus, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content, emit_upload)
         # Add any additional properties or methods specific to MenuBarANSI here
         self.current_line_x = 0
         self.current_line_index = 0
+        self.map_value = map_value
+        self.list1 = list1
+        self.list2 = list2
 
         # Add ANSI-specific methods here if needed
     def choose_field(self):
-        print("choose field")
         if self.in_sub_menu:
             current_menu = self.current_main_menu_index
             selected_option = self.sub_menus[self.main_menu[self.current_main_menu_index]][self.current_sub_menu_indexes[current_menu]]
-            print("selected opt"+selected_option)
             if selected_option=="Load ANSI":
                 self.load_ansi()
             elif selected_option=="Save ANSI":
@@ -55,7 +58,6 @@ class MenuBarANSIEditor(MenuBar):
         self.emit_upload()
 
     def load_ansi(self):
-        print("Load ANSI Loaded")
         collection = self.mongo_client.bbs.ansifiles  # Replace with actual MongoDB database and collection
         filenames = collection.find({}, {'filename': 1})  # Query MongoDB for filenames
         
@@ -143,6 +145,9 @@ class MenuBarANSIEditor(MenuBar):
             self.current_line_index=0
             self.sid_data.color_array = []
             self.sid_data.color_bgarray = []
+            #with open("ansi_load.ans", "w") as f:
+            #    f.write(file_data['ansi_code'] + '\n')
+
             self.show_file_content(file_data['ansi_code'], self.emit_current_string)
             self.sid_data.ansi_editor.max_height = len(self.sid_data.input_values)
             self.sid_data.ansi_editor.clear_screen()
@@ -317,7 +322,6 @@ class MenuBarANSIEditor(MenuBar):
         # Reset to previous state or hide the menu bar
 
     def import_ansi(self):
-        print("Load ANSI Loaded")
         collection = self.mongo_client.bbs.uploads  # Replace with actual MongoDB database and collection
         filenames = collection.find({}, {'filename': 1})  # Query MongoDB for filenames
         
@@ -340,6 +344,12 @@ class MenuBarANSIEditor(MenuBar):
         # Look for the filename in the database
         file_data = collection.find_one({"filename": entered_filename})
 
+        file_data = base64.b64decode(file_data['file_data'])
+
+        file_data = self.convert_current_string(file_data)
+
+        str_text = file_data.decode('cp1252')
+
         if file_data:
             # Clear the existing values in MenuBox
             self.current_line_x=0
@@ -347,7 +357,9 @@ class MenuBarANSIEditor(MenuBar):
             self.current_line_index=0
             self.sid_data.color_array = []
             self.sid_data.color_bgarray = []
-            str_text = file_data['file_data'].decode('cp437', 'ignore')
+            #str_text = file_data['file_data'].decode('cp437', 'replace')
+            #with open("ansi_import.ans", "w", encoding='cp437') as f:
+            #    f.write(str_text)
             self.show_file_content(str_text, self.emit_current_string)
             self.sid_data.ansi_editor.max_height = len(self.sid_data.input_values)
             self.sid_data.ansi_editor.clear_screen()
@@ -362,3 +374,17 @@ class MenuBarANSIEditor(MenuBar):
             self.output("File not found!", 6, 0)
             self.goto_next_line()
             self.ask(20, self.load_filename_callback)  # load_filename_callback is the function to be called if the filename is not found
+
+
+    def convert_current_string(self, currentBytes):
+
+        if currentBytes:
+            ascii_codes = [b for b in currentBytes]
+            #print(ascii_codes)
+            mapped_ascii_codes = [self.map_value(code, self.list2, self.list1) for code in ascii_codes]
+
+            # Convert the mapped ASCII codes back into a byte array
+            new_bytes = bytes(mapped_ascii_codes)
+
+            return new_bytes
+        return bytes([])  # Return an empty byte array if there's no data

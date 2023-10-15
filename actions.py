@@ -11,6 +11,7 @@ from flask import request
 from sessiondata import *
 import random
 from menubar_menueditor import *
+from sauce import *
 
 socketio = None  # Declare as a global variable
 mongo_client = None
@@ -288,6 +289,15 @@ def show_file(data, emit_current_string):
 def show_file_content(text_content, emit_current_string):
     currentColor = 15
     backgroundColor = 0
+    terminalWidth = 80
+
+    sauce = get_sauce(bytes(text_content, 'utf-8'))
+
+    terminalWidth = 80
+
+    if sauce:
+        if sauce.columns:
+            terminalWidth = sauce.columns
 
     text_content = strip_sauce(text_content)
 
@@ -339,7 +349,7 @@ def show_file_content(text_content, emit_current_string):
                         sid_data.setStartX(posX)
                         sid_data.setStartY(posY)
                         continue
-                    elif posX >= sid_data.xWidth:
+                    elif posX >= terminalWidth: # sid_data.xWidth:
                         posY += 1
                         posX = 1
                         currentString = emit_current_string(currentString, currentColor, backgroundColor, blink, sid_data.startX, sid_data.startY)
@@ -360,13 +370,14 @@ def show_file_content(text_content, emit_current_string):
                 blink = False
             elif instruction.attribute == Attribute.BOLD:  # Add this line
                 currentString = emit_current_string(currentString, currentColor, backgroundColor, blink, sid_data.startX, sid_data.startY)
-                currentColor = currentColor + 8
+                
+                #currentColor = currentColor + 8
                 sid_data.setStartX(posX)
                 sid_data.setStartY(posY)
                 isBold = True  # Add this line
             elif instruction.attribute == Attribute.NORMAL:  # Add this line
                 isBold = False  # Add this line
-                currentColor = currentColor + 8
+                #currentColor = currentColor + 8
                 currentString = emit_current_string(currentString, currentColor, backgroundColor, blink, sid_data.startX, sid_data.startY) #modified 0, backgroundColor?
                 sid_data.setStartX(posX)
                 sid_data.setStartY(posY)

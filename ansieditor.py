@@ -2,7 +2,7 @@ from menu2ansi import *
 from menubar_ansieditor import *
 
 class ANSIEditor:
-    def __init__(self, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content, emit_upload, emit_current_string):
+    def __init__(self, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content, emit_upload, emit_current_string, map_value, list1, list2):
         self.keys = {
             0: [49, 50, 51, 52, 53, 54, 55, 56, 57, 48],
             1: [218, 191, 192, 217, 196, 179, 195, 180, 193, 194],
@@ -30,6 +30,10 @@ class ANSIEditor:
 
         self.emit_current_string=emit_current_string
         self.max_height = sid_data.yHeight # len(self.editor_values)
+
+        self.map_value = map_value
+        self.list1 = list1
+        self.list2 = list2
 
 
         self.show_file_content = show_file_content
@@ -191,7 +195,7 @@ class ANSIEditor:
                         'File': ['Load ANSI', 'Save ANSI', 'Delete ANSI', 'Upload ANSI','Import uploaded ANSI','Delete uploaded ANSI'],
                         'Edit': ['Clear ANSI', 'Leave menu bar'],
                     }
-                self.sid_data.setMenuBar(MenuBarANSIEditor(sub_menus, self.sid_data, self.output, self.ask, self.mongo_client, self.goto_next_line, self.clear_screen, self.emit_gotoXY, self.clear_line, self.show_file_content, self.emit_upload))
+                self.sid_data.setMenuBar(MenuBarANSIEditor(sub_menus, self.sid_data, self.output, self.ask, self.mongo_client, self.goto_next_line, self.clear_screen, self.emit_gotoXY, self.clear_line, self.show_file_content, self.emit_upload, self.map_value, self.list1, self.list2))
                 return
 
         elif key == 'Alt':
@@ -209,7 +213,7 @@ class ANSIEditor:
         elif key == 'Backspace':
             if self.current_line_x > self.startX:
 
-                current_x = self.current_line_x-2
+                current_x = self.current_line_x-1
 
                 current_str = self.sid_data.input_values[self.current_line_index]
 
