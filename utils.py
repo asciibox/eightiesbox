@@ -7,12 +7,16 @@ from menubox import *
 socketio = None  # Declare as a global variable
 mongo_client = None
 sid_data = None
+list2 = None
+list1 = None
 
-def init_utils_listeners(sio, my_client, sdata):
-    global socketio, mongo_client, sid_data
+def init_utils_listeners(sio, my_client, sdata, mylist1, mylist2):
+    global socketio, mongo_client, sid_data, list1, list2
     socketio = sio
     mongo_client = my_client
     sid_data = sdata.get(request.sid)
+    list1 = mylist1
+    list2 = mylist2
     
 def askinput(mylen, callback, accept_keys):
     print("Switched to wait_for_inpu")
@@ -149,7 +153,7 @@ def emit_current_string(currentString, currentColor, backgroundColor, blink, x, 
         ascii_codes = [ord(char) for char in currentString]
 
         if sid_data.map_character_set == True:
-            mapped_ascii_codes = [map_value(code, sid_data.list2, sid_data.list1) for code in ascii_codes]
+            mapped_ascii_codes = [map_value(code, list2, list1) for code in ascii_codes]
             
             socketio.emit('draw', {
                 'ascii_codes': mapped_ascii_codes,
