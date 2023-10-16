@@ -175,8 +175,3 @@ def emit_current_string(currentString, currentColor, backgroundColor, blink, x, 
 
     return []
 
-def strip_sauce(text):
-    sauce_start = text.rfind("\x1ASAUCE00")
-    if sauce_start != -1:
-        return text[:sauce_start]
-    return text

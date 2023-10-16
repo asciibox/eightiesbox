@@ -2,7 +2,7 @@ from menu2ansi import *
 from menubar_ansieditor import *
 
 class ANSIEditor:
-    def __init__(self, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content, emit_upload, emit_current_string, map_value, list1, list2, get_sauce, append_sauce_to_string, Sauce):
+    def __init__(self, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content, emit_upload, emit_current_string, map_value, list1, list2, get_sauce, append_sauce_to_string, Sauce, strip_sauce):
         self.keys = {
             0: [49, 50, 51, 52, 53, 54, 55, 56, 57, 48],
             1: [218, 191, 192, 217, 196, 179, 195, 180, 193, 194],
@@ -58,6 +58,7 @@ class ANSIEditor:
         self.append_sauce_to_string = append_sauce_to_string
         self.get_sauce = get_sauce
         self.Sauce = Sauce
+        self.strip_sauce = strip_sauce
 
         self.clear_screen()
         self.update_first_line()
@@ -204,7 +205,7 @@ class ANSIEditor:
                         'File': ['Load ANSI', 'Save ANSI', 'Delete ANSI', 'Upload ANSI','Import uploaded ANSI','Delete uploaded ANSI'],
                         'Edit': ['Clear ANSI', 'Leave menu bar'],
                     }
-                self.sid_data.setMenuBar(MenuBarANSIEditor(sub_menus, self.sid_data, self.output, self.ask, self.mongo_client, self.goto_next_line, self.clear_screen, self.emit_gotoXY, self.clear_line, self.show_file_content, self.emit_upload, self.map_value, self.list1, self.list2, self.get_sauce, self.append_sauce_to_string, self.Sauce))
+                self.sid_data.setMenuBar(MenuBarANSIEditor(sub_menus, self.sid_data, self.output, self.ask, self.mongo_client, self.goto_next_line, self.clear_screen, self.emit_gotoXY, self.clear_line, self.show_file_content, self.emit_upload, self.map_value, self.list1, self.list2, self.get_sauce, self.append_sauce_to_string, self.Sauce, self.strip_sauce))
                 return
 
         elif key == 'Alt':

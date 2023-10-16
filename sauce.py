@@ -13,10 +13,35 @@ class Sauce:
         self.font_name = font_name
         self.comments = comments
 
+def strip_sauce(bytes):
+    if len(bytes) < 128:
+        return bytes
+
+    # Check the SAUCE ID
+    sauce_id = bytes[-128:][:7].decode("cp1252", errors="ignore")
+    if sauce_id == "SAUCE00":
+        # If there are comments, their length would be indicated in byte 104
+        number_of_comments = bytes[-128:][104]
+        additional_length = number_of_comments * 64 + 5 if number_of_comments else 0
+
+        # Remove SAUCE and comments
+        return bytes[:-(128 + additional_length)]
+    else:
+        return bytes
+
 def get_sauce(bytes):
+    print("Total length of bytes:", len(bytes))
+    print("Last 128 bytes:", bytes[-128:])
+    
+    print("Last 128 bytes before reading SAUCE:", bytes[-128:])
+
+
     if len(bytes) >= 128:
         sauce_bytes = bytes[-128:]
-        if sauce_bytes[:7].decode("utf-8") == "SAUCE00":
+        print("SAUCE ID Bytes:", sauce_bytes[:7])
+        print("Finding SAUCE");
+        print(sauce_bytes[:7].decode("cp1252"))
+        if sauce_bytes[:7].decode("cp1252") == "SAUCE00":
             title = sauce_bytes[7:42].decode("utf-8").rstrip('\0')
             author = sauce_bytes[42:62].decode("utf-8").rstrip('\0')
             group = sauce_bytes[62:82].decode("utf-8").rstrip('\0')
@@ -47,14 +72,15 @@ def get_sauce(bytes):
     return sauce
 
 def append_sauce_to_string(sauce, string):
-    sauce_bytes = bytearray(128)  # Initialize a byte array of length 128 for the SAUCE record
-
     # Populate the SAUCE record byte array with the values from the Sauce object
+    sauce_bytes = bytearray(128)
     sauce_bytes[0:7] = b'SAUCE00'
-    sauce_bytes[7:42] = sauce.title.encode('utf-8').ljust(35, b'\0')
-    sauce_bytes[42:62] = sauce.author.encode('utf-8').ljust(20, b'\0')
-    sauce_bytes[62:82] = sauce.group.encode('utf-8').ljust(20, b'\0')
-    sauce_bytes[82:90] = sauce.date.encode('utf-8').ljust(8, b'\0')
+
+
+    sauce_bytes[7:42] = sauce.title.encode('cp1252').ljust(35, b'\0')
+    sauce_bytes[42:62] = sauce.author.encode('cp1252').ljust(20, b'\0')
+    sauce_bytes[62:82] = sauce.group.encode('cp1252').ljust(20, b'\0')
+    sauce_bytes[82:90] = sauce.date.encode('cp1252').ljust(8, b'\0')
     sauce_bytes[90:94] = sauce.filesize.to_bytes(4, byteorder='little')
     # Assume datatype 5 for binary files, adjust as necessary
     if sauce.columns and sauce.rows:
@@ -66,17 +92,29 @@ def append_sauce_to_string(sauce, string):
         # For other datatypes, you might want to set the appropriate datatype value and file type
         pass  # Replace with your logic for other datatypes
 
-    # Assume no comments, ice_colors or use_9px_font for simplicity
-    # You can add logic to handle these fields if they are relevant to your use case
+    flags = 0
+    if sauce.ice_colors:
+        flags |= 0x01
+    if sauce.use_9px_font:
+        flags |= 0x02 << 1  # Shift 1 position to the left to set the correct bit
+    sauce_bytes[105] = flags
+
+    # Handle font_name
+    sauce_bytes[106:128] = sauce.font_name.encode('cp1252').ljust(22, b'\0')
 
     # Convert the SAUCE record byte array to a string
-    sauce_string = sauce_bytes.decode('latin-1')  # latin-1 encoding will preserve the byte values
-    
-    if string[-128:-121] == 'SAUCE00':
+    sauce_string = sauce_bytes.decode('cp1252')  # cp1252 encoding will preserve the byte values
+    print("SAUCE Bytes in append_sauce_to_string:", sauce_bytes)
+    print("String Length Before:", len(string))
+    if string[-129:-121].encode('cp1252') == b'\x1ASAUCE00':  # Updated indices and comparison string
         # Replace the existing SAUCE record
-        string = string[:-128] + sauce_string
+        string = string[:-129] + sauce_string  # Updated index to remove the existing SAUCE record
     else:
         # Append the SAUCE record
         string += sauce_string
+    
+    print("String Length After:", len(string))
+    print("Last 1232 bytes after appending SAUCE:", string[-132:].encode('cp1252'))
+
     
     return string

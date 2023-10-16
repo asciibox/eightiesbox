@@ -2,10 +2,11 @@ from pymongo import MongoClient
 from menubar import MenuBar
 import bson.binary
 import base64
+from bson.binary import Binary
 import datetime
 
 class MenuBarANSIEditor(MenuBar):
-    def __init__(self, sub_menus, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content, emit_upload, map_value, list1, list2, get_sauce, append_sauce_to_string, Sauce):
+    def __init__(self, sub_menus, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content, emit_upload, map_value, list1, list2, get_sauce, append_sauce_to_string, Sauce, strip_sauce):
         # Call the constructor of the parent class (MenuBar)
         super().__init__(sub_menus, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content, emit_upload, get_sauce, append_sauce_to_string)
         # Add any additional properties or methods specific to MenuBarANSI here
@@ -19,6 +20,7 @@ class MenuBarANSIEditor(MenuBar):
         self.columns_x = 0
         self.columns_y = 0
         self.Sauce = Sauce
+        self.strip_sauce = strip_sauce
 
         # Add ANSI-specific methods here if needed
     def choose_field(self):
@@ -138,15 +140,22 @@ class MenuBarANSIEditor(MenuBar):
             use_9px_font=True,
             font_name="IBM VGA",
             comments="Created with eightiesbox editor"
-            )            
+            )
 
             self.ansi_code = self.append_sauce_to_string(sauce, self.ansi_code)
 
             # Save the new file
             
+            ansi_code_bytes = self.ansi_code.encode('cp1252')
+
+            print("Last 128 bytes after decoding:", ansi_code_bytes[-128:])
+
+            # Base64-encode the bytes
+            ansi_code_base64 = base64.b64encode(ansi_code_bytes).decode('ascii')
+        
             new_file_data = {
                 "filename": entered_filename,
-                "ansi_code": self.ansi_code,
+                "ansi_code": ansi_code_base64
                 # Add other file details here
             }
             
@@ -165,17 +174,23 @@ class MenuBarANSIEditor(MenuBar):
         
         # Look for the filename in the database
         file_data = collection.find_one({"filename": entered_filename})
+        
         self.file_data = file_data
         if file_data:
+            # Decode the Base64-encoded string into bytes
+            ansi_code_bytes = base64.b64decode(file_data['ansi_code'])
+            print("Last 128 bytes after BASE64 decoding:", ansi_code_bytes[-128:])
+            # Convert the bytes to a string using cp1252 encoding
+           
             # Clear the existing values in MenuBox
             self.current_line_x=0
             self.sid_data.input_values=[]
             self.current_line_index=0
             self.sid_data.color_array = []
             self.sid_data.color_bgarray = []
-            #with open("ansi_load.ans", "w") as f:
-            #    f.write(file_data['ansi_code'] + '\n')
-            sauce = self.get_sauce(bytes(file_data['ansi_code'], 'utf-8'))
+            sauce = self.get_sauce(ansi_code_bytes)
+
+            ansi_code_bytes = self.strip_sauce(ansi_code_bytes)
             if sauce != None:
                 if sauce.columns and sauce.rows:
                     self.sid_data.setSauceWidth(sauce.columns)
@@ -186,7 +201,9 @@ class MenuBarANSIEditor(MenuBar):
             else:
                 self.sid_data.setSauceWidth(80)
                 self.sid_data.setSauceHeight(50)
-            self.show_file_content(file_data['ansi_code'], self.emit_current_string)
+
+            ansi_code = ansi_code_bytes.decode('cp1252')
+            self.show_file_content(ansi_code, self.emit_current_string)
             self.sid_data.ansi_editor.max_height = len(self.sid_data.input_values)
             self.sid_data.ansi_editor.clear_screen()
             self.sid_data.ansi_editor.update_first_line()

@@ -1,6 +1,5 @@
 import os
 import codecs
-from utils import strip_sauce 
 from stransi import Ansi, SetAttribute, SetColor, SetCursor
 from stransi.attribute import Attribute, SetAttribute
 from stransi.color import ColorRole, SetColor
@@ -299,7 +298,7 @@ def show_file_content(text_content, emit_current_string):
         if sauce.columns:
             terminalWidth = sauce.columns
 
-    text_content = strip_sauce(text_content)
+    # text_content = strip_sauce(text_content)
 
     # Filter out the specific ANSI escape code
     filtered_content = text_content.replace("[?7h", "")
