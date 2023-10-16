@@ -290,13 +290,8 @@ def show_file_content(text_content, emit_current_string):
     backgroundColor = 0
     terminalWidth = 80
 
-    sauce = get_sauce(bytes(text_content, 'utf-8'))
-
-    terminalWidth = 80
-
-    if sauce:
-        if sauce.columns:
-            terminalWidth = sauce.columns
+   
+    terminalWidth = sid_data.sauceWidth
 
     # text_content = strip_sauce(text_content)
 

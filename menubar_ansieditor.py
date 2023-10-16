@@ -400,12 +400,23 @@ class MenuBarANSIEditor(MenuBar):
         file_data = collection.find_one({"filename": entered_filename})
 
         file_data = base64.b64decode(file_data['file_data'])
-
-        file_data = self.convert_current_string(file_data)
-
-        str_text = file_data.decode('cp1252')
-
         if file_data:
+            sauce = self.get_sauce(file_data)
+            if sauce != None:
+                print("FOUND")
+                self.sid_data.setSauceWidth(sauce.columns)
+                self.sid_data.setSauceHeight(sauce.rows)
+            else:
+                print("NOT FOUND")
+                self.sid_data.setSauceWidth(80)
+                self.sid_data.setSauceHeight(50)
+
+            file_data = self.strip_sauce(file_data)
+
+            file_data = self.convert_current_string(file_data)
+
+            str_text = file_data.decode('cp1252')
+
             # Clear the existing values in MenuBox
             self.current_line_x=0
             self.sid_data.input_values=[]
@@ -413,13 +424,7 @@ class MenuBarANSIEditor(MenuBar):
             self.sid_data.color_array = []
             self.sid_data.color_bgarray = []
 
-            sauce = self.get_sauce(bytes(str_text, 'utf-8'))
-            if sauce != None:
-                self.sid_data.setSauceWidth(sauce.columns)
-                self.sid_data.setSauceHeight(sauce.rows)
-            else:
-                self.sid_data.setSauceWidth(80)
-                self.sid_data.setSauceHeight(50)
+            
             #str_text = file_data['file_data'].decode('cp437', 'replace')
             #with open("ansi_import.ans", "w", encoding='cp437') as f:
             #    f.write(str_text)
