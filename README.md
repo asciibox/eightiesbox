@@ -22,8 +22,8 @@ EightiesBox is an ASCII/ANSI-based web platform that mimics the vintage mailbox 
 
 - User login and registration through `userregistration.py`.
   ![User registration](./docs/userregistration.jpg)
-
 - One-liners input capability via `oneliners.py`.
+  ![ANSI](./docs/oneliners.jpg)
 - Ability to display ANSI files located in the `ansi` directory.
   ![ANSI](./docs/ansi.jpg)
 
