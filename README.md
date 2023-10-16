@@ -1,5 +1,7 @@
 # EightiesBox
 
+![Vector image of a cosmic BBS world. Planets are shaped like vintage modems, orbiting around a central terminal sun displaying an ASCII menu. Shooting stars symbolize data transfer protocols like xmodem, ymodem, and zmodem. On one of the planets, a concert is happening where music is played from mod files, visualized as colorful waves. Floating mail envelopes connected by beams of light indicate the fido network. The space is filled with a file listing, illuminated with ANSI colors.](./docs/eightiesbox.jpg)
+
 ## Overview
 
 EightiesBox is an ASCII/ANSI-based web platform that mimics the vintage mailbox BBSes from the 1980s. Utilizing a JavaScript frontend powered by Phaser, a 2D game engine that employs WebGL for speedy performance, EightiesBox offers a nostalgic interface for modern web browsers.
