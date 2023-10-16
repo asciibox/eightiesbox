@@ -2,7 +2,7 @@ from menu2ansi import *
 from menubar_ansieditor import *
 
 class ANSIEditor:
-    def __init__(self, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content, emit_upload, emit_current_string, map_value, list1, list2):
+    def __init__(self, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content, emit_upload, emit_current_string, map_value, list1, list2, get_sauce, append_sauce_to_string, Sauce):
         self.keys = {
             0: [49, 50, 51, 52, 53, 54, 55, 56, 57, 48],
             1: [218, 191, 192, 217, 196, 179, 195, 180, 193, 194],
@@ -29,7 +29,7 @@ class ANSIEditor:
 
 
         self.emit_current_string=emit_current_string
-        self.max_height = sid_data.yHeight # len(self.editor_values)
+        self.max_height = sid_data.sauceHeight # len(self.editor_values)
 
         self.map_value = map_value
         self.list1 = list1
@@ -54,6 +54,10 @@ class ANSIEditor:
         self.current_line_x = 0
         self.clear_line = clear_line
         self.mongo_client = mongo_client
+
+        self.append_sauce_to_string = append_sauce_to_string
+        self.get_sauce = get_sauce
+        self.Sauce = Sauce
 
         self.clear_screen()
         self.update_first_line()
@@ -165,7 +169,7 @@ class ANSIEditor:
             return
 
         if key == 'ArrowRight':
-            if self.current_line_x < self.sid_data.xWidth - 1:
+            if self.current_line_x < self.sid_data.sauceWidth - 1:
                 self.current_line_x += 1
                 self.emit_gotoXY(self.current_line_x, self.current_line_index+1)
             return
@@ -180,8 +184,13 @@ class ANSIEditor:
         elif key == 'Enter':
             self.current_line_x = 0
             self.current_line_index = self.current_line_index + 1
+            if (self.current_line_index>=self.max_height):
+                self.max_height=self.current_line_index+1
+                self.sid_data.sauceHeight = self.max_height
+                print("{self.current_line_index}>={self.max_height}")
+
+                self.update_first_line()
             self.emit_gotoXY(self.current_line_x, self.current_line_index+1)
-            self.max_height=self.current_line_index+1
             return
         
         elif key == 'Escape':
@@ -195,7 +204,7 @@ class ANSIEditor:
                         'File': ['Load ANSI', 'Save ANSI', 'Delete ANSI', 'Upload ANSI','Import uploaded ANSI','Delete uploaded ANSI'],
                         'Edit': ['Clear ANSI', 'Leave menu bar'],
                     }
-                self.sid_data.setMenuBar(MenuBarANSIEditor(sub_menus, self.sid_data, self.output, self.ask, self.mongo_client, self.goto_next_line, self.clear_screen, self.emit_gotoXY, self.clear_line, self.show_file_content, self.emit_upload, self.map_value, self.list1, self.list2))
+                self.sid_data.setMenuBar(MenuBarANSIEditor(sub_menus, self.sid_data, self.output, self.ask, self.mongo_client, self.goto_next_line, self.clear_screen, self.emit_gotoXY, self.clear_line, self.show_file_content, self.emit_upload, self.map_value, self.list1, self.list2, self.get_sauce, self.append_sauce_to_string, self.Sauce))
                 return
 
         elif key == 'Alt':
@@ -328,10 +337,10 @@ class ANSIEditor:
             self.output(key, self.foregroundColor, self.backgroundColor )
             self.set_color_at_position(current_x+1, self.current_line_index, self.foregroundColor, self.backgroundColor)
             
-            if self.current_line_x+1 < self.sid_data.xWidth:
+            if self.current_line_x+1 < self.sid_data.sauceWidth:
                 self.current_line_x = self.current_line_x+1
             else:
-                self.emit_gotoXY(self.sid_data.xWidth-1, self.current_line_index+1)
+                self.emit_gotoXY(self.sid_data.sauceWidth-1, self.current_line_index+1)
 
     def update_first_line(self):
         # Navigate to the first line
@@ -356,6 +365,8 @@ class ANSIEditor:
         padded_characterSet = str(self.characterSet+1).zfill(2)
         self.output(padded_characterSet, 6, 0)
 
+        self.output(" x="+str(self.sid_data.sauceWidth)+" y="+str(self.sid_data.sauceHeight), 4, 0)
+        
         # You may want to reset the cursor to its original position after updating the line
         # Assuming self.sid_data.cursorX and self.sid_data.cursorY store the original cursor position
         self.sid_data.setStartX(self.sid_data.cursorX)

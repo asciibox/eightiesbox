@@ -2,17 +2,23 @@ from pymongo import MongoClient
 from menubar import MenuBar
 import bson.binary
 import base64
+import datetime
 
 class MenuBarANSIEditor(MenuBar):
-    def __init__(self, sub_menus, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content, emit_upload, map_value, list1, list2):
+    def __init__(self, sub_menus, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content, emit_upload, map_value, list1, list2, get_sauce, append_sauce_to_string, Sauce):
         # Call the constructor of the parent class (MenuBar)
-        super().__init__(sub_menus, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content, emit_upload)
+        super().__init__(sub_menus, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content, emit_upload, get_sauce, append_sauce_to_string)
         # Add any additional properties or methods specific to MenuBarANSI here
         self.current_line_x = 0
         self.current_line_index = 0
         self.map_value = map_value
         self.list1 = list1
         self.list2 = list2
+        self.file_data = None
+        self.ansi_code = ""
+        self.columns_x = 0
+        self.columns_y = 0
+        self.Sauce = Sauce
 
         # Add ANSI-specific methods here if needed
     def choose_field(self):
@@ -112,13 +118,35 @@ class MenuBarANSIEditor(MenuBar):
             self.ask(20, self.save_filename_callback)  # filename_callback is the function to be called once a filename is entered
         else:
             # Create a list containing each row and its y-coordinate
-            ansi_code = self.sid_data.ansi_editor.display_ansi()
+            self.ansi_code = self.sid_data.ansi_editor.display_ansi()
+            # add sauce record if it does not exist already
+
+            current_date = datetime.datetime.now()
+
+            # Format the current date as a string in the desired format
+            date_string = current_date.strftime("%Y%m%d")
+
+            sauce = self.Sauce(
+            columns=self.sid_data.sauceWidth,
+            rows=self.sid_data.sauceHeight,
+            title="",
+            author="",
+            group="",
+            date=date_string,
+            filesize=0,
+            ice_colors=True,
+            use_9px_font=True,
+            font_name="IBM VGA",
+            comments="Created with eightiesbox editor"
+            )            
+
+            self.ansi_code = self.append_sauce_to_string(sauce, self.ansi_code)
 
             # Save the new file
             
             new_file_data = {
                 "filename": entered_filename,
-                "ansi_code": ansi_code,
+                "ansi_code": self.ansi_code,
                 # Add other file details here
             }
             
@@ -137,7 +165,7 @@ class MenuBarANSIEditor(MenuBar):
         
         # Look for the filename in the database
         file_data = collection.find_one({"filename": entered_filename})
-        
+        self.file_data = file_data
         if file_data:
             # Clear the existing values in MenuBox
             self.current_line_x=0
@@ -147,7 +175,17 @@ class MenuBarANSIEditor(MenuBar):
             self.sid_data.color_bgarray = []
             #with open("ansi_load.ans", "w") as f:
             #    f.write(file_data['ansi_code'] + '\n')
-
+            sauce = self.get_sauce(bytes(file_data['ansi_code'], 'utf-8'))
+            if sauce != None:
+                if sauce.columns and sauce.rows:
+                    self.sid_data.setSauceWidth(sauce.columns)
+                    self.sid_data.setSauceHeight(sauce.rows)
+                else:
+                    self.sid_data.setSauceWidth(80)
+                    self.sid_data.setSauceHeight(50)    
+            else:
+                self.sid_data.setSauceWidth(80)
+                self.sid_data.setSauceHeight(50)
             self.show_file_content(file_data['ansi_code'], self.emit_current_string)
             self.sid_data.ansi_editor.max_height = len(self.sid_data.input_values)
             self.sid_data.ansi_editor.clear_screen()
@@ -357,6 +395,14 @@ class MenuBarANSIEditor(MenuBar):
             self.current_line_index=0
             self.sid_data.color_array = []
             self.sid_data.color_bgarray = []
+
+            sauce = self.get_sauce(bytes(str_text, 'utf-8'))
+            if sauce != None:
+                self.sid_data.setSauceWidth(sauce.columns)
+                self.sid_data.setSauceHeight(sauce.rows)
+            else:
+                self.sid_data.setSauceWidth(80)
+                self.sid_data.setSauceHeight(50)
             #str_text = file_data['file_data'].decode('cp437', 'replace')
             #with open("ansi_import.ans", "w", encoding='cp437') as f:
             #    f.write(str_text)

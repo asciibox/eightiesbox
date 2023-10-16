@@ -19,8 +19,10 @@ class SessionData:
         self.menu_box = None
         self.menutexteditor = None
         self.ansi_editor = None
-        self.xWidth = 0
-        self.yHeight = 0
+        self.xWidth = 0 # The total characters on the screen horizontally
+        self.yHeight = 0 # Those vertically
+        self.sauceWidth = 80 # The loaded number of characters on the screen horizontally (effective editing width)
+        self.sauceHeight = 25 # The loaded number of characters vertically in the sauce record (effective editing height)
         self.user_name = ""
         self.menu_bar = None
         self.input_values = []
@@ -47,6 +49,12 @@ class SessionData:
 
     def setYHeight(self, y):
         self.yHeight = y
+
+    def setSauceWidth(self, x):
+        self.sauceWidth = x
+
+    def setSauceHeight(self, y):
+        self.sauceHeight = y
 
     # Setter methods
     def setCursorX(self, x):

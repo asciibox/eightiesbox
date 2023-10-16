@@ -45,3 +45,38 @@ def get_sauce(bytes):
     sauce = Sauce()
     sauce.filesize = len(bytes)
     return sauce
+
+def append_sauce_to_string(sauce, string):
+    sauce_bytes = bytearray(128)  # Initialize a byte array of length 128 for the SAUCE record
+
+    # Populate the SAUCE record byte array with the values from the Sauce object
+    sauce_bytes[0:7] = b'SAUCE00'
+    sauce_bytes[7:42] = sauce.title.encode('utf-8').ljust(35, b'\0')
+    sauce_bytes[42:62] = sauce.author.encode('utf-8').ljust(20, b'\0')
+    sauce_bytes[62:82] = sauce.group.encode('utf-8').ljust(20, b'\0')
+    sauce_bytes[82:90] = sauce.date.encode('utf-8').ljust(8, b'\0')
+    sauce_bytes[90:94] = sauce.filesize.to_bytes(4, byteorder='little')
+    # Assume datatype 5 for binary files, adjust as necessary
+    if sauce.columns and sauce.rows:
+        sauce_bytes[94] = 5
+        sauce_bytes[95] = sauce.columns // 2
+        # Compute filesize based on columns and rows if it's not provided
+        sauce_bytes[90:94] = (sauce.columns * sauce.rows * 2).to_bytes(4, byteorder='little')
+    else:
+        # For other datatypes, you might want to set the appropriate datatype value and file type
+        pass  # Replace with your logic for other datatypes
+
+    # Assume no comments, ice_colors or use_9px_font for simplicity
+    # You can add logic to handle these fields if they are relevant to your use case
+
+    # Convert the SAUCE record byte array to a string
+    sauce_string = sauce_bytes.decode('latin-1')  # latin-1 encoding will preserve the byte values
+    
+    if string[-128:-121] == 'SAUCE00':
+        # Replace the existing SAUCE record
+        string = string[:-128] + sauce_string
+    else:
+        # Append the SAUCE record
+        string += sauce_string
+    
+    return string
