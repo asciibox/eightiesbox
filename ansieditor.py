@@ -43,6 +43,7 @@ class ANSIEditor:
         self.characterSet = 0
         self.foregroundColor = 7
         self.backgroundColor = 0
+        self.pressedF9 = False
         self.clear_screen = clear_screen
         self.sid_data = sid_data
         self.output = output_function
@@ -285,7 +286,29 @@ class ANSIEditor:
                 # Move the cursor back to its original position
                 self.emit_gotoXY(self.current_line_x, self.current_line_index + 1)
        
-        # Handling special characters
+        elif key == 'Home':
+             self.current_line_x = 0
+             self.emit_gotoXY(self.current_line_x, self.current_line_index + 1)
+             return
+
+        elif key == 'End':
+             self.current_line_x = self.sid_data.sauceWidth
+             self.emit_gotoXY(self.current_line_x, self.current_line_index + 1)
+             return
+
+        elif key == 'F9':
+            self.pressedF9 = not self.pressedF9 # Toggle the state of pressedF9
+            return
+
+        elif key == 'F10':
+            if self.foregroundColor < 8:
+                self.foregroundColor += 8
+            else:
+                self.foregroundColor -= 8
+            self.update_first_line()
+            return
+
+            # Handling special characters
         special_chars = {
             "ä": chr(132),
             "ö": chr(148),
@@ -342,6 +365,22 @@ class ANSIEditor:
                 self.current_line_x = self.current_line_x+1
             else:
                 self.emit_gotoXY(self.sid_data.sauceWidth-1, self.current_line_index+1)
+
+        # Extract the function key number (e.g., 'F1' -> 1)
+        try:
+            fkey_num = int(key[1:])
+        except ValueError:
+            return
+
+        if 1 <= fkey_num <= 8:
+            if self.pressedF9:
+                self.backgroundColor = fkey_num - 1  # Set background to one of the colors 0-7
+                self.pressedF9 = False  # Reset the state of pressedF9
+            else:
+                self.foregroundColor = fkey_num - 1  # Set foreground to one of the colors 0-7
+            self.update_first_line()
+            self.emit_gotoXY(self.current_line_x, self.current_line_index + 1)
+
 
     def update_first_line(self):
         # Navigate to the first line
