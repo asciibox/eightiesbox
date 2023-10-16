@@ -92,14 +92,14 @@ def onload(data):
         print(server_available)
         time.sleep(3)
     
-    sid_data[request.sid].setANSIEditor(ANSIEditor(sid_data[request.sid], output, ask, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content, emit_upload, emit_current_string, map_value, list1, list2, get_sauce, append_sauce_to_string, Sauce, strip_sauce))
-    #data2 = { 'filename' : startFile+'-'+str(x)+'x'+str(y), 'x' : x, 'y': y}
+    #sid_data[request.sid].setANSIEditor(ANSIEditor(sid_data[request.sid], output, ask, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content, emit_upload, emit_current_string, map_value, list1, list2, get_sauce, append_sauce_to_string, Sauce, strip_sauce))
+    data2 = { 'filename' : startFile+'-'+str(x)+'x'+str(y), 'x' : x, 'y': y}
     
-    #show_file(data2, emit_current_string)
-    #goto_next_line()
+    show_file(data2, emit_current_string)
+    goto_next_line()
     
-    #output("Please enter your name: ", 3, 0)
-    #ask(40, usernameCallback)
+    output("Please enter your name: ", 3, 0)
+    ask(40, usernameCallback)
 
 @socketio.on('disconnect')
 def disconnect(data):
