@@ -1,5 +1,6 @@
 from menu2ansi import *
 from menubar_ansieditor import *
+from menubar_menutexteditor import *
 
 class ANSIEditor:
     def __init__(self, util):
@@ -151,8 +152,6 @@ class ANSIEditor:
   
 
     def handle_key(self, key):
-        print("handle key claled")
-        print(key)
         if key in ['AltGraph', 'Shift', 'Dead', 'CapsLock']:
             return
 
@@ -187,27 +186,35 @@ class ANSIEditor:
             if (self.current_line_index>=self.max_height):
                 self.max_height=self.current_line_index+1
                 self.sid_data.sauceHeight = self.max_height
-                print("{self.current_line_index}>={self.max_height}")
 
                 self.update_first_line()
             self.emit_gotoXY(self.current_line_x, self.current_line_index+1)
             return
         
         elif key == 'Escape':
-            if self.sid_data.current_action == "wait_for_menubar":
+            if self.sid_data.current_action == "wait_for_menubar_ansieditor":
                 self.sid_data.setCurrentAction("wait_for_ansieditor")
                 self.sid_data.ansi_editor.clear_screen()
                 self.sid_data.ansi_editor.update_first_line()
                 self.sid_data.ansi_editor.display_editor()
-            else:
+            elif self.sid_data.current_action == "wait_for_menubar_menueditor":
+                print("RETURNING FROM MENUEDITOR")
+            elif self.sid_data.current_action == "wait_for_menutexteditor":
                 sub_menus = {
-                        'File': ['Load ANSI', 'Save ANSI', 'Delete ANSI', 'Upload ANSI','Import uploaded ANSI','Delete uploaded ANSI'],
-                        'Edit': ['Clear ANSI', 'Leave menu bar'],
-                    }
-                self.sid_data.setMenuBar(MenuBarANSIEditor(sub_menus, self.util))
-                
+                    'File': ['Leave ANSI editor', 'Load ANSI', 'Import uploaded ANSI'],
+                    'Edit': ['Clear ANSI', 'Leave menu bar'],
+                }
+                self.sid_data.setMenuBar(MenuBarTextEditor(sub_menus, self.util))
 
-                self.sid_data.setCurrentAction("wait_for_ansieditor")
+                
+            else:
+                #sub_menus = {
+                #        'File': ['Load ANSI', 'Save ANSI', 'Delete ANSI', 'Upload ANSI','Import uploaded ANSI','Delete uploaded ANSI'],
+                #        'Edit': ['Clear ANSI', 'Leave menu bar'],
+                #    }
+                #self.sid_data.setMenuBar(MenuBarANSIEditor(sub_menus, self.util))
+
+                #self.sid_data.setCurrentAction("wait_for_ansieditor")
                 return
 
         elif key == 'Alt':

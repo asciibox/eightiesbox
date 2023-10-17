@@ -3,7 +3,7 @@ from menutexteditor import *
 
 class MenuBar:
     def __init__(self, sub_menus, util):
-        util.sid_data.setCurrentAction("wait_for_menubar")
+        util.sid_data.setCurrentAction("wait_for_menubar_menueditor")
         self.util = util
         self.mongo_client = util.mongo_client
         self.clear_screen = util.clear_screen

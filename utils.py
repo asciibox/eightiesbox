@@ -9,6 +9,7 @@ from stransi.attribute import Attribute, SetAttribute
 from stransi.color import ColorRole, SetColor
 from stransi.cursor import CursorMove, SaveCursor, RestoreCursor
 from ochre import ansi256  # Assuming this is where the colors list is defined
+from sauce import Sauce
 
 class Utils:
     def __init__(self, sio, my_client, mylist1, mylist2, sdata):
@@ -79,7 +80,7 @@ class Utils:
             else:
                 self.goto_next_line()
                 self.output("Incorrect password. Try again: ", 3, 0)
-                self.askPassword(40, passwordCallback)  # Prompt again for the password
+                self.askPassword(40, self.passwordCallback)  # Prompt again for the password
         else:
             # This should not happen, but just in case
             self.goto_next_line()
@@ -92,7 +93,7 @@ class Utils:
         if input == '':
             self.goto_next_line()
             self.output("Please enter your name: ", 3, 0)
-            ask(40, self.usernameCallback)
+            self.ask(40, self.usernameCallback)
             return
         user_document = users_collection.find_one({"username": input})
         self.sid_data.setUserName(input)
@@ -369,7 +370,7 @@ class Utils:
 
         self.sid_data.setMapCharacterSet(False)
 
-    def strip_sauce(bytes):
+    def strip_sauce(self, bytes):
         if len(bytes) < 128:
             return bytes
 
@@ -385,18 +386,15 @@ class Utils:
         else:
             return bytes
 
-    def get_sauce(bytes):
-        print("Total length of bytes:", len(bytes))
-        print("Last 128 bytes:", bytes[-128:])
+    def get_sauce(self, bytes):
+        #print("Total length of bytes:", len(bytes))
+        #print("Last 128 bytes:", bytes[-128:])
         
-        print("Last 128 bytes before reading SAUCE:", bytes[-128:])
+        #print("Last 128 bytes before reading SAUCE:", bytes[-128:])
 
 
         if len(bytes) >= 128:
             sauce_bytes = bytes[-128:]
-            print("SAUCE ID Bytes:", sauce_bytes[:7])
-            print("Finding SAUCE");
-            print(sauce_bytes[:7].decode("cp1252"))
             if sauce_bytes[:7].decode("cp1252") == "SAUCE00":
                 title = sauce_bytes[7:42].decode("utf-8").rstrip('\0')
                 author = sauce_bytes[42:62].decode("utf-8").rstrip('\0')
@@ -427,7 +425,7 @@ class Utils:
         sauce.filesize = len(bytes)
         return sauce
 
-    def append_sauce_to_string(sauce, string):
+    def append_sauce_to_string(self, sauce, string):
         # Populate the SAUCE record byte array with the values from the Sauce object
         sauce_bytes = bytearray(128)
         sauce_bytes[0:7] = b'SAUCE00'
@@ -460,8 +458,8 @@ class Utils:
 
         # Convert the SAUCE record byte array to a string
         sauce_string = sauce_bytes.decode('cp1252')  # cp1252 encoding will preserve the byte values
-        print("SAUCE Bytes in append_sauce_to_string:", sauce_bytes)
-        print("String Length Before:", len(string))
+        #print("SAUCE Bytes in append_sauce_to_string:", sauce_bytes)
+        #print("String Length Before:", len(string))
         if string[-129:-121].encode('cp1252') == b'\x1ASAUCE00':  # Updated indices and comparison string
             # Replace the existing SAUCE record
             string = string[:-129] + sauce_string  # Updated index to remove the existing SAUCE record
@@ -469,8 +467,8 @@ class Utils:
             # Append the SAUCE record
             string += sauce_string
         
-        print("String Length After:", len(string))
-        print("Last 1232 bytes after appending SAUCE:", string[-132:].encode('cp1252'))
+        #print("String Length After:", len(string))
+        #print("Last 1232 bytes after appending SAUCE:", string[-132:].encode('cp1252'))
 
         
         return string

@@ -94,7 +94,7 @@ def onload(data):
         time.sleep(3)
     
     #sid_data[request.sid].setANSIEditor(ANSIEditor(utils))
-    sid_data[request.sid].setCurrentAction("wait_for_ansieditor")
+    #sid_data[request.sid].setCurrentAction("wait_for_ansieditor")
     data2 = { 'filename' : startFile+'-'+str(x)+'x'+str(y), 'x' : x, 'y': y}
     
     util.show_file(data2, util.emit_current_string)
@@ -150,6 +150,7 @@ def upload_file():
 def handle_keypress(data):
     global sid_data, util
     siddata = sid_data[request.sid]
+    print(siddata.current_action)
     if siddata.current_action == "wait_for_layered_menu":
         key = data['key']
         if siddata.menu_box.in_sub_menu:  # in_sub_menu is a new attribute to check if you're in a sub-menu
@@ -221,7 +222,7 @@ def handle_keypress(data):
         
         return
 
-    if siddata.current_action == "wait_for_menubar":
+    if siddata.current_action == "wait_for_menubar_menueditor" or siddata.current_action == "wait_for_menubar_ansieditor" or siddata.current_action == "wait_for_menubar_menutexteditor":
         key = data['key']
         
         if key == 'ArrowLeft':

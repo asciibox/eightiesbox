@@ -2,6 +2,7 @@ from menubar_menueditor import *
 
 class MenuBox:
     def __init__(self, util):
+        self.util = util
         self.sid_data = util.sid_data
         self.sid_data.setCurrentAction("wait_for_menu")
         self.output = util.output
@@ -131,8 +132,8 @@ class MenuBox:
             'File': ['Load menu', 'Save menu', 'New menu', 'Delete menu'],
             'Edit': ['Edit text', 'Simulate text', 'Clear text', 'View text', 'Leave menu bar'],
             }
-            self.sid_data.setMenuBar(MenuBarMenuEditor(sub_menus, self.sid_data, self.output, self.ask, self.mongo_client, self.goto_next_line, self.clear_screen, self.emit_gotoXY, self.clear_line, show_file_content, emit_upload, self.emit_current_string, self.map_value, self.list1, self.list2, self.get_sauce, self.append_sauce_to_string, self.Sauce, self.strip_sauced))
-            #                                          sub_menus, sid_data, output, ask, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content, emit_upload, emit_current_string, map_value, list1, list2, get_sauce, append_sauce_to_string, Sauce, strip_sauce
+            self.util.sid_data.setMenuBar(MenuBarMenuEditor(sub_menus, self.util))
+            
     def arrow_down(self):
         prev_row_idx = self.current_row_index
         self.current_row_index = (self.current_row_index + 1) % self.num_rows
