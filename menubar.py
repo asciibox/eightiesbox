@@ -2,23 +2,24 @@ from pymongo import MongoClient
 from menutexteditor import *
 
 class MenuBar:
-    def __init__(self, sub_menus, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content, emit_upload, get_sauce, append_sauce_to_string):
-        sid_data.setCurrentAction("wait_for_menubar")
-        self.mongo_client = mongo_client
-        self.clear_screen = clear_screen
-        self.sid_data = sid_data
+    def __init__(self, sub_menus, util):
+        util.sid_data.setCurrentAction("wait_for_menubar")
+        self.util = util
+        self.mongo_client = util.mongo_client
+        self.clear_screen = util.clear_screen
+        self.sid_data = util.sid_data
         
-        self.output = output_function
-        self.ask = ask_function
-        self.goto_next_line = goto_next_line
-        self.emit_gotoXY = emit_gotoXY
+        self.output = util.output
+        self.ask = util.ask
+        self.goto_next_line = util.goto_next_line
+        self.emit_gotoXY = util.emit_gotoXY
         self.opened_menu = False
 
         self.current_main_menu_index = 0
         self.in_sub_menu = False  # Flag to determine if in sub-menu
         
         self.current_x = 0  # To keep track of the current x-coordinate
-        self.clear_line = clear_line
+        self.clear_line = util.clear_line
         
         # Define main menu and sub-menus
         self.main_menu = ['File', 'Edit']
@@ -26,11 +27,13 @@ class MenuBar:
         self.sub_menus = sub_menus;
         self.main_menu_positions = {}
 
-        self.show_file_content = show_file_content
-        self.emit_upload = emit_upload
-        self.get_sauce = get_sauce
-        self.append_sauce_to_string = append_sauce_to_string
-
+        self.show_file_content = util.show_file_content
+        self.emit_upload = util.emit_upload
+        self.get_sauce = util.get_sauce
+        self.append_sauce_to_string = util.append_sauce_to_string
+        
+        self.strip_sauce = util.strip_sauce
+        
         # Clear the lines where the sub-menus would appear
         max_sub_menu_length = max([len(sub) for sub in self.sub_menus.values()])
         self.sid_data.setStartX(0)
@@ -38,7 +41,7 @@ class MenuBar:
         for i in range(max_sub_menu_length):
             self.sid_data.setStartY(i)  # Move down one line
             self.sid_data.setStartX(0)  # Move to the start
-            self.output(" " * sid_data.xWidth, 6, 0)
+            self.output(" " * self.sid_data.xWidth, 6, 0)
             
             
         self.draw_menu_bar()
@@ -123,3 +126,40 @@ class MenuBar:
             self.current_sub_menu_indexes[current_menu] = (self.current_sub_menu_indexes[current_menu] + 1) % len(self.sub_menus[self.main_menu[self.current_main_menu_index]])
             self.draw_sub_menu()
             self.in_sub_menu = True
+
+    def set_color_at_position(self, x, y, color, bgcolor):
+        #print(f"Setting color at position: X={x}, Y={y}")
+        
+        # Expand the outer list (for y coordinate) as required
+        while len(self.sid_data.color_array) <= y:
+            self.sid_data.color_array.append([])
+            #print(f"Expanding outer list to {len(self.sid_data.color_array)} due to Y={y}")
+            
+        # Now, expand the inner list (for x coordinate) as required
+        while len(self.sid_data.color_array[y]) <= x:
+            self.sid_data.color_array[y].append(None)
+            #print(f"Expanding inner list at Y={y} to {len(self.sid_data.color_array[y])} due to X={x}")
+
+        # Print current size
+        #print(f"Current size of color_array: Width={len(self.sid_data.color_array[y])}, Height={len(self.sid_data.color_array)}")
+
+        # Do the same for the background color array
+        while len(self.sid_data.color_bgarray) <= y:
+            self.sid_data.color_bgarray.append([])
+            #print(f"Expanding outer bg list to {len(self.sid_data.color_bgarray)} due to Y={y}")
+            
+        while len(self.sid_data.color_bgarray[y]) <= x:
+            self.sid_data.color_bgarray[y].append(None)
+            #print(f"Expanding inner bg list at Y={y} to {len(self.sid_data.color_bgarray[y])} due to X={x}")
+
+        # Print current size of bg array
+        #print(f"Current size of color_bgarray: Width={len(self.sid_data.color_bgarray[y])}, Height={len(self.sid_data.color_bgarray)}")
+
+        # Set the color and background color at the given coordinates
+        self.sid_data.color_array[y][x] = color
+        self.sid_data.color_bgarray[y][x] = bgcolor
+
+        # Print successful setting of color
+        #print(f"Successfully set color {color} and bgcolor {bgcolor} at X={x}, Y={y}")
+
+

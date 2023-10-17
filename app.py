@@ -6,7 +6,6 @@ from flask_socketio import SocketIO
 
 from flask import jsonify
 from flask import request
-from actions import *
 from utils import *
 from sessiondata import *
 from pymongo import MongoClient
@@ -20,6 +19,7 @@ app = Flask(__name__)
 socketio = SocketIO(app)
 MAX_FILE_SIZE = 1024 * 1024  # 1MB in bytes
 server_available = True
+util = None
 try:
     mongo_client = MongoClient("mongodb://localhost:27017", serverSelectionTimeoutMS=5000)
     mongo_client.admin.command('ping')  # This should force a connection attempt
@@ -45,6 +45,8 @@ for i, value in enumerate(list2):
 def on_new_connection():
     request_sid = request.sid
     sid_data[request_sid] = SessionData()
+    global util
+    util = Utils(socketio, mongo_client, list1, list2, sid_data)
 
 # When a connection closes
 def on_connection_close():
@@ -61,9 +63,8 @@ def index():
 
 @socketio.on('connect')
 def handle_connect():
+    
     on_new_connection()
-    init_utils_listeners(socketio, mongo_client, sid_data, list1, list2)
-    init_action_listeners(socketio, mongo_client, sid_data)
     
     socketio.emit('initPage',  [
         {'minWidth': 0, 'x': 40, 'y': 25},
@@ -92,14 +93,15 @@ def onload(data):
         print(server_available)
         time.sleep(3)
     
-    #sid_data[request.sid].setANSIEditor(ANSIEditor(sid_data[request.sid], output, ask, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content, emit_upload, emit_current_string, map_value, list1, list2, get_sauce, append_sauce_to_string, Sauce, strip_sauce))
+    #sid_data[request.sid].setANSIEditor(ANSIEditor(utils))
+    sid_data[request.sid].setCurrentAction("wait_for_ansieditor")
     data2 = { 'filename' : startFile+'-'+str(x)+'x'+str(y), 'x' : x, 'y': y}
     
-    show_file(data2, emit_current_string)
-    goto_next_line()
+    util.show_file(data2, util.emit_current_string)
+    util.goto_next_line()
     
-    output("Please enter your name: ", 3, 0)
-    ask(40, usernameCallback)
+    util.output("Please enter your name: ", 3, 0)
+    util.ask(40, util.usernameCallback)
 
 @socketio.on('disconnect')
 def disconnect(data):
@@ -144,7 +146,203 @@ def upload_file():
         uploads_collection.insert_one(new_file)
         return jsonify({"success": f"File {filename} uploaded successfully"}), 200
       
-    
+@socketio.on('input_keypress')
+def handle_keypress(data):
+    global sid_data, util
+    siddata = sid_data[request.sid]
+    if siddata.current_action == "wait_for_layered_menu":
+        key = data['key']
+        if siddata.menu_box.in_sub_menu:  # in_sub_menu is a new attribute to check if you're in a sub-menu
+            if key == 'ArrowUp': 
+                siddata.menu_box.sub_menu_arrow_up()
+                
+            elif key == 'ArrowDown':
+                siddata.menu_box.sub_menu_arrow_down()
+                
+            elif key == 'Enter':
+                siddata.menu_box.select_sub_menu_item()
+                siddata.menu_box.hide_menu()
+                siddata.menu_box.in_sub_menu = False
+                return
+                
+            elif key == 'Escape':
+                siddata.menu_box.hide_sub_menu()
+                siddata.menu_box.in_sub_menu = False
+
+        else:
+            if key == 'ArrowLeft':
+                siddata.menu_box.main_arrow_left()
+                
+            elif key == 'ArrowRight':
+                siddata.menu_box.main_arrow_right()
+                
+            elif key == 'ArrowUp':
+                siddata.menu_box.main_arrow_up()
+                
+            elif key == 'ArrowDown':
+                siddata.menu_box.main_arrow_down()
+                
+            elif key == 'Enter':
+                selected_main_menu = siddata.menu_box.get_selected_main_menu()
+                siddata.menu_box.show_sub_menu()
+                siddata.menu_box.in_sub_menu = True
+                return
+                
+            elif key == 'Escape':
+                siddata.menu_box.hide_menu()
+
+    if siddata.current_action == "wait_for_menu":
+        key = data['key']
+        
+        if key == 'ArrowLeft':
+            siddata.menu_box.arrow_left()
+            
+        elif key == 'ArrowRight':
+            siddata.menu_box.arrow_right()
+            
+        elif key == 'ArrowUp':
+            siddata.menu_box.arrow_up()
+            
+        elif key == 'ArrowDown':
+            siddata.menu_box.arrow_down()
+            
+        elif key == 'Enter':
+            siddata.menu_box.edit_field()
+            return
+
+        elif key == 'Escape':
+            sub_menus = {
+                'File': ['Load menu', 'Save menu', 'New menu', 'Delete menu'],
+                'Edit': ['Edit text', 'Simulate text', 'Clear text', 'View text', 'Leave menu bar'],
+            }
+            
+            siddata.setMenuBar(MenuBarMenuEditor(sub_menus, util))
+            return
+        
+        return
+
+    if siddata.current_action == "wait_for_menubar":
+        key = data['key']
+        
+        if key == 'ArrowLeft':
+            siddata.menu_bar.arrow_left()
+            
+        elif key == 'ArrowRight':
+            siddata.menu_bar.arrow_right()
+            
+        elif key == 'ArrowUp':
+            siddata.menu_bar.arrow_up()
+            
+        elif key == 'ArrowDown':
+            siddata.menu_bar.arrow_down()
+            
+        elif key == 'Enter':
+            siddata.menu_bar.choose_field()
+            return
+
+        elif key == 'Escape':
+            siddata.menu_bar.leave_menu_bar()
+            return
+        
+        return
+
+    if (siddata.current_action == "wait_for_yes_no"):
+        key = data['key']
+        if key=='Y' or key == 'y' or key == 'n' or key == 'N':
+            siddata.callback(key)
+        return
+    elif (siddata.current_action == "wait_for_any_button"):
+        siddata.callback()
+        return
+    elif (siddata.current_action == "wait_for_menutexteditor"):
+        siddata.menutexteditor.handle_key(data['key'])
+        return
+    elif (siddata.current_action == "wait_for_ansieditor"):
+        siddata.ansi_editor.handle_key(data['key'])
+        return
+    elif (siddata.current_action == "wait_for_input"):
+        key = data['key']
+
+        if key == "ä":
+            # Handle ä
+            keydown(chr(132))
+            return
+        elif key == "ö":
+            # Handle ö
+            keydown(chr(148))
+            return
+        elif key == "ü":
+            # Handle ü
+            keydown(chr(129))
+            return
+        elif key == "ß":
+            # Handle ß
+            keydown(chr(223))
+            return
+        elif key == "Ä":
+            # Handle ß
+            keydown(chr(142))
+            return
+        elif key == "Ö":
+            # Handle ß
+            keydown(chr(153))
+            return
+        elif key == "Ü":
+            # Handle ß
+            keydown(chr(154))
+            return
+
+        
+        if key == 'Alt' or key=='Escape' or key =='AltGraph' or key =='Shift' or key == 'Control' or key == 'Dead' or key == 'ArrowDown' or key =='ArrowUp' or key =='CapsLock' or key=='Tab':
+            return
+            
+        if key == 'Enter':
+            siddata.callback(siddata.localinput)
+            return
+
+        if key == 'Insert':
+            siddata.setInsert(not siddata.insert)
+            return
+
+        if key == 'Delete':
+            siddata.setLocalInput(siddata.localinput[:siddata.currentPos ] + siddata.localinput[siddata.currentPos+1:])
+            myoutput = siddata.localinput
+            if siddata.inputType=='password':
+                myoutput = "*"*len(siddata.localinput)
+            util.emit_current_string(myoutput+" ", 14, 4, False, siddata.startX, siddata.startY)
+            util.emit_gotoXY(siddata.cursorX, siddata.cursorY)
+            return
+            
+        # Handle cursor left
+        if key == 'ArrowLeft':
+            if (siddata.currentPos > 0):
+                util.emit_gotoXY(siddata.cursorX-1, siddata.cursorY)
+                siddata.setCurrentPos(siddata.currentPos - 1)
+            return
+
+        # Handle cursor right
+        elif key == 'ArrowRight':
+            if (siddata.currentPos < len(siddata.localinput)):
+                util.emit_gotoXY(siddata.cursorX+1, siddata.cursorY)
+                siddata.setCurrentPos(siddata.currentPos + 1)
+            return
+
+        # Handle backspace
+        elif key == 'Backspace':
+            # Your backspace logic here
+            if (siddata.currentPos > 0):
+                siddata.setLocalInput(siddata.localinput[:-1])
+                myoutput = siddata.localinput
+                if siddata.inputType=='password':
+                    myoutput = "*"*len(siddata.localinput)
+                util.emit_current_string(myoutput+" ", 14, 4, False, siddata.startX, siddata.startY)
+                util.emit_gotoXY(siddata.cursorX-1, siddata.cursorY)
+                siddata.setCurrentPos(siddata.currentPos - 1)
+            return
+        # Handle character input
+        elif len(key) == 1:
+            util.keydown(key)
+            
 
 
 if __name__ == '__main__':

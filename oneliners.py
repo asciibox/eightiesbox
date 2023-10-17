@@ -2,17 +2,17 @@ from pymongo import MongoClient
 from datetime import datetime
 
 class OnelinerBBS:
-    def __init__(self, mongo_client: MongoClient, sid_data, goto_next_line, output, askYesNo, ask, wait, launchMenuCallback):
-        self.mongo_client = mongo_client
+    def __init__(self, util):
+        self.mongo_client = util.mongo_client
         self.db = self.mongo_client["bbs"]
         self.collection = self.db["oneliners"]
-        self.sid_data = sid_data
-        self.goto_next_line = goto_next_line
-        self.output = output
-        self.askYesNo = askYesNo
-        self.ask = ask
-        self.launchMenuCallback = launchMenuCallback
-        self.wait = wait
+        self.sid_data = util.sid_data
+        self.goto_next_line = util.goto_next_line
+        self.output = util.output
+        self.askYesNo = util.askYesNo
+        self.ask = util.ask
+        self.launchMenuCallback = util.launchMenuCallback
+        self.wait = util.wait
 
     def show_oneliners(self):
         self.output_oneliners()

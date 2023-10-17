@@ -334,42 +334,6 @@ class MenuBarANSIEditor(MenuBar):
             current_x = current_x+1
         return []
     
-    def set_color_at_position(self, x, y, color, bgcolor):
-        #print(f"Setting color at position: X={x}, Y={y}")
-        
-        # Expand the outer list (for y coordinate) as required
-        while len(self.sid_data.color_array) <= y:
-            self.sid_data.color_array.append([])
-            #print(f"Expanding outer list to {len(self.sid_data.color_array)} due to Y={y}")
-            
-        # Now, expand the inner list (for x coordinate) as required
-        while len(self.sid_data.color_array[y]) <= x:
-            self.sid_data.color_array[y].append(None)
-            #print(f"Expanding inner list at Y={y} to {len(self.sid_data.color_array[y])} due to X={x}")
-
-        # Print current size
-        #print(f"Current size of color_array: Width={len(self.sid_data.color_array[y])}, Height={len(self.sid_data.color_array)}")
-
-        # Do the same for the background color array
-        while len(self.sid_data.color_bgarray) <= y:
-            self.sid_data.color_bgarray.append([])
-            #print(f"Expanding outer bg list to {len(self.sid_data.color_bgarray)} due to Y={y}")
-            
-        while len(self.sid_data.color_bgarray[y]) <= x:
-            self.sid_data.color_bgarray[y].append(None)
-            #print(f"Expanding inner bg list at Y={y} to {len(self.sid_data.color_bgarray[y])} due to X={x}")
-
-        # Print current size of bg array
-        #print(f"Current size of color_bgarray: Width={len(self.sid_data.color_bgarray[y])}, Height={len(self.sid_data.color_bgarray)}")
-
-        # Set the color and background color at the given coordinates
-        self.sid_data.color_array[y][x] = color
-        self.sid_data.color_bgarray[y][x] = bgcolor
-
-        # Print successful setting of color
-        #print(f"Successfully set color {color} and bgcolor {bgcolor} at X={x}, Y={y}")
-
-
 
     def hide_menu_bar(self):
         self.in_sub_menu = False

@@ -3,9 +3,9 @@ from menutexteditor import *
 from menubar import MenuBar
 
 class MenuBarMenuEditor(MenuBar):
-    def __init__(self, sub_menus, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content, emit_upload, get_sauce, append_sauce_to_string):
+    def __init__(self, sub_menus, util):
         # Call the constructor of the parent class (MenuBar)
-        super().__init__(sub_menus, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content, emit_upload, get_sauce, append_sauce_to_string)
+        super().__init__(sub_menus, util)
         # Add any additional properties or methods specific to MenuBarANSI here
         
 
@@ -203,4 +203,102 @@ class MenuBarMenuEditor(MenuBar):
 
     def edit_text(self):
         self.sid_data.setCurrentAction("wait_for_menutexteditor")
-        self.sid_data.setMenuTextEditor(MenuTextEditor(self.sid_data, self.output, self.ask, self.goto_next_line, self.clear_screen, self.emit_gotoXY, self.clear_line))
+        self.sid_data.setMenuTextEditor(MenuTextEditor(self.util))
+
+    def load_ansi(self):
+        collection = self.mongo_client.bbs.ansifiles  # Replace with actual MongoDB database and collection
+        filenames = collection.find({}, {'filename': 1})  # Query MongoDB for filenames
+        
+        self.clear_screen()
+
+        self.show_filenames(filenames)
+
+        self.sid_data.setStartX(0)
+        self.sid_data.setStartY(10)  # Assuming you are asking at the 10th line
+        self.output("Please enter the filename to load: ", 6,0)
+        self.ask(20, self.load_ansi_callback)  # filename_callback is the function to be called once filename is entered   
+    
+
+    def load_ansi_callback(self, entered_filename):
+        if entered_filename=='':
+            self.leave_menu_bar()
+            self.in_sub_menu = False
+            return
+        collection = self.mongo_client.bbs.ansifiles  # Replace with the actual MongoDB database and collection
+        
+        # Look for the filename in the database
+        file_data = collection.find_one({"filename": entered_filename})
+        
+        self.file_data = file_data
+        if file_data:
+            # Decode the Base64-encoded string into bytes
+            ansi_code_bytes = base64.b64decode(file_data['ansi_code'])
+            print("Last 128 bytes after BASE64 decoding:", ansi_code_bytes[-128:])
+            # Convert the bytes to a string using cp1252 encoding
+           
+            # Clear the existing values in MenuBox
+            self.current_line_x=0
+            self.sid_data.input_values=[]
+            self.current_line_index=0
+            self.sid_data.color_array = []
+            self.sid_data.color_bgarray = []
+            sauce = self.get_sauce(ansi_code_bytes)
+
+            ansi_code_bytes = self.strip_sauce(ansi_code_bytes)
+            if sauce != None:
+                if sauce.columns and sauce.rows:
+                    self.sid_data.setSauceWidth(sauce.columns)
+                    self.sid_data.setSauceHeight(sauce.rows)
+                else:
+                    self.sid_data.setSauceWidth(80)
+                    self.sid_data.setSauceHeight(50)    
+            else:
+                self.sid_data.setSauceWidth(80)
+                self.sid_data.setSauceHeight(50)
+
+            ansi_code = ansi_code_bytes.decode('cp1252')
+            self.show_file_content(ansi_code, self.emit_current_string)
+            self.sid_data.ansi_editor.max_height = len(self.sid_data.input_values)
+            self.sid_data.ansi_editor.clear_screen()
+            self.sid_data.ansi_editor.update_first_line()
+            self.sid_data.ansi_editor.display_editor()
+            self.sid_data.setCurrentAction("wait_for_ansieditor")
+            self.sid_data.ansi_editor.current_line_x=0
+            self.sid_data.ansi_editor.current_line_index=0
+            
+        else:
+            self.goto_next_line()
+            self.output("File not found!", 6, 0)
+            self.goto_next_line()
+            self.ask(20, self.load_filename_callback)  # load_filename_callback is the function to be called if the filename is not found
+
+    def emit_current_string(self, currentString, currentColor, backgroundColor, blink, current_x, current_y):
+        if (current_x < 0):
+            current_x = 0
+        if (current_y < 0):
+            current_y = 0
+        for key in currentString:
+            while len(self.sid_data.input_values) <= current_y:
+                self.sid_data.input_values.append("")
+
+            if not self.sid_data.input_values[current_y]:
+                self.sid_data.input_values[current_y] = ""
+            # Get the current string at the specified line index
+            current_str = self.sid_data.input_values[current_y]
+            # Check if the length of current_str[:current_x] is shorter than the position of current_x
+            if len(current_str) <= current_x:
+                # Pad current_str with spaces until its length matches current_x
+                current_str += ' ' * (current_x - len(current_str) + 1)
+
+            # Construct a new string with the changed character
+            new_str = current_str[:current_x] + key + current_str[current_x + 1:]
+
+            # Assign the new string back to the list
+            self.sid_data.input_values[current_y] = new_str
+
+            self.set_color_at_position(current_x+1, current_y, currentColor, backgroundColor)
+            
+            #if self.current_line_x+1 < self.sid_data.xWidth:
+            current_x = current_x+1
+        return []
+    

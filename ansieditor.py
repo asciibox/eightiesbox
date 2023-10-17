@@ -2,7 +2,8 @@ from menu2ansi import *
 from menubar_ansieditor import *
 
 class ANSIEditor:
-    def __init__(self, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content, emit_upload, emit_current_string, map_value, list1, list2, get_sauce, append_sauce_to_string, Sauce, strip_sauce):
+    def __init__(self, util):
+        self.util = util
         self.keys = {
             0: [49, 50, 51, 52, 53, 54, 55, 56, 57, 48],
             1: [218, 191, 192, 217, 196, 179, 195, 180, 193, 194],
@@ -28,44 +29,41 @@ class ANSIEditor:
        
 
 
-        self.emit_current_string=emit_current_string
-        self.max_height = sid_data.sauceHeight # len(self.editor_values)
+        self.emit_current_string=util.emit_current_string
+        self.max_height = util.sid_data.sauceHeight # len(self.editor_values)
 
-        self.map_value = map_value
-        self.list1 = list1
-        self.list2 = list2
+        self.map_value = util.map_value
+        self.list1 = util.list1
+        self.list2 = util.list2
 
 
-        self.show_file_content = show_file_content
-        self.emit_upload = emit_upload
+        self.show_file_content = util.show_file_content
+        self.emit_upload = util.emit_upload
         self.startX = 0
         self.ansi_string = ""
         self.characterSet = 0
         self.foregroundColor = 7
         self.backgroundColor = 0
         self.pressedF9 = False
-        self.clear_screen = clear_screen
-        self.sid_data = sid_data
-        self.output = output_function
-        self.ask = ask_function
-        self.goto_next_line = goto_next_line
-        self.emit_gotoXY = emit_gotoXY
+        self.clear_screen = util.clear_screen
+        self.sid_data = util.sid_data
+        self.output = util.output
+        self.ask = util.ask
+        self.goto_next_line = util.goto_next_line
+        self.emit_gotoXY = util.emit_gotoXY
 
         self.current_line_index = 0  # For navigating vertically among characters
         self.current_line_x = 0
-        self.clear_line = clear_line
-        self.mongo_client = mongo_client
+        self.clear_line = util.clear_line
+        self.mongo_client = util.mongo_client
 
-        self.append_sauce_to_string = append_sauce_to_string
-        self.get_sauce = get_sauce
-        self.Sauce = Sauce
-        self.strip_sauce = strip_sauce
+        self.append_sauce_to_string = util.append_sauce_to_string
+        self.get_sauce = util.get_sauce
+        self.strip_sauce = util.strip_sauce
 
         self.clear_screen()
         self.update_first_line()
         self.display_editor()
-
-        sid_data.setCurrentAction("wait_for_ansieditor")
 
 
     def code(self):
@@ -206,7 +204,10 @@ class ANSIEditor:
                         'File': ['Load ANSI', 'Save ANSI', 'Delete ANSI', 'Upload ANSI','Import uploaded ANSI','Delete uploaded ANSI'],
                         'Edit': ['Clear ANSI', 'Leave menu bar'],
                     }
-                self.sid_data.setMenuBar(MenuBarANSIEditor(sub_menus, self.sid_data, self.output, self.ask, self.mongo_client, self.goto_next_line, self.clear_screen, self.emit_gotoXY, self.clear_line, self.show_file_content, self.emit_upload, self.map_value, self.list1, self.list2, self.get_sauce, self.append_sauce_to_string, self.Sauce, self.strip_sauce))
+                self.sid_data.setMenuBar(MenuBarANSIEditor(sub_menus, self.util))
+                
+
+                self.sid_data.setCurrentAction("wait_for_ansieditor")
                 return
 
         elif key == 'Alt':

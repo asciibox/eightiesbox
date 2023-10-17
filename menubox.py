@@ -1,12 +1,12 @@
 from menubar_menueditor import *
 
 class MenuBox:
-    def __init__(self, sid_data, output_function, ask_function, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line):
-        self.sid_data = sid_data
-        sid_data.setCurrentAction("wait_for_menu")
-        self.output = output_function
+    def __init__(self, util):
+        self.sid_data = util.sid_data
+        self.sid_data.setCurrentAction("wait_for_menu")
+        self.output = util.output
         # navigation on the menu on top of the list
-        self.ask = ask_function
+        self.ask = util.ask
         self.current_main_index = 0
         self.current_sub_index = 0
         # navigation on the list
@@ -16,11 +16,11 @@ class MenuBox:
         self.fields = ['Type', 'Data', 'Key', 'Sec', 'Flags']
         self.fields_length = [3, 20, 4, 6, 36]
 
-        self.mongo_client = mongo_client
-        self.goto_next_line = goto_next_line
-        self.clear_screen = clear_screen
-        self.emit_gotoXY = emit_gotoXY
-        self.clear_line = clear_line
+        self.mongo_client = util.mongo_client
+        self.goto_next_line = util.goto_next_line
+        self.clear_screen = util.clear_screen
+        self.emit_gotoXY = util.emit_gotoXY
+        self.clear_line = util.clear_line
 
         self.num_rows = 50
 
@@ -131,8 +131,8 @@ class MenuBox:
             'File': ['Load menu', 'Save menu', 'New menu', 'Delete menu'],
             'Edit': ['Edit text', 'Simulate text', 'Clear text', 'View text', 'Leave menu bar'],
             }
-            self.sid_data.setMenuBar(MenuBarMenuEditor(sub_menus, self.sid_data, self.output, self.ask, self.mongo_client, self.goto_next_line, self.clear_screen, self.emit_gotoXY, self.clear_line, show_file_content, emit_upload))
-
+            self.sid_data.setMenuBar(MenuBarMenuEditor(sub_menus, self.sid_data, self.output, self.ask, self.mongo_client, self.goto_next_line, self.clear_screen, self.emit_gotoXY, self.clear_line, show_file_content, emit_upload, self.emit_current_string, self.map_value, self.list1, self.list2, self.get_sauce, self.append_sauce_to_string, self.Sauce, self.strip_sauced))
+            #                                          sub_menus, sid_data, output, ask, mongo_client, goto_next_line, clear_screen, emit_gotoXY, clear_line, show_file_content, emit_upload, emit_current_string, map_value, list1, list2, get_sauce, append_sauce_to_string, Sauce, strip_sauce
     def arrow_down(self):
         prev_row_idx = self.current_row_index
         self.current_row_index = (self.current_row_index + 1) % self.num_rows
@@ -262,3 +262,5 @@ class MenuBox:
 
         self.draw_row(self.current_row_index)  # Redraw the updated row
         self.draw_all_rows()
+
+            

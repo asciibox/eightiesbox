@@ -1,21 +1,21 @@
 
 from utils import *
-from actions import *
 from sessiondata import *
 from oneliners import *
 
 class UserRegistration:
-    def __init__(self, goto_next_line, ask, askPassword, askYesNo, output, usernameCallback, mongo_client, sid_data, wait, launchMenuCallback):
-        self.goto_next_line = goto_next_line
-        self.ask = ask
-        self.askYesNo = askYesNo
-        self.output = output
-        self.usernameCallback = usernameCallback
-        self.mongo_client = mongo_client
-        self.sid_data = sid_data
-        self.wait = wait
+    def __init__(self, util, launchMenuCallback):
+        self.util = util
+        self.goto_next_line = util.goto_next_line
+        self.ask = util.ask
+        self.askYesNo = util.askYesNo
+        self.output = util.output
+        self.usernameCallback = util.usernameCallback
+        self.mongo_client = util.mongo_client
+        self.sid_data = util.sid_data
+        self.wait = util.wait
         self.launchMenuCallback = launchMenuCallback
-        self.askPassword = askPassword
+        self.askPassword = util.askPassword
 
         self.userdata = {
             "username": "",
@@ -27,7 +27,7 @@ class UserRegistration:
         }
 
 
-        goto_next_line()
+        self.goto_next_line()
         self.askYesNo("Are you a new user?", self.new_user_callback)
 
     def ask(self, length, callback):
@@ -170,7 +170,7 @@ class UserRegistration:
                 users_collection.insert_one(self.userdata)
                 self.goto_next_line()
                 self.output("User created successfully.", 6, 0)
-                bbs = OnelinerBBS(self.mongo_client, self.sid_data, self.goto_next_line, self.output, self.askYesNo, self.ask, self.wait, self.launchMenuCallback)
+                bbs = OnelinerBBS(self.util)
                 bbs.show_oneliners()
             else:
                 self.goto_next_line()
