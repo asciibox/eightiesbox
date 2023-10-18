@@ -169,7 +169,7 @@ def handle_keypress(data):
             elif key == 'Escape':
                 siddata.menu_box.hide_sub_menu()
                 siddata.menu_box.in_sub_menu = False
-
+                return
         else:
             if key == 'ArrowLeft':
                 siddata.menu_box.main_arrow_left()
@@ -191,6 +191,7 @@ def handle_keypress(data):
                 
             elif key == 'Escape':
                 siddata.menu_box.hide_menu()
+                return
 
     if siddata.current_action == "wait_for_menu":
         key = data['key']

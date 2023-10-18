@@ -159,8 +159,21 @@ class MenuBox:
         field_name = self.fields[field_idx]
         callback = self.create_update_callback(field_name)
         
-        if (field_idx == 0):
-            self.draw_main_menu()
+        if (field_idx == 0):            
+
+            value = self.values[self.current_row_index][field_idx]
+    
+            # Assuming value is a string of two characters, each being a digit
+            if len(value) == 2 and value.isnumeric():
+                self.current_main_index = int(value[0])
+                self.current_sub_index = int(value[1])-1                
+                self.current_sub_menu = self.menu_structure[list(self.menu_structure.keys())[self.current_main_index]]
+                self.in_sub_menu = True
+                self.draw_main_menu()
+                self.draw_sub_menu()
+            else:
+                self.draw_main_menu()
+
             self.sid_data.setCurrentAction("wait_for_layered_menu")
         else:
             self.ask(input_length, callback)
@@ -204,8 +217,7 @@ class MenuBox:
     def select_sub_menu_item(self):
         field_idx = self.current_field_index
         first_field = ""
-        if self.current_main_index!=0:
-            first_field = str(self.current_main_index)
+        first_field = str(self.current_main_index)
         value = first_field+str(self.current_sub_index+1)
         self.values[self.current_row_index][field_idx] = value
         
