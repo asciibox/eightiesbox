@@ -228,7 +228,6 @@ class Utils:
         
     def show_file(self, data, emit_current_string):
 
-        self.sid_data.setMapCharacterSet(True)
         
         filename = data.get('filename', '') + '.ans'
     
@@ -240,8 +239,8 @@ class Utils:
                 self.show_file_content(text_content, emit_current_string)
 
 
-
     def show_file_content(self, text_content, emit_current_string):
+        self.sid_data.setMapCharacterSet(True)
         currentColor = 15
         backgroundColor = 0
         terminalWidth = 80

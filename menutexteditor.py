@@ -28,6 +28,9 @@ class MenuTextEditor(ANSIEditor):
             
             return True
 
+    def set_wait_for(self):
+        self.sid_data.setCurrentAction("wait_for_menutexteditor")
+
     # Display the key on the left
     def draw_hotkeys(self):
         for line_index in range(0, len(self.sid_data.menu_box.values)):

@@ -60,6 +60,8 @@ class ANSIEditor:
         self.get_sauce = util.get_sauce
         self.strip_sauce = util.strip_sauce
 
+        self.input_x = ""
+
        
     def start(self):
         self.clear_screen()
@@ -346,6 +348,14 @@ class ANSIEditor:
              self.emit_gotoXY(self.current_line_x, self.current_line_index + 1)
              return
 
+        elif key == 'F12':
+            self.util.clear_screen()
+            self.sid_data.startX = 0
+            self.sid_data.startY = 0
+            self.output("How many character horizontally (columns, x)? ", 6,0)
+            self.util.ask(3, self.horizontal_callback)
+            return            
+
         elif key == 'F9':
             self.pressedF9 = not self.pressedF9 # Toggle the state of pressedF9
             return
@@ -431,6 +441,40 @@ class ANSIEditor:
             self.update_first_line()
             self.emit_gotoXY(self.current_line_x, self.current_line_index + 1)
 
+    def set_wait_for(self):
+        self.sid_data.setCurrentAction("wait_for_ansieditor")
+
+    def horizontal_callback(self, input):
+        if (input!=''):
+            self.input_x = input
+            self.goto_next_line()
+            self.output("How many character vertically (rows, y)? ", 6,0)
+            self.util.ask(3, self.vertical_callback)
+        else:
+            self.start()
+            self.set_wait_for()
+
+    def vertical_callback(self, input):
+        if (input!=''):
+            if self.input_x.isnumeric() and input.isnumeric():
+                myx = int(self.input_x)
+                myy = int(input)
+                if myx > 120:
+                    myx = 120
+                if myy > 80:
+                    myy = 80
+                if myx < 0:
+                    myx = 0
+                if myy < 0:
+                    myy = 0
+                self.sid_data.setSauceWidth(myx)
+                self.sid_data.setSauceHeight(myy)
+                self.start()
+                self.set_wait_for()
+        else:
+            self.start()
+            self.set_wait_for()
+
 
     def update_first_line(self):
         # Navigate to the first line
@@ -455,7 +499,7 @@ class ANSIEditor:
         padded_characterSet = str(self.characterSet+1).zfill(2)
         self.output(padded_characterSet, 6, 0)
 
-        self.output(" x="+str(self.sid_data.sauceWidth)+" y="+str(self.sid_data.sauceHeight), 4, 0)
+        self.output(" x="+str(self.sid_data.sauceWidth)+" y="+str(self.sid_data.sauceHeight)+" (F12)", 4, 0)
         
         # You may want to reset the cursor to its original position after updating the line
         # Assuming self.sid_data.cursorX and self.sid_data.cursorY store the original cursor position
