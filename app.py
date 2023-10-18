@@ -132,6 +132,8 @@ def upload_file():
         if len(base64_string) > MAX_FILE_SIZE:
             return jsonify({"error": "File size exceeds 100KB"}), 400
         
+        filename = generate_unique_filename(filename)
+
         # Save file data and filename to MongoDB
         new_file = {
             "filename": filename,
@@ -144,7 +146,26 @@ def upload_file():
 
         uploads_collection.insert_one(new_file)
         return jsonify({"success": f"File {filename} uploaded successfully"}), 200
-      
+
+def generate_unique_filename(filename):
+    base, ext = os.path.splitext(filename)
+    
+    # If the filename (including its extension) is longer than 11 characters, truncate it.
+    if len(filename) > 11:
+        base = base[:11-len(ext)]  # Adjust so that the total length remains 11 characters
+    
+    original_base = base
+    counter = 1
+
+    # Check if file exists and modify the filename accordingly
+    while uploads_collection.find_one({"filename": base + ext}):
+        # Adjust the base name to accommodate the counter
+        base = original_base[:11-len(ext)-len(str(counter))] + str(counter)
+        counter += 1
+
+    return base + ext
+
+
 @socketio.on('input_keypress')
 def handle_keypress(data):
     global sid_data, util
