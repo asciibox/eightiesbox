@@ -1,6 +1,7 @@
 from menu2ansi import *
 from menubar_ansieditor import *
 from menubar_menutexteditor import *
+import datetime
 
 class ANSIEditor:
     def __init__(self, util):
@@ -26,9 +27,6 @@ class ANSIEditor:
         self.color_mapping = [
             'black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white'
         ]
-
-       
-
 
         self.emit_current_string=util.emit_current_string
         self.max_height = util.sid_data.sauceHeight # len(self.editor_values)
@@ -62,10 +60,11 @@ class ANSIEditor:
         self.get_sauce = util.get_sauce
         self.strip_sauce = util.strip_sauce
 
+       
+    def start(self):
         self.clear_screen()
         self.update_first_line()
         self.display_editor()
-
 
     def code(self):
             codestring = ""
@@ -88,6 +87,43 @@ class ANSIEditor:
                 self.emit_current_string(slice_str, 14, 4, False, startX, startY+1)
                 startY += 1  # Increment startY by 1
     
+    def get_ansi_code_base64(self):
+
+            ansi_code = self.display_ansi()
+            # add sauce record if it does not exist already
+
+            current_date = datetime.datetime.now()
+
+            # Format the current date as a string in the desired format
+            date_string = current_date.strftime("%Y%m%d")
+
+            sauce = self.util.Sauce(
+            columns=self.sid_data.sauceWidth,
+            rows=self.sid_data.sauceHeight,
+            title="",
+            author="",
+            group="",
+            date=date_string,
+            filesize=0,
+            ice_colors=True,
+            use_9px_font=True,
+            font_name="IBM VGA",
+            comments="Created with eightiesbox editor"
+            )
+
+            ansi_code = self.append_sauce_to_string(sauce, ansi_code)
+
+            # Save the new file
+            
+            ansi_code_bytes = ansi_code.encode('cp1252')
+
+            print("Last 128 bytes after decoding:", ansi_code_bytes[-128:])
+
+            # Base64-encode the bytes
+            ansi_code_base64 = base64.b64encode(ansi_code_bytes).decode('ascii')
+
+            return ansi_code_base64
+
     def check_key_by_subclass(self, key):
         return
     
@@ -154,6 +190,8 @@ class ANSIEditor:
   
 
     def handle_key(self, key):
+        print("KEY")
+        print(key)
         if key in ['AltGraph', 'Shift', 'Dead', 'CapsLock']:
             return
 
@@ -210,16 +248,15 @@ class ANSIEditor:
                     'Edit': ['Clear ANSI', 'Leave menu bar'],
                 }
                 self.sid_data.setMenuBar(MenuBarTextEditor(sub_menus, self.util))
-
                 
-            else:
-                #sub_menus = {
-                #        'File': ['Load ANSI', 'Save ANSI', 'Delete ANSI', 'Upload ANSI','Import uploaded ANSI','Delete uploaded ANSI'],
-                #        'Edit': ['Clear ANSI', 'Leave menu bar'],
-                #    }
-                #self.sid_data.setMenuBar(MenuBarANSIEditor(sub_menus, self.util))
+            elif self.sid_data.current_action == "wait_for_ansieditor":
+                sub_menus = {
+                        'File': ['Load ANSI', 'Save ANSI', 'Delete ANSI', 'Upload ANSI','Import uploaded ANSI','Delete uploaded ANSI'],
+                        'Edit': ['Clear ANSI', 'Leave menu bar'],
+                }
+                self.sid_data.setMenuBar(MenuBarANSIEditor(sub_menus, self.util))
 
-                #self.sid_data.setCurrentAction("wait_for_ansieditor")
+                self.sid_data.setCurrentAction("wait_for_menubar_ansieditor")
                 return
 
         elif key == 'Alt':

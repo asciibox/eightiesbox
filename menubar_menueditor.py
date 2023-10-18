@@ -95,7 +95,7 @@ class MenuBarMenuEditor(MenuBar):
             self.ask(11, self.filename_callback)  # filename_callback is the function to be called once a filename is entered
         else:
             # Create a list containing each row and its y-coordinate
-            non_empty_values = [{"y": y, "row_data": row} for y, row in enumerate(self.sid_data.menu_box.values)]
+            non_empty_values = [{"y": y, "row_data": row} for y, row in enumerate(self.sid_data.menu_box.values) if row]
             
             # Save the new file
             menu_box_data = {
@@ -106,6 +106,7 @@ class MenuBarMenuEditor(MenuBar):
             new_file_data = {
                 "filename": entered_filename,
                 "menu_box_data": menu_box_data,
+                "ansi_code_base64": self.sid_data.menutexteditor.get_ansi_code_base64()
                 # Add other file details here
             }
             
@@ -137,6 +138,32 @@ class MenuBarMenuEditor(MenuBar):
             # Populate the fields
             self.sid_data.menu_box.fields = menu_box_data.get("fields", [])
             
+            ansi_code_base64 = file_data.get("ansi_code_base64")
+
+            ansi_code_bytes = base64.b64decode(ansi_code_base64)
+            
+            self.sid_data.setMenuTextEditor(MenuTextEditor(self.util))
+            self.sid_data.menutexteditor.current_line_x=0
+            self.sid_data.input_values=[]
+            self.sid_data.menutexteditor.current_line_index=0
+            
+            sauce = self.get_sauce(ansi_code_bytes)
+
+            ansi_code_bytes = self.strip_sauce(ansi_code_bytes)
+            if sauce != None:
+                if sauce.columns and sauce.rows:
+                    self.sid_data.setSauceWidth(sauce.columns)
+                    self.sid_data.setSauceHeight(sauce.rows)
+                else:
+                    self.sid_data.setSauceWidth(80)
+                    self.sid_data.setSauceHeight(50)    
+            else:
+                self.sid_data.setSauceWidth(80)
+                self.sid_data.setSauceHeight(50)
+
+            ansi_code = ansi_code_bytes.decode('cp1252')
+            self.show_file_content(ansi_code, self.util.emit_current_string_local)
+
             # Populate the values at their respective y-coordinates
             for row in menu_box_data.get("values", []):
                 y = row.get('y', 0)
@@ -204,7 +231,9 @@ class MenuBarMenuEditor(MenuBar):
 
     def edit_text(self):
         self.sid_data.setCurrentAction("wait_for_menutexteditor")
-        self.util.sid_data.setMenuTextEditor(MenuTextEditor(self.util))
+        if self.util.sid_data.menutexteditor == None:
+            self.util.sid_data.setMenuTextEditor(MenuTextEditor(self.util))
+        self.util.sid_data.menutexteditor.start()
 
     def load_ansi(self):
         collection = self.mongo_client.bbs.ansifiles  # Replace with actual MongoDB database and collection
@@ -278,33 +307,5 @@ class MenuBarMenuEditor(MenuBar):
             self.goto_next_line()
             self.ask(20, self.load_filename_callback)  # load_filename_callback is the function to be called if the filename is not found
 
-    def emit_current_string(self, currentString, currentColor, backgroundColor, blink, current_x, current_y):
-        if (current_x < 0):
-            current_x = 0
-        if (current_y < 0):
-            current_y = 0
-        for key in currentString:
-            while len(self.sid_data.input_values) <= current_y:
-                self.sid_data.input_values.append("")
-
-            if not self.sid_data.input_values[current_y]:
-                self.sid_data.input_values[current_y] = ""
-            # Get the current string at the specified line index
-            current_str = self.sid_data.input_values[current_y]
-            # Check if the length of current_str[:current_x] is shorter than the position of current_x
-            if len(current_str) <= current_x:
-                # Pad current_str with spaces until its length matches current_x
-                current_str += ' ' * (current_x - len(current_str) + 1)
-
-            # Construct a new string with the changed character
-            new_str = current_str[:current_x] + key + current_str[current_x + 1:]
-
-            # Assign the new string back to the list
-            self.sid_data.input_values[current_y] = new_str
-
-            self.set_color_at_position(current_x+1, current_y, currentColor, backgroundColor)
-            
-            #if self.current_line_x+1 < self.sid_data.xWidth:
-            current_x = current_x+1
-        return []
+    
     

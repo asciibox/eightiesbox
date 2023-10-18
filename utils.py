@@ -12,12 +12,13 @@ from ochre import ansi256  # Assuming this is where the colors list is defined
 from sauce import Sauce
 
 class Utils:
-    def __init__(self, sio, my_client, mylist1, mylist2, sdata):
+    def __init__(self, sio, my_client, mylist1, mylist2, sdata, Sauce):
         self.socketio = sio
         self.mongo_client = my_client
         self.sid_data = sdata.get(request.sid)
         self.list1 = mylist1
         self.list2 = mylist2
+        self.Sauce = Sauce
     
     def askinput(self, mylen, callback, accept_keys):
         print("Switched to wait_for_inpu")
@@ -122,8 +123,19 @@ class Utils:
             return value  # returns the original value if index out of range in list2
 
     def launchMenuCallback(self):
-        self.sid_data.setMenuBox(MenuBox(self))
+        self.goto_next_line()
+        self.askYesNo('Do you want to edit the menu? Otherwise we will take you to the ANSI editor.', self.menuCallback)
         
+        
+    def menuCallback(self, input):
+        if input=='Y' or input=='y':
+            self.sid_data.setMenuBox(MenuBox(self))
+        else:
+            self.sid_data.setANSIEditor(ANSIEditor(self))
+            self.sid_data.ansi_editor.start()
+            self.sid_data.setCurrentAction("wait_for_ansieditor")
+
+
     def emit_gotoXY(self, x, y):
         sid = request.sid  # Get the Session ID
         self.socketio.emit('draw', {
@@ -387,12 +399,6 @@ class Utils:
             return bytes
 
     def get_sauce(self, bytes):
-        #print("Total length of bytes:", len(bytes))
-        #print("Last 128 bytes:", bytes[-128:])
-        
-        #print("Last 128 bytes before reading SAUCE:", bytes[-128:])
-
-
         if len(bytes) >= 128:
             sauce_bytes = bytes[-128:]
             if sauce_bytes[:7].decode("cp1252") == "SAUCE00":
@@ -420,9 +426,13 @@ class Utils:
                     filesize = len(bytes) - 128
                     if number_of_comments:
                         filesize -= number_of_comments * 64 + 5
+                print(columns, rows, title, author, group, date, filesize, ice_colors, use_9px_font, font_name, comments)
                 return Sauce(columns, rows, title, author, group, date, filesize, ice_colors, use_9px_font, font_name, comments)
         sauce = Sauce()
+        print("EMPTY!")
         sauce.filesize = len(bytes)
+        sauce.columns = 80
+        sauce.rows = 50
         return sauce
 
     def append_sauce_to_string(self, sauce, string):
@@ -472,3 +482,69 @@ class Utils:
 
         
         return string
+
+    def set_color_at_position(self, x, y, color, bgcolor):
+        #print(f"Setting color at position: X={x}, Y={y}")
+        
+        # Expand the outer list (for y coordinate) as required
+        while len(self.sid_data.color_array) <= y:
+            self.sid_data.color_array.append([])
+            #print(f"Expanding outer list to {len(self.sid_data.color_array)} due to Y={y}")
+            
+        # Now, expand the inner list (for x coordinate) as required
+        while len(self.sid_data.color_array[y]) <= x:
+            self.sid_data.color_array[y].append(None)
+            #print(f"Expanding inner list at Y={y} to {len(self.sid_data.color_array[y])} due to X={x}")
+
+        # Print current size
+        #print(f"Current size of color_array: Width={len(self.sid_data.color_array[y])}, Height={len(self.sid_data.color_array)}")
+
+        # Do the same for the background color array
+        while len(self.sid_data.color_bgarray) <= y:
+            self.sid_data.color_bgarray.append([])
+            #print(f"Expanding outer bg list to {len(self.sid_data.color_bgarray)} due to Y={y}")
+            
+        while len(self.sid_data.color_bgarray[y]) <= x:
+            self.sid_data.color_bgarray[y].append(None)
+            #print(f"Expanding inner bg list at Y={y} to {len(self.sid_data.color_bgarray[y])} due to X={x}")
+
+        # Print current size of bg array
+        #print(f"Current size of color_bgarray: Width={len(self.sid_data.color_bgarray[y])}, Height={len(self.sid_data.color_bgarray)}")
+
+        # Set the color and background color at the given coordinates
+        self.sid_data.color_array[y][x] = color
+        self.sid_data.color_bgarray[y][x] = bgcolor
+
+        # Print successful setting of color
+        #print(f"Successfully set color {color} and bgcolor {bgcolor} at X={x}, Y={y}")
+
+
+    def emit_current_string_local(self, currentString, currentColor, backgroundColor, blink, current_x, current_y):
+        if (current_x < 0):
+            current_x = 0
+        if (current_y < 0):
+            current_y = 0
+        for key in currentString:
+            while len(self.sid_data.input_values) <= current_y:
+                self.sid_data.input_values.append("")
+
+            if not self.sid_data.input_values[current_y]:
+                self.sid_data.input_values[current_y] = ""
+            # Get the current string at the specified line index
+            current_str = self.sid_data.input_values[current_y]
+            # Check if the length of current_str[:current_x] is shorter than the position of current_x
+            if len(current_str) <= current_x:
+                # Pad current_str with spaces until its length matches current_x
+                current_str += ' ' * (current_x - len(current_str) + 1)
+
+            # Construct a new string with the changed character
+            new_str = current_str[:current_x] + key + current_str[current_x + 1:]
+
+            # Assign the new string back to the list
+            self.sid_data.input_values[current_y] = new_str
+
+            self.set_color_at_position(current_x+1, current_y, currentColor, backgroundColor)
+            
+            #if self.current_line_x+1 < self.sid_data.xWidth:
+            current_x = current_x+1
+        return []

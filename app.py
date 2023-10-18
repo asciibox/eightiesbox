@@ -12,12 +12,13 @@ from pymongo import MongoClient
 from pymongo.errors import ServerSelectionTimeoutError, ConnectionFailure
 from menubox import *
 from ansieditor import *
+from sauce import Sauce
 import time
 import base64
 
 app = Flask(__name__)
 socketio = SocketIO(app)
-MAX_FILE_SIZE = 1024 * 1024  # 1MB in bytes
+MAX_FILE_SIZE = 1024 * 102  # 1MB in bytes
 server_available = True
 util = None
 try:
@@ -46,7 +47,7 @@ def on_new_connection():
     request_sid = request.sid
     sid_data[request_sid] = SessionData()
     global util
-    util = Utils(socketio, mongo_client, list1, list2, sid_data)
+    util = Utils(socketio, mongo_client, list1, list2, sid_data, Sauce)
 
 # When a connection closes
 def on_connection_close():
@@ -93,8 +94,6 @@ def onload(data):
         print(server_available)
         time.sleep(3)
     
-    #sid_data[request.sid].setANSIEditor(ANSIEditor(util))
-    #sid_data[request.sid].setCurrentAction("wait_for_ansieditor")
     data2 = { 'filename' : startFile+'-'+str(x)+'x'+str(y), 'x' : x, 'y': y}
     
     util.show_file(data2, util.emit_current_string)
@@ -131,7 +130,7 @@ def upload_file():
        
         # Check file size
         if len(base64_string) > MAX_FILE_SIZE:
-            return jsonify({"error": "File size exceeds 1MB"}), 400
+            return jsonify({"error": "File size exceeds 100KB"}), 400
         
         # Save file data and filename to MongoDB
         new_file = {

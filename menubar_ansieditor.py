@@ -105,6 +105,8 @@ class MenuBarANSIEditor(MenuBar):
                     self.sid_data.setStartY(y + 3)  # Start from the 3rd line
                     self.output(display_filenames[idx], 6, 0)
 
+    
+
     def save_filename_callback(self, entered_filename):
         if entered_filename=='':
             self.leave_menu_bar()
@@ -122,42 +124,11 @@ class MenuBarANSIEditor(MenuBar):
             self.ask(20, self.save_filename_callback)  # filename_callback is the function to be called once a filename is entered
         else:
             # Create a list containing each row and its y-coordinate
-            self.ansi_code = self.sid_data.ansi_editor.display_ansi()
-            # add sauce record if it does not exist already
-
-            current_date = datetime.datetime.now()
-
-            # Format the current date as a string in the desired format
-            date_string = current_date.strftime("%Y%m%d")
-
-            sauce = self.Sauce(
-            columns=self.sid_data.sauceWidth,
-            rows=self.sid_data.sauceHeight,
-            title="",
-            author="",
-            group="",
-            date=date_string,
-            filesize=0,
-            ice_colors=True,
-            use_9px_font=True,
-            font_name="IBM VGA",
-            comments="Created with eightiesbox editor"
-            )
-
-            self.ansi_code = self.append_sauce_to_string(sauce, self.ansi_code)
-
-            # Save the new file
             
-            ansi_code_bytes = self.ansi_code.encode('cp1252')
-
-            print("Last 128 bytes after decoding:", ansi_code_bytes[-128:])
-
-            # Base64-encode the bytes
-            ansi_code_base64 = base64.b64encode(ansi_code_bytes).decode('ascii')
         
             new_file_data = {
                 "filename": entered_filename,
-                "ansi_code": ansi_code_base64
+                "ansi_code": self.sid_data.ansi_editor.get_ansi_code_base64()
                 # Add other file details here
             }
             
@@ -190,7 +161,7 @@ class MenuBarANSIEditor(MenuBar):
             self.current_line_index=0
             self.sid_data.color_array = []
             self.sid_data.color_bgarray = []
-            sauce = self.get_sauce(ansi_code_bytes)
+            sauce = self.util.get_sauce(ansi_code_bytes)
 
             ansi_code_bytes = self.strip_sauce(ansi_code_bytes)
             if sauce != None:
@@ -205,7 +176,7 @@ class MenuBarANSIEditor(MenuBar):
                 self.sid_data.setSauceHeight(50)
 
             ansi_code = ansi_code_bytes.decode('cp1252')
-            self.show_file_content(ansi_code, self.emit_current_string)
+            self.show_file_content(ansi_code, self.util.emit_current_string_local)
             self.display_ansi_file()
             
         else:
@@ -309,37 +280,6 @@ class MenuBarANSIEditor(MenuBar):
         self.sid_data.ansi_editor.update_first_line()
         self.sid_data.ansi_editor.display_editor()
 
-    def emit_current_string(self, currentString, currentColor, backgroundColor, blink, current_x, current_y):
-        if (current_x < 0):
-            current_x = 0
-        if (current_y < 0):
-            current_y = 0
-        for key in currentString:
-            while len(self.sid_data.input_values) <= current_y:
-                self.sid_data.input_values.append("")
-
-            if not self.sid_data.input_values[current_y]:
-                self.sid_data.input_values[current_y] = ""
-            # Get the current string at the specified line index
-            current_str = self.sid_data.input_values[current_y]
-            # Check if the length of current_str[:current_x] is shorter than the position of current_x
-            if len(current_str) <= current_x:
-                # Pad current_str with spaces until its length matches current_x
-                current_str += ' ' * (current_x - len(current_str) + 1)
-
-            # Construct a new string with the changed character
-            new_str = current_str[:current_x] + key + current_str[current_x + 1:]
-
-            # Assign the new string back to the list
-            self.sid_data.input_values[current_y] = new_str
-
-            self.set_color_at_position(current_x+1, current_y, currentColor, backgroundColor)
-            
-            #if self.current_line_x+1 < self.sid_data.xWidth:
-            current_x = current_x+1
-        return []
-    
-
     def hide_menu_bar(self):
         self.in_sub_menu = False
         self.leave_menu_bar()
@@ -370,9 +310,9 @@ class MenuBarANSIEditor(MenuBar):
 
         file_data = base64.b64decode(file_data['file_data'])
         if file_data:
+
             sauce = self.get_sauce(file_data)
             if sauce != None:
-                print("FOUND")
                 self.sid_data.setSauceWidth(sauce.columns)
                 self.sid_data.setSauceHeight(sauce.rows)
             else:
@@ -397,7 +337,7 @@ class MenuBarANSIEditor(MenuBar):
             #str_text = file_data['file_data'].decode('cp437', 'replace')
             #with open("ansi_import.ans", "w", encoding='cp437') as f:
             #    f.write(str_text)
-            self.show_file_content(str_text, self.emit_current_string)
+            self.show_file_content(str_text, self.util.emit_current_string_local)
             self.display_ansi_file()
             
         else:
