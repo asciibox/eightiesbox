@@ -89,11 +89,11 @@ def onload(data):
     y = data.get('y')
     sid_data[request.sid].setYHeight(y)
     if server_available == False:
-        output("* Database connection could not get established *", 1,0)
+        util.output("* Database connection could not get established *", 1,0)
         print(server_available)
         time.sleep(3)
     
-    #sid_data[request.sid].setANSIEditor(ANSIEditor(utils))
+    #sid_data[request.sid].setANSIEditor(ANSIEditor(util))
     #sid_data[request.sid].setCurrentAction("wait_for_ansieditor")
     data2 = { 'filename' : startFile+'-'+str(x)+'x'+str(y), 'x' : x, 'y': y}
     

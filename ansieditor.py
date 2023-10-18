@@ -87,7 +87,9 @@ class ANSIEditor:
                 slice_str = codestring[i:i + slice_length * 4]
                 self.emit_current_string(slice_str, 14, 4, False, startX, startY+1)
                 startY += 1  # Increment startY by 1
-
+    
+    def check_key_by_subclass(self, key):
+        return
     
     def display_editor(self):
         for idx in range(0, self.max_height):
@@ -155,6 +157,9 @@ class ANSIEditor:
         if key in ['AltGraph', 'Shift', 'Dead', 'CapsLock']:
             return
 
+        if self.check_key_by_subclass and self.check_key_by_subclass(key) == True:
+            return
+            
         if key == 'ArrowDown':
             if self.current_line_index < self.max_height - 1:
                 self.current_line_index += 1
