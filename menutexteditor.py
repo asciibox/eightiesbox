@@ -16,15 +16,21 @@ class MenuTextEditor(ANSIEditor):
             return True
 
         elif key == 'ArrowLeft':
-            if self.current_line_x > self.startX: 
+            if self.current_line_x > 0: 
                 self.current_line_x -= 1
 
-            
             if (self.current_line_x > 1):
                 self.draw_hotkeys()
+                self.emit_gotoXY(self.current_line_x, self.current_line_index+1)
             else:
                 self.draw_first_two_characters()
-            self.emit_gotoXY(self.current_line_x, self.current_line_index+1)
+                self.cursorX = self.current_line_x
+                self.cursorY = self.current_line_index
+                self.startX = self.current_line_x
+                self.startY = self.current_line_index
+                print(self.current_line_x)
+                print("y:"+str(self.current_line_index))
+                self.emit_gotoXY(self.current_line_x, self.current_line_index+1)
             
             return True
 
@@ -47,16 +53,8 @@ class MenuTextEditor(ANSIEditor):
 
     def draw_first_two_characters(self):
       
-        for line_index in range(0, len(self.sid_data.menu_box.values)):
-            # Display the key on the left with color 6
-            self.sid_data.setMapCharacterSet(True)
-            # Display the input value with color 6
-            self.sid_data.setStartX(0)
-            self.sid_data.setStartY(line_index+1)
-            if line_index < len(self.sid_data.input_values):
-                self.clear_line(line_index+1)
-                self.output_with_color(0, line_index, self.sid_data.input_values[line_index], None, 0)
-            else:
-                self.clear_line(line_index)
-                self.output("  ", 6, 0)
-            self.sid_data.setMapCharacterSet(False)
+            for idx in range(0, self.max_height):
+                self.draw_line(idx)
+                if idx < len(self.sid_data.input_values):
+                    if len(self.sid_data.input_values[idx]) == 0:
+                        self.clear_line(idx+1)
