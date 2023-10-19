@@ -326,41 +326,74 @@ def handle_keypress(data):
             siddata.setInsert(not siddata.insert)
             return
 
+        # Handle Delete
         if key == 'Delete':
-            siddata.setLocalInput(siddata.localinput[:siddata.currentPos ] + siddata.localinput[siddata.currentPos+1:])
-            myoutput = siddata.localinput
-            if siddata.inputType=='password':
-                myoutput = "*"*len(siddata.localinput)
-            util.emit_current_string(myoutput+" ", 14, 4, False, siddata.startX, siddata.startY)
-            util.emit_gotoXY(siddata.cursorX, siddata.cursorY)
-            return
-            
+            if siddata.currentPos < len(siddata.localinput):
+                siddata.setLocalInput(siddata.localinput[:siddata.currentPos] + siddata.localinput[siddata.currentPos+1:])
+                visible_str = siddata.localinput[siddata.view_start:siddata.view_start + siddata.maxLength]
+                myoutput = visible_str
+                if siddata.inputType=='password':
+                    myoutput = "*"*len(visible_str)
+                util.emit_current_string(myoutput+" ", 14, 4, False, siddata.startX, siddata.startY)
+                util.emit_gotoXY(siddata.cursorX, siddata.cursorY)
+
         # Handle cursor left
-        if key == 'ArrowLeft':
-            if (siddata.currentPos > 0):
-                util.emit_gotoXY(siddata.cursorX-1, siddata.cursorY)
-                siddata.setCurrentPos(siddata.currentPos - 1)
-            return
+        elif key == 'ArrowLeft' and siddata.currentPos > 0:
+            # Scroll by one if cursor reaches the start of the input field
+            if siddata.currentPos - siddata.view_start == 0 and siddata.view_start > 0:
+                siddata.view_start -= 1
+                visible_str = siddata.localinput[siddata.view_start:siddata.view_start + siddata.maxLength]
+                myoutput = visible_str
+                if siddata.inputType == 'password':
+                    myoutput = "*"*len(visible_str)
+                util.emit_current_string(myoutput, 14, 4, False, siddata.startX, siddata.startY)
+                util.emit_gotoXY(siddata.cursorX, siddata.cursorY)  # Adjust cursor to the same position since content has shifted
+            else:
+                util.emit_gotoXY(siddata.cursorX - 1, siddata.cursorY)
+            siddata.setCurrentPos(siddata.currentPos - 1)
 
         # Handle cursor right
-        elif key == 'ArrowRight':
-            if (siddata.currentPos < len(siddata.localinput)):
-                util.emit_gotoXY(siddata.cursorX+1, siddata.cursorY)
-                siddata.setCurrentPos(siddata.currentPos + 1)
-            return
+        elif key == 'ArrowRight' and siddata.currentPos < len(siddata.localinput):
+            if (siddata.currentPos >= len(siddata.localinput)-1):
+                util.emit_current_string(" ", 14, 4, False, siddata.startX+siddata.maxLength-1, siddata.startY)
+            if siddata.currentPos - siddata.view_start == siddata.maxLength - 1:
+                siddata.view_start += 1
+                visible_str = siddata.localinput[siddata.view_start:siddata.view_start + siddata.maxLength]
+                myoutput = visible_str
+                if siddata.inputType=='password':
+                    myoutput = "*"*len(visible_str)
+                util.emit_current_string(myoutput, 14, 4, False, siddata.startX, siddata.startY)
+                util.emit_gotoXY(siddata.cursorX, siddata.cursorY)  # Adjust cursor to the same position since content has shifted
+            else:
+                util.emit_gotoXY(siddata.cursorX + 1, siddata.cursorY)
+
+            siddata.setCurrentPos(siddata.currentPos + 1)
 
         # Handle backspace
-        elif key == 'Backspace':
-            # Your backspace logic here
-            if (siddata.currentPos > 0):
-                siddata.setLocalInput(siddata.localinput[:-1])
-                myoutput = siddata.localinput
-                if siddata.inputType=='password':
-                    myoutput = "*"*len(siddata.localinput)
-                util.emit_current_string(myoutput+" ", 14, 4, False, siddata.startX, siddata.startY)
+        elif key == 'Backspace' and siddata.currentPos > 0:
+            siddata.setLocalInput(siddata.localinput[:siddata.currentPos-1] + siddata.localinput[siddata.currentPos:])
+
+            # Decrease view_start if it's greater than 0
+            if siddata.view_start > 0:
+                siddata.view_start -= 1
+
+            visible_str = siddata.localinput[siddata.view_start:siddata.view_start + siddata.maxLength]
+            myoutput = visible_str
+            if siddata.inputType == 'password':
+                myoutput = "*"*len(visible_str)
+            
+            # Emit the current string with an extra space at the end to overwrite the previous character
+            util.emit_current_string(myoutput + " ", 14, 4, False, siddata.startX, siddata.startY)
+
+            # Move the cursor back by one position
+            if siddata.view_start == 0:
                 util.emit_gotoXY(siddata.cursorX-1, siddata.cursorY)
-                siddata.setCurrentPos(siddata.currentPos - 1)
-            return
+            else:
+                util.emit_gotoXY(siddata.cursorX, siddata.cursorY)
+            siddata.setCurrentPos(siddata.currentPos - 1)
+
+
+
         # Handle character input
         elif len(key) == 1:
             util.keydown(key)

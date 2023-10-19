@@ -189,43 +189,43 @@ class Utils:
         return []
 
     def keydown(self, key):
-        if len(self.sid_data.accept_keys)>0 and key.upper() not in self.sid_data.accept_keys:
+        # Ensure key is in the accepted keys
+        if len(self.sid_data.accept_keys) > 0 and key.upper() not in self.sid_data.accept_keys:
             return 
-        if (self.sid_data.localinput == ''):
+
+        # Appending new character or updating existing one
+        if self.sid_data.localinput == '':
             self.sid_data.setLocalInput(self.sid_data.localinput + key)
             self.sid_data.setCurrentPos(self.sid_data.currentPos + 1)
-            myoutput = self.sid_data.localinput
-            if self.sid_data.inputType=='password':
-                myoutput = "*"*len(myoutput)
-            self.emit_current_string(myoutput, 14, 4, False, self.sid_data.startX, self.sid_data.startY)
-            self.sid_data.setCursorX(self.sid_data.cursorX + 1)
-            self.emit_gotoXY(self.sid_data.cursorX, self.sid_data.cursorY)
-                
-
-        elif self.sid_data.insert:
-            # Insert the new character at cursorX position
-            if len(self.sid_data.localinput) < self.sid_data.maxLength:
-                self.sid_data.setLocalInput(self.sid_data.localinput[:self.sid_data.currentPos] + key + self.sid_data.localinput[self.sid_data.currentPos:])
-                self.sid_data.setCurrentPos(self.sid_data.currentPos+ 1)
-                myoutput = self.sid_data.localinput
-                if self.sid_data.inputType=='password':
-                    myoutput = "*"*len(myoutput)
-                self.emit_current_string(myoutput, 14, 4, False, self.sid_data.startX, self.sid_data.startY)
-                self.sid_data.setCursorX(self.sid_data.cursorX + 1)
-                self.emit_gotoXY(self.sid_data.cursorX, self.sid_data.cursorY)
-        
+        elif self.sid_data.insert and len(self.sid_data.localinput) < self.sid_data.maxLength:
+            self.sid_data.setLocalInput(self.sid_data.localinput[:self.sid_data.currentPos] + key + self.sid_data.localinput[self.sid_data.currentPos:])
+            self.sid_data.setCurrentPos(self.sid_data.currentPos + 1)
         else:
-            # Overwrite the character at cursorX position
-            if self.sid_data.currentPos < self.sid_data.maxLength:
-                self.sid_data.setLocalInput(self.sid_data.localinput[:self.sid_data.currentPos] + key + self.sid_data.localinput[self.sid_data.currentPos + 1:])
-                self.sid_data.setCurrentPos(self.sid_data.currentPos + 1)
-                myoutput = self.sid_data.localinput
-                if self.sid_data.inputType=='password':
-                    myoutput = "*"*len(myoutput)
-                self.emit_current_string(myoutput, 14, 4, False, self.sid_data.startX, self.sid_data.startY)
-                self.sid_data.setCursorX(self.sid_data.cursorX + 1)
-                self.emit_gotoXY(self.sid_data.cursorX, self.sid_data.cursorY)
-        
+            self.sid_data.setLocalInput(self.sid_data.localinput[:self.sid_data.currentPos] + key + self.sid_data.localinput[self.sid_data.currentPos + 1:])
+            self.sid_data.setCurrentPos(self.sid_data.currentPos + 1)
+
+        # Adjust view_start if cursor is at the end of the visible region
+        if self.sid_data.currentPos - self.sid_data.view_start == self.sid_data.maxLength:
+            self.sid_data.view_start += 1
+
+        # Cut the visible region from the input based on viewStart and maxLength
+        visible_str = self.sid_data.localinput[self.sid_data.view_start:self.sid_data.view_start + self.sid_data.maxLength]
+        myoutput = visible_str
+        if self.sid_data.inputType == 'password':
+            myoutput = "*" * len(visible_str)
+
+       # Emit the current string and set the cursor position
+        self.emit_current_string(myoutput, 14, 4, False, self.sid_data.startX, self.sid_data.startY)
+
+        # Adjust cursorX based on viewStart and current position
+        adjusted_cursor_position = self.sid_data.currentPos - self.sid_data.view_start
+        self.sid_data.setCursorX(self.sid_data.startX + adjusted_cursor_position)
+        self.emit_gotoXY(self.sid_data.cursorX, self.sid_data.cursorY)
+
+
+
+
+
     def show_file(self, data, emit_current_string):
 
         
