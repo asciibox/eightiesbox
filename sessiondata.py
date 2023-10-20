@@ -31,6 +31,7 @@ class SessionData:
         self.color_bgarray = []  # Initialize an empty 2D array
         self.ansi_editor_values = [] # Todo remove and change two editors to one
         self.view_start = 0
+        self.menu = None
 
     def move_cursor_up(self):
         self.menu_current_index = (self.menu_current_index - 1) % len(self.menu_items)
@@ -115,3 +116,6 @@ class SessionData:
 
     def setViewStart(self, value):
         self.view_start = value
+
+    def setMenu(self, value):
+        self.menu = value

@@ -1,6 +1,7 @@
 from pymongo import MongoClient
 from menutexteditor import *
 from menubar import MenuBar
+from menu import Menu
 
 ''' When editing a menu '''
 class MenuBarMenuEditor(MenuBar):
@@ -26,13 +27,20 @@ class MenuBarMenuEditor(MenuBar):
             elif selected_option=="Delete menu":
                 self.delete_menu()
             elif selected_option=="Edit text":
-                self.edit_text()                
+                self.edit_text()     
+            elif selected_option=="Simulate text":
+                self.simulate_text()
             else:
                 print("Hello world")
             
         else:
             self.in_sub_menu = True
             self.draw_sub_menu()
+
+    def simulate_text(self):
+        self.sid_data.setMenu(Menu(self.util))
+        self.util.clear_screen()
+        self.sid_data.menu.display_editor()
 
     def new_menu(self):
         self.sid_data.menu_box.new_menu()

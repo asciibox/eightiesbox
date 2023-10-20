@@ -45,6 +45,7 @@ class MenuBox:
         field_idx = self.fields.index(field)
         return self.values[row_idx][field_idx]
 
+    # draws all menu box menu points, like  key, content, security, flags
     def draw_all_rows(self):
         """Draw all rows at once. Useful for the initial rendering."""
         
