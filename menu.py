@@ -45,21 +45,13 @@ class Menu(BasicANSI):
                         self.load_menu(filename)
                         return
                     elif action_code == "81":
-                        areas = [
-                            {'name': 'General', 'min_level': 1},
-                            {'name': 'Tech Talk', 'min_level': 2},
-                            {'name': 'Off Topic', 'min_level': 1}
-                        ]
-                        self.sid_data.setMessageAreaMenu(MessageAreaMenu(self.util, areas, 32000, self.message_menu_callback_on_exit))
+                        
+                        self.sid_data.setMessageAreaMenu(MessageAreaMenu(self.util, 32000, self.message_menu_callback_on_exit))
                         return
                     elif action_code == "83":                        
                         # Example usage:
-                        users = [
-                            {'username': 'JohnDoe', 'level': 1},
-                            {'username': 'JaneDoe', 'level': 2}
-                        ]
                         # Replace 'util' with your actual utility object
-                        user_editor = self.sid_data.setUserEditor(UserEditor(self.util, users, self.user_editor_callback_on_exit))
+                        user_editor = self.sid_data.setUserEditor(UserEditor(self.util, self.user_editor_callback_on_exit))
 
                     # Gosub menu
                     elif action_code == "02":
