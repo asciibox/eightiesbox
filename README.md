@@ -71,14 +71,143 @@ pip install ochre flask pymongo flask_socketio bcrypt
 
 (Install any other missing packages as needed.)
 
-Download mongoDB from https://www.mongodb.com/try/download/community
+# MongoDB Installation
 
-Install it without installing it as server. Create a directory called c:\data. Go to the bin folder in which the mongod.exe resides. Start mongod.exe.
+## Windows
 
-Without mongoDB it won't go further than the login page.
+1. **Download MongoDB**
+    - Navigate to [MongoDB Community Download Page](https://www.mongodb.com/try/download/community).
+    - Download the installer suitable for your Windows version.
+
+2. **Installation**
+    - Run the installer.
+    - When prompted, choose to install MongoDB **without setting it up as a service**.
+
+3. **Create Data Directory**
+    - Open the Command Prompt as an administrator.
+    - Run the following command to create a directory for MongoDB to store its data:
+      ```
+      mkdir C:\data
+      ```
+
+4. **Run MongoDB**
+    - Navigate to the `bin` folder where `mongod.exe` is located, typically `C:\Program Files\MongoDB\Server\[version]\bin\`.
+    - Run `mongod.exe`.
+
+## macOS
+
+1. **Download MongoDB**
+    - Visit [MongoDB Community Download Page](https://www.mongodb.com/try/download/community).
+    - Download the TGZ file.
+
+2. **Installation**
+    - Open the Terminal.
+    - Extract the downloaded TGZ file.
+    - Move the extracted files to the desired installation directory, e.g., `/usr/local/mongodb`.
+
+3. **Create Data Directory**
+    - In the Terminal, run:
+      ```
+      mkdir -p /data/db
+      ```
+
+4. **Run MongoDB**
+    - Navigate to the `bin` folder inside your MongoDB installation directory.
+    - Run `./mongod`.
+
+## Linux (Ubuntu)
+
+1. **Download MongoDB**
+    - Open Terminal.
+    - Import the MongoDB public key:
+      ```
+      wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add -
+      ```
+    - Create a list file for MongoDB:
+      ```
+      echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/4.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
+      ```
+    - Reload the package database:
+      ```
+      sudo apt-get update
+      ```
+
+2. **Installation**
+    - Install MongoDB:
+      ```
+      sudo apt-get install -y mongodb-org
+      ```
+    - **Important:** Do not start the MongoDB service.
+
+3. **Create Data Directory**
+    - Run:
+      ```
+      sudo mkdir -p /data/db
+      ```
+
+4. **Run MongoDB**
+    - Navigate to the `bin` folder inside the MongoDB installation directory.
+    - Run `mongod`.
 
 # Quickstart
 
 Call
 
 python app.py
+
+Open the page using http://localhost:5000
+
+# BBS Sysop Guide
+
+## Accessing the BBS
+
+- **URL**: Open your web browser and navigate to [http://localhost:5000](http://localhost:5000).
+  
+- **Registration**: Register an account using the username `sysop` and set a secure password.
+
+## Start Page and Resolution
+
+- The start page you see is located in the `ansi` directory.
+- The layout can differ based on your screen resolution. It's advisable to use a high-resolution display for optimal sysop (admin) settings.
+
+## Menu Editor
+
+After the initial oneliners, you'll be prompted to navigate to the menu editor. Here's how you can manage it:
+
+### Creating a Menu
+
+- Navigate through options using the cursor keys and press `Enter` to create a menu.
+
+#### Type
+
+1. Press `Enter` to modify this field.
+2. A popup will appear; navigate using cursor keys.
+3. Press `Enter` to access the submenu that opens to the right.
+4. Choose an option, for example, "Goto menu".
+
+- Note: A number, like 01, 02, 03, etc., will populate the 'Type' field.
+
+### Editing the ANSI
+
+- Press `ESC` or cursor up to reveal the menu bar.
+- Navigate to "Edit" using the cursor keys and select "Edit Text" to enter the ANSI editor for the current menu.
+- Insert text as desired.
+- Press `ESC` and navigate to `File -> Leave ANSI Editor` to return to the menu editor.
+
+#### Saving ANSI
+
+- ANSI files can be saved via `File -> Save as ANSI file`.
+
+### Saving the Menu
+
+1. Press `ESC` to reveal the menu bar.
+2. Navigate using the cursor keys to the 'Save' option.
+3. Enter a filename, recommended: `MAIN.MNU`.
+
+- This will be the main menu displayed to every user upon login.
+
+### Additional Fields
+
+- You can add more fields by utilizing the "Type" and the "Data" fields in the menu editor.
+- Enter the filenames in the `Data` field for the menus you'd like to navigate to. It's advisable to use uppercase filenames.
+
