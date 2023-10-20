@@ -33,6 +33,7 @@ class SessionData:
         self.xWidth = 0 # The total characters on the screen horizontally
         self.yHeight = 0 # Those vertically
         self.message_area_menu = None
+        self.file_area_menu = None
         self.user_editor = None
 
         self.user_level = 0 # TODO
@@ -129,3 +130,6 @@ class SessionData:
     
     def setUserEditor(self, value):
         self.user_editor = value
+
+    def setFileAreaMenu(self, value):
+        self.file_area_menu = value

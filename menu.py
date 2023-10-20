@@ -2,6 +2,7 @@ from basicansi import BasicANSI
 import base64
 import copy
 from messageareamenu import *
+from fileareamenu import *
 from usereditor import *
 
 class Menu(BasicANSI):
@@ -46,7 +47,11 @@ class Menu(BasicANSI):
                         return
                     elif action_code == "81":
                         
-                        self.sid_data.setMessageAreaMenu(MessageAreaMenu(self.util, 32000, self.message_menu_callback_on_exit))
+                        self.sid_data.setMessageAreaMenu(MessageAreaMenu(self.util, self.message_menu_callback_on_exit))
+                        return
+                    elif action_code == "82":
+                        
+                        self.sid_data.setFileAreaMenu(FileAreaMenu(self.util, self.message_menu_callback_on_exit))
                         return
                     elif action_code == "83":                        
                         # Example usage:

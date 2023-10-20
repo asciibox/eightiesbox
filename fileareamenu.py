@@ -1,18 +1,18 @@
 from areamenu import AreaMenu
 
-class MessageAreaMenu(AreaMenu):
+class FileAreaMenu(AreaMenu):
     def __init__(self, util, callback_on_exit):
-        super().__init__(util, callback_on_exit, "Message")
+        super().__init__(util, callback_on_exit, "File")
          # Set the current action for the session
-        util.sid_data.setCurrentAction("wait_for_message_area")
+        util.sid_data.setCurrentAction("wait_for_file_area")
         mongo_client = util.mongo_client  # Assuming you have a mongo_client in util
         db = mongo_client['bbs']
-        self.areas = list(db['messageareas'].find())
+        self.areas = list(db['fileareas'].find())
         self.areas.sort(key=lambda x: x.get('order', 0))
         self.start()
         
     def edit_origin(self, selected_area):
-        """Edit the Origin line for the selected message area."""
+        """Edit the Origin line for the selected file area."""
         
         self.util.sid_data.setStartX(0)
         self.util.sid_data.setStartY(10)
@@ -23,26 +23,26 @@ class MessageAreaMenu(AreaMenu):
         """Save the new Origin line."""
         
         # Your logic to save the new Origin goes here. For now, it will just
-        # print a confirmation message and go back to the menu.
+        # print a confirmation file and go back to the menu.
         
         self.util.output(f"Origin saved as: {new_origin}")
         self.display_menu()
 
-    def create_new_message_area(self):
-        """Prompt for the new name of the message area."""
+    def create_new_file_area(self):
+        """Prompt for the new name of the file area."""
         self.util.goto_next_line()
-        self.util.output("Enter the name of the new message area:", 6, 0)
+        self.util.output("Enter the name of the new file area:", 6, 0)
         self.util.ask(40, self.ask_for_order)
 
     def ask_for_order(self, new_area_name):
-        """Prompt for the order of the new message area."""
+        """Prompt for the order of the new file area."""
         self.new_area_name = new_area_name  # Store the name temporarily
         self.util.goto_next_line()
-        self.util.output("Enter the order number for the new message area (1-9999):", 6, 0)
-        self.util.ask(4, self.store_new_message_area)
+        self.util.output("Enter the order number for the new file area (1-9999):", 6, 0)
+        self.util.ask(4, self.store_new_file_area)
 
-    def store_new_message_area(self, order):
-        """Store the new message area in MongoDB."""
+    def store_new_file_area(self, order):
+        """Store the new file area in MongoDB."""
 
         try:
             order = int(order)
@@ -56,13 +56,13 @@ class MessageAreaMenu(AreaMenu):
             self.display_menu()
             return
 
-        # Continue with storing the new message area...
+        # Continue with storing the new file area...
         # (the rest of the code remains the same)
 
-        # Insert new message area
+        # Insert new file area
         mongo_client = self.util.mongo_client
         db = mongo_client['bbs']
-        db['messageareas'].insert_one({
+        db['fileareas'].insert_one({
             'name': self.new_area_name,
             'min_level': 1,
             'order': order
@@ -75,18 +75,18 @@ class MessageAreaMenu(AreaMenu):
         self.areas = sorted(self.areas, key=lambda k: k['order'])
         
         self.util.goto_next_line()
-        self.util.output(f"Message area '{self.new_area_name}' created successfully.", 6, 0)
+        self.util.output(f"File area '{self.new_area_name}' created successfully.", 6, 0)
         self.util.goto_next_line()
         self.display_menu()
 
-    def change_order_message_area(self):
-        """Change the order of a message area."""
+    def change_order_file_area(self):
+        """Change the order of a file area."""
         self.util.goto_next_line()
-        self.util.output("Enter the number of the message area you want to change:", 6, 0)
+        self.util.output("Enter the number of the file area you want to change:", 6, 0)
         self.util.ask(40, self.ask_new_order)
 
     def ask_new_order(self, idx):
-        """Ask for the new order value for the selected message area."""
+        """Ask for the new order value for the selected file area."""
         try:
             idx = int(idx) - 1  # Convert input to zero-based index
             if idx < 0 or idx >= len(self.areas):
@@ -121,7 +121,7 @@ class MessageAreaMenu(AreaMenu):
         mongo_client = self.util.mongo_client
         db = mongo_client['bbs']
         area_id = self.areas[idx]['_id']
-        db['messageareas'].update_one({'_id': area_id}, {'$set': {'order': new_order}})
+        db['fileareas'].update_one({'_id': area_id}, {'$set': {'order': new_order}})
 
         # Update self.areas
         self.areas[idx]['order'] = new_order
@@ -130,14 +130,14 @@ class MessageAreaMenu(AreaMenu):
         # Redraw the menu
         self.display_menu()
 
-    def rename_message_area(self):
-        """Start the process of renaming a message area."""
+    def rename_file_area(self):
+        """Start the process of renaming a file area."""
         self.util.goto_next_line()
-        self.util.output("Enter the number of the message area you want to rename:", 6, 0)
-        self.util.ask(40, self.ask_new_message_area_name)
+        self.util.output("Enter the number of the file area you want to rename:", 6, 0)
+        self.util.ask(40, self.ask_new_file_area_name)
 
-    def ask_new_message_area_name(self, idx):
-        """Ask for the new name for the selected message area."""
+    def ask_new_file_area_name(self, idx):
+        """Ask for the new name for the selected file area."""
         try:
             idx = int(idx) - 1  # Convert input to zero-based index
             if idx < 0 or idx >= len(self.areas):
@@ -154,16 +154,30 @@ class MessageAreaMenu(AreaMenu):
             return
 
         self.util.goto_next_line()
-        self.util.output("Enter the new name for the message area:", 6, 0)
-        self.util.ask(40, lambda new_name: self.save_new_message_area_name(idx, new_name))
+        self.util.output("Enter the new name for the file area:", 6, 0)
+        self.util.ask(40, lambda new_name: self.save_new_file_area_name(idx, new_name))
 
-    def save_new_message_area_name(self, idx, new_name):
-        """Save the new name in the database and update self.areas."""
+    def save_new_file_area_name(self, idx, new_name):
+        # Debug: Print self.areas
+        print(f"Debug: self.areas = {self.areas}")
+        
+        # Check if idx is within range
+        if idx >= len(self.areas):
+            print("Index out of range")
+            return
+        
+        # Check if '_id' key exists
+        if '_id' not in self.areas[idx]:
+            print("Key '_id' does not exist")
+            return
+
+        # If all checks pass, proceed
+        area_id = self.areas[idx]['_id']
+
         # Update the database
         mongo_client = self.util.mongo_client
         db = mongo_client['bbs']
-        area_id = self.areas[idx]['_id']
-        db['messageareas'].update_one({'_id': area_id}, {'$set': {'name': new_name}})
+        db['fileareas'].update_one({'_id': area_id}, {'$set': {'name': new_name}})
 
         # Update self.areas
         self.areas[idx]['name'] = new_name
