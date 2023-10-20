@@ -76,11 +76,30 @@ class MenuBox:
         for row_idx in range(self.num_rows):
             self.draw_row(row_idx)
 
+    def format_filename(self, filename):
+        filename = filename.upper()
+        if '.' in filename:
+            name, ext = filename.split('.', 1)
+            name = name[:8]
+            ext = ext[:3]
+            return f"{name}.{ext}"
+        else:
+            return filename[:8]+".MNU"
+
     def update_item(self, field, value):
         """Update a field's value and redraw the row."""
+        
+        # Check if we need to apply the special formatting logic
+        type_field_value = self.get_value_for_field_and_row("Type", self.current_row_index)
+        print(field)
+        print(type_field_value)
+        if field == "Data" and (type_field_value == "00" or type_field_value == "01"):
+            value = self.format_filename(value)
+        #prnt("FILENAME:"+value)
+
         self.values[self.current_row_index][self.fields.index(field)] = value
         
-        self.draw_row(self.current_row_index)  # Only redraw the updated row
+        self.draw_row(self.current_row_index)
 
     def draw_row(self, row_idx):
         """Draw a single row given its index."""

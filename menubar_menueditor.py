@@ -10,6 +10,7 @@ class MenuBarMenuEditor(MenuBar):
         super().__init__(sub_menus, util)
         # Add any additional properties or methods specific to MenuBarANSI here
         util.sid_data.setCurrentAction("wait_for_menubar_menueditor")
+        self.current_filename = ""
 
         # Add ANSI-specific methods here if needed
     def choose_field(self):
@@ -47,6 +48,18 @@ class MenuBarMenuEditor(MenuBar):
         self.sid_data.setCurrentAction("wait_for_menu")
         self.in_sub_menu = False
 
+    def show_filenames(self, filenames):
+        # Display filenames
+        display_filenames = [doc['filename'][:11] for doc in filenames]  # Limit filenames to 11 characters
+
+        for y in range(0, 7):
+            for x in range(0, 7):
+                idx = y * 7 + x
+                if idx < len(display_filenames):
+                    self.sid_data.setStartX(x * 12)  # Assuming each entry takes up 12 spaces
+                    self.sid_data.setStartY(y + 3)  # Start from the 3rd line
+                    self.output(display_filenames[idx], 6, 0)
+
     def load_menu(self):
         collection = self.mongo_client.bbs.menufiles  # Replace with actual MongoDB database and collection
         filenames = collection.find({}, {'filename': 1})  # Query MongoDB for filenames
@@ -63,67 +76,81 @@ class MenuBarMenuEditor(MenuBar):
     def save_menu(self):
         collection = self.mongo_client.bbs.menufiles  # Replace with actual MongoDB database and collection
         filenames = collection.find({}, {'filename': 1})  # Query MongoDB for filenames
-        
+
         self.clear_screen()
 
         self.show_filenames(filenames)
 
         self.sid_data.setStartX(0)
         self.sid_data.setStartY(10)  # Assuming you are asking at the 10th line
-        self.output("Please enter the filename to save: ", 6,0)
+        self.output("Please enter the filename to save: ", 6, 0)
         self.ask(11, self.save_filename_callback)  # filename_callback is the function to be called once filename is entered
 
-    def show_filenames(self, filenames):
-        # Display filenames
-        display_filenames = [doc['filename'][:11] for doc in filenames]  # Limit filenames to 11 characters
-
-        for y in range(0, 7):
-            for x in range(0, 7):
-                idx = y * 7 + x
-                if idx < len(display_filenames):
-                    self.sid_data.setStartX(x * 12)  # Assuming each entry takes up 12 spaces
-                    self.sid_data.setStartY(y + 3)  # Start from the 3rd line
-                    self.output(display_filenames[idx], 6, 0)
 
     def save_filename_callback(self, entered_filename):
-        if entered_filename=='':
+        
+        if entered_filename == '':
             self.sid_data.menu_box.draw_all_rows()
             self.sid_data.setCurrentAction("wait_for_menu")
             self.in_sub_menu = False
             return
+        
+        self.current_filename = entered_filename
+
         collection = self.mongo_client.bbs.menufiles  # Replace with the actual MongoDB database and collection
 
-        # Before saving, you might want to check if this filename already exists and handle accordingly
+        # Check if this filename already exists
         if collection.find_one({"filename": entered_filename}):
-            # Filename already exists, handle accordingly (overwrite, prompt again, etc.)
             self.goto_next_line()
             self.output("File already exists!", 6, 0)
             self.goto_next_line()
-            self.output("Please enter the filename to save: ", 6,0)
-            self.ask(11, self.filename_callback)  # filename_callback is the function to be called once a filename is entered
+
+            # Ask user if they want to overwrite the existing file
+            self.util.askYesNo("Do you want to overwrite this file?", self.overwrite_callback)
         else:
-            # Create a list containing each row and its y-coordinate
-            non_empty_values = [{"y": y, "row_data": row} for y, row in enumerate(self.sid_data.menu_box.values) if row]
-            
-            # Save the new file
-            menu_box_data = {
-                "fields": self.sid_data.menu_box.fields,
-                "values": non_empty_values,
-            }
-            
-            new_file_data = {
-                "filename": entered_filename,
-                "menu_box_data": menu_box_data,
-                "ansi_code_base64": self.sid_data.menutexteditor.get_ansi_code_base64()
-                # Add other file details here
-            }
-            
-            collection.insert_one(new_file_data)
-            
-            self.output("File saved successfully!", 6, 0)
-            self.sid_data.menu_box.draw_all_rows()
-            self.sid_data.setCurrentAction("wait_for_menu")
-            self.in_sub_menu = False
+            self.save_file(entered_filename)
+
+
+    def overwrite_callback(self, response):
+        if response.lower() == 'y':
+            # User wants to overwrite, proceed with saving
+            self.save_file(self.current_filename)
+        else:
+            # User doesn't want to overwrite, ask for a new filename
+            self.goto_next_line()
+            self.output("Please enter the filename to save: ", 6, 0)
+            self.ask(11, self.save_filename_callback)
+
+
+    def save_file(self, entered_filename):
+        collection = self.mongo_client.bbs.menufiles  # Replace with the actual MongoDB database and collection
+
+        # Delete any existing file with the same filename
+        collection.delete_one({"filename": entered_filename})
+
+        # Create a list containing each row and its y-coordinate
+        non_empty_values = [{"y": y, "row_data": row} for y, row in enumerate(self.sid_data.menu_box.values) if row]
+
+        # Save the new file
+        menu_box_data = {
+            "fields": self.sid_data.menu_box.fields,
+            "values": non_empty_values,
+        }
+
+        new_file_data = {
+            "filename": entered_filename,
+            "menu_box_data": menu_box_data,
+            "ansi_code_base64": self.sid_data.menutexteditor.get_ansi_code_base64() if self.sid_data.menutexteditor else ""
+            # Add other file details here
+        }
+
+        collection.insert_one(new_file_data)
+
+        self.output("File saved successfully!", 6, 0)
+        self.sid_data.menu_box.draw_all_rows()
+        self.sid_data.setCurrentAction("wait_for_menu")
+        self.in_sub_menu = False
+
 
     def load_filename_callback(self, entered_filename):
         if entered_filename=='':

@@ -22,6 +22,7 @@ class MenuBarANSIEditor(MenuBar):
         self.columns_x = 0
         self.columns_y = 0
         self.strip_sauce = util.strip_sauce
+        self.current_filename = ""
         
 
         # Add ANSI-specific methods here if needed
@@ -107,30 +108,48 @@ class MenuBarANSIEditor(MenuBar):
 
     
 
+
     def save_filename_callback(self, entered_filename):
+
         if entered_filename=='':
             self.leave_menu_bar()
             self.in_sub_menu = False
             return
+        
         collection = self.mongo_client.bbs.ansifiles  # Replace with the actual MongoDB database and collection
-
-        # Before saving, you might want to check if this filename already exists and handle accordingly
+        self.current_filename = entered_filename
+        # Check if the filename already exists
         if collection.find_one({"filename": entered_filename}):
-            # Filename already exists, handle accordingly (overwrite, prompt again, etc.)
             self.goto_next_line()
             self.output("File already exists!", 6, 0)
             self.goto_next_line()
-            self.output("Please enter the filename to save: ", 6,0)
-            self.ask(20, self.save_filename_callback)  # filename_callback is the function to be called once a filename is entered
+
+            # Ask user if they want to overwrite the existing file
+            self.util.askYesNo("Do you want to overwrite this file?", self.overwrite_callback)
         else:
-            # Create a list containing each row and its y-coordinate
+            # Save the file because it doesn't exist
+            self.save_file(entered_filename)
+
+    def overwrite_callback(self, response):
+        if response.lower() == 'y':
+            # User wants to overwrite, proceed with saving
+            self.save_file(self.current_filename)
+        else:
+            # User doesn't want to overwrite, ask for a new filename
+            self.goto_next_line()
+            self.output("Please enter the filename to save: ", 6, 0)
+            self.ask(20, self.save_filename_callback)
+
+    def save_file(self, entered_filename):
             
-        
             new_file_data = {
                 "filename": entered_filename,
-                "ansi_code": self.sid_data.ansi_editor.get_ansi_code_base64()
+                "ansi_code": self.sid_data.ansi_editor.get_ansi_code_base64() if self.sid_data.ansi_editor else ""
                 # Add other file details here
             }
+            collection = self.mongo_client.bbs.ansifiles  # Replace with the actual MongoDB database and collection
+            # Delete any existing file with the same filename
+            collection.delete_one({"filename": entered_filename})
             
             collection.insert_one(new_file_data)
             
