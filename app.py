@@ -171,7 +171,11 @@ def handle_keypress(data):
     global sid_data, util
     siddata = sid_data[request.sid]
     print(siddata.current_action)
-    if siddata.current_action == "wait_for_layered_menu":
+    if siddata.current_action == "wait_for_menu":
+        key = data['key']
+        siddata.menu.handle_key(key)
+        return
+    elif siddata.current_action == "wait_for_layered_menu":
         key = data['key']
         if siddata.menu_box.in_sub_menu:  # in_sub_menu is a new attribute to check if you're in a sub-menu
             if key == 'ArrowUp': 
@@ -213,7 +217,7 @@ def handle_keypress(data):
                 siddata.menu_box.hide_menu()
                 return
 
-    if siddata.current_action == "wait_for_menu":
+    if siddata.current_action == "wait_for_menubox":
         key = data['key']
         
         if key == 'ArrowLeft':
@@ -231,6 +235,9 @@ def handle_keypress(data):
         elif key == 'Enter':
             siddata.menu_box.edit_field()
             return
+        
+        elif key == 'Delete':
+            siddata.menu_box.delete_current_row()
 
         elif key == 'Escape':
             sub_menus = {

@@ -61,7 +61,7 @@ class MenuBarTextEditor(MenuBarANSIEditor):
 
 
     def leave_ansi_editor(self):
-         self.sid_data.setCurrentAction("wait_for_menu")
+         self.sid_data.setCurrentAction("wait_for_menubox")
          self.sid_data.menu_box.clear_screen()
          self.sid_data.menu_box.draw_all_rows()
 

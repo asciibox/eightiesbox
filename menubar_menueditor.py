@@ -39,13 +39,19 @@ class MenuBarMenuEditor(MenuBar):
             self.draw_sub_menu()
 
     def simulate_text(self):
-        self.sid_data.setMenu(Menu(self.util))
+        self.sid_data.setMenu(Menu(self.util, self.sid_data.menu_box.values, self.sid_data.menu_box.num_rows, self.simulate_callback_on_exit))
         self.util.clear_screen()
         self.sid_data.menu.display_editor()
 
+    def simulate_callback_on_exit(self):
+        self.sid_data.setCurrentAction("wait_for_menubox")
+        self.in_sub_menu = False
+        self.sid_data.menu_box.draw_all_rows()
+        return
+
     def new_menu(self):
         self.sid_data.menu_box.new_menu()
-        self.sid_data.setCurrentAction("wait_for_menu")
+        self.sid_data.setCurrentAction("wait_for_menubox")
         self.in_sub_menu = False
 
     def show_filenames(self, filenames):
@@ -56,7 +62,7 @@ class MenuBarMenuEditor(MenuBar):
             for x in range(0, 7):
                 idx = y * 7 + x
                 if idx < len(display_filenames):
-                    self.sid_data.setStartX(x * 12)  # Assuming each entry takes up 12 spaces
+                    self.sid_data.setStartX(x * 13)  # Assuming each entry takes up 12 spaces
                     self.sid_data.setStartY(y + 3)  # Start from the 3rd line
                     self.output(display_filenames[idx], 6, 0)
 
@@ -91,7 +97,7 @@ class MenuBarMenuEditor(MenuBar):
         
         if entered_filename == '':
             self.sid_data.menu_box.draw_all_rows()
-            self.sid_data.setCurrentAction("wait_for_menu")
+            self.sid_data.setCurrentAction("wait_for_menubox")
             self.in_sub_menu = False
             return
         entered_filename = self.util.format_filename(entered_filename)
@@ -148,14 +154,14 @@ class MenuBarMenuEditor(MenuBar):
 
         self.output("File saved successfully!", 6, 0)
         self.sid_data.menu_box.draw_all_rows()
-        self.sid_data.setCurrentAction("wait_for_menu")
+        self.sid_data.setCurrentAction("wait_for_menubox")
         self.in_sub_menu = False
 
 
     def load_filename_callback(self, entered_filename):
         if entered_filename=='':
             self.sid_data.menu_box.draw_all_rows()
-            self.sid_data.setCurrentAction("wait_for_menu")
+            self.sid_data.setCurrentAction("wait_for_menubox")
             self.in_sub_menu = False
             return
         collection = self.mongo_client.bbs.menufiles  # Replace with the actual MongoDB database and collection
@@ -207,7 +213,7 @@ class MenuBarMenuEditor(MenuBar):
                 
             self.output("File loaded successfully!", 6, 0)
             self.sid_data.menu_box.draw_all_rows()
-            self.sid_data.setCurrentAction("wait_for_menu")
+            self.sid_data.setCurrentAction("wait_for_menubox")
             self.in_sub_menu = False
             
         else:
@@ -233,7 +239,7 @@ class MenuBarMenuEditor(MenuBar):
     def delete_filename_callback(self, entered_filename):
         if entered_filename=='':
             self.sid_data.menu_box.draw_all_rows()
-            self.sid_data.setCurrentAction("wait_for_menu")
+            self.sid_data.setCurrentAction("wait_for_menubox")
             self.in_sub_menu = False
             return
         collection = self.mongo_client.bbs.menufiles  # Replace with the actual MongoDB database and collection
@@ -260,7 +266,7 @@ class MenuBarMenuEditor(MenuBar):
 
     def hide_menu_bar(self):
         self.sid_data.menu_box.draw_all_rows()
-        self.sid_data.setCurrentAction("wait_for_menu")
+        self.sid_data.setCurrentAction("wait_for_menubox")
         self.in_sub_menu = False
         # Reset to previous state or hide the menu bar
 
@@ -285,7 +291,7 @@ class MenuBarMenuEditor(MenuBar):
     
     def leave_menu_bar(self):
         self.sid_data.menu_box.draw_all_rows()
-        self.sid_data.setCurrentAction("wait_for_menu")
+        self.sid_data.setCurrentAction("wait_for_menubox")
         self.in_sub_menu = False
 
         

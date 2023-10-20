@@ -2,36 +2,36 @@ socketio = None  # Declare as a global variable
 
 class SessionData:
     def __init__(self):
+        self.accept_keys = []
+        self.ansi_editor = None
+        self.ansi_editor_values = [] # Todo remove and change two editors to one
+        self.callback = None
+        self.color_array = []  # Initialize an empty 2D array
+        self.color_bgarray = []  # Initialize an empty 2D array
         self.current_action = None
-        self.startX = 0
-        self.startY = 0
         self.cursorX = 0
         self.cursorY = 0
         self.localinput = ""
         self.insert = False
         self.currentPos = 0
         self.maxLength = 0
-        self.callback = None
         self.inputType = ''
-        self.accept_keys = []
-        self.menu_current_index = 0  # To keep track of the current selected menu item
-        self.menu_items = []  # To hold the menu items
-        self.menu_box = None
-        self.menutexteditor = None
-        self.ansi_editor = None
-        self.xWidth = 0 # The total characters on the screen horizontally
-        self.yHeight = 0 # Those vertically
-        self.sauceWidth = 80 # The loaded number of characters on the screen horizontally (effective editing width)
-        self.sauceHeight = 25 # The loaded number of characters vertically in the sauce record (effective editing height)
-        self.user_name = ""
-        self.menu_bar = None
         self.input_values = []
         self.map_character_set = False
-        self.color_array = []  # Initialize an empty 2D array
-        self.color_bgarray = []  # Initialize an empty 2D array
-        self.ansi_editor_values = [] # Todo remove and change two editors to one
-        self.view_start = 0
         self.menu = None
+        self.menu_bar = None
+        self.menu_box = None
+        self.menu_current_index = 0  # To keep track of the current selected menu item
+        self.menu_items = []  # To hold the menu items
+        self.menutexteditor = None
+        self.sauceWidth = 80 # The loaded number of characters on the screen horizontally (effective editing width)
+        self.sauceHeight = 25 # The loaded number of characters vertically in the sauce record (effective editing height)
+        self.startX = 0
+        self.startY = 0
+        self.user_name = ""
+        self.view_start = 0
+        self.xWidth = 0 # The total characters on the screen horizontally
+        self.yHeight = 0 # Those vertically
 
     def move_cursor_up(self):
         self.menu_current_index = (self.menu_current_index - 1) % len(self.menu_items)

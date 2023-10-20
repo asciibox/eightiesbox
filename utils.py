@@ -22,7 +22,7 @@ class Utils:
         self.passwordRetries = 0
     
     def askinput(self, mylen, callback, accept_keys):
-        print("Switched to wait_for_inpu")
+
         self.sid_data.setCurrentAction("wait_for_input")
         self.sid_data.setCurrentPos(0)
         self.sid_data.setMaxLength(mylen)

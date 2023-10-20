@@ -35,7 +35,7 @@ class BasicANSI:
 
 
     def output_with_color(self, x, y, text, color, bgcolor):
-        print(text+" with color "+str(color))
+
         if text == None or text == "":
             return
         # Initialize variables to keep track of current color and text batch
@@ -81,7 +81,7 @@ class BasicANSI:
     
     
     def display_ansi(self):
-        print("dispaly_ansi")
+        print("display_ansi")
         self.ansi_string = ""
         self.current_color = 7
         self.current_bgcolor = 0

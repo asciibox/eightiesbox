@@ -4,7 +4,7 @@ class MenuBox:
     def __init__(self, util):
         self.util = util
         self.sid_data = util.sid_data
-        self.sid_data.setCurrentAction("wait_for_menu")
+        self.sid_data.setCurrentAction("wait_for_menubox")
         self.output = util.output
         # navigation on the menu on top of the list
         self.ask = util.ask
@@ -44,6 +44,21 @@ class MenuBox:
     def get_value_for_field_and_row(self, field, row_idx):
         field_idx = self.fields.index(field)
         return self.values[row_idx][field_idx]
+  
+    def update_item(self, field, value):
+        """Update a field's value and redraw the row."""
+        
+        # Check if we need to apply the special formatting logic
+        type_field_value = self.get_value_for_field_and_row("Type", self.current_row_index)
+        print(field)
+        print(type_field_value)
+        if field == "Data" and (type_field_value == "00" or type_field_value == "01"):
+            value = self.util.format_filename(value)
+        #prnt("FILENAME:"+value)
+
+        self.values[self.current_row_index][self.fields.index(field)] = value
+        
+        self.draw_row(self.current_row_index)
 
     # draws all menu box menu points, like  key, content, security, flags
     def draw_all_rows(self):
@@ -76,20 +91,10 @@ class MenuBox:
         for row_idx in range(self.num_rows):
             self.draw_row(row_idx)
 
-    def update_item(self, field, value):
-        """Update a field's value and redraw the row."""
-        
-        # Check if we need to apply the special formatting logic
-        type_field_value = self.get_value_for_field_and_row("Type", self.current_row_index)
-        print(field)
-        print(type_field_value)
-        if field == "Data" and (type_field_value == "00" or type_field_value == "01"):
-            value = self.util.format_filename(value)
-        #prnt("FILENAME:"+value)
-
-        self.values[self.current_row_index][self.fields.index(field)] = value
-        
+    def delete_current_row(self):
+        self.values[self.current_row_index] = [''] * len(self.fields)
         self.draw_row(self.current_row_index)
+
 
     def draw_row(self, row_idx):
         """Draw a single row given its index."""
@@ -119,7 +124,7 @@ class MenuBox:
             if field_idx < len(self.fields) - 1:
                 self.output(" | ", 7, 0)
 
-
+    
     def arrow_left(self):
         prev_field_idx = self.current_field_index
         self.current_field_index = (self.current_field_index - 1) % len(self.fields)
@@ -152,7 +157,7 @@ class MenuBox:
 
     def create_update_callback(self, field_name):
         def callback(value):
-            self.sid_data.setCurrentAction("wait_for_menu")
+            self.sid_data.setCurrentAction("wait_for_menubox")
             self.update_item(field_name, value)
         return callback
 
@@ -245,7 +250,7 @@ class MenuBox:
         # Assuming that hiding the menu means clearing out the area where it was displayed
         # You can implement this by setting spaces (' ') where the text was. 
         # (Or you can implement it your way)
-        self.sid_data.setCurrentAction("wait_for_menu")
+        self.sid_data.setCurrentAction("wait_for_menubox")
         for row_idx in range(min(8, len(self.values))):
             self.draw_row(row_idx)
         pass
