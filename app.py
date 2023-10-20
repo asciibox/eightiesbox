@@ -77,12 +77,6 @@ def handle_connect():
 def upload_finished():
     print("UPLOAD FINISHED")  
     
-
-
-def oneliners():
-    print("oneliners")
-    
-    
 @socketio.on('onload')
 def onload(data):
     x = data.get('x')

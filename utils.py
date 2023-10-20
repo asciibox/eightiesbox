@@ -140,8 +140,18 @@ class Utils:
             return value  # returns the original value if index out of range in list2
 
     def launchMenuCallback(self):
-        self.goto_next_line()
-        self.askYesNo('Do you want to edit the menu? Otherwise we will take you to the ANSI editor.', self.menuCallback)
+
+        db = self.mongo_client["bbs"]  # You can replace "mydatabase" with the name of your database
+        collection = db["menufiles"]
+
+        file_data = collection.find_one({"filename": 'MAIN.MNU'})
+        
+        if file_data:
+            self.sid_data.setMenu(Menu(self, [["" for _ in ['Type', 'Data', 'Key', 'Sec', 'Flags']] for _ in range(50)], 50, None))
+            self.sid_data.menu.load_menu('MAIN.MNU')
+        else:
+            self.goto_next_line()
+            self.askYesNo('Do you want to edit the menu? Otherwise we will take you to the ANSI editor.', self.menuCallback)
         
         
     def menuCallback(self, input):

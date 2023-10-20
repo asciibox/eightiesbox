@@ -52,7 +52,7 @@ class Menu(BasicANSI):
             menu_box_data = file_data.get("menu_box_data", {})
             
             # Populate the fields
-            self.sid_data.menu_box.fields = menu_box_data.get("fields", [])
+            #self.sid_data.menu_box.fields = menu_box_data.get("fields", [])
             
             ansi_code_base64 = file_data.get("ansi_code_base64")
 
