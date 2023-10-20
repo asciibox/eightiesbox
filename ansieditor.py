@@ -3,6 +3,7 @@ from menubar_ansieditor import *
 from menubar_menutexteditor import *
 import datetime
 from basicansi import *
+import random
 
 class ANSIEditor(BasicANSI):
     def __init__(self, util):
@@ -75,8 +76,8 @@ class ANSIEditor(BasicANSI):
   
 
     def handle_key(self, key):
-        print("KEY")
-        print(key)
+        random_number = random.randint(1, 100)  # Generates a random integer between 1 and 100
+        print("KEY" + str(random_number))
         if key in ['AltGraph', 'Shift', 'Dead', 'CapsLock']:
             print("RETURN")
             return

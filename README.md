@@ -66,7 +66,7 @@ The `SessionData` class contains fields for managing session-specific actions. M
 2. Install the required Python packages:
 
 ```bash
-pip install ochre flask pymongo flask_socketio
+pip install ochre flask pymongo flask_socketio bcrypt
 ```
 
 (Install any other missing packages as needed.)

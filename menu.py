@@ -1,5 +1,6 @@
 from basicansi import BasicANSI
 import base64
+import copy
 
 class Menu(BasicANSI):
     def __init__(self, util, values, num_rows, callback_on_exit):
@@ -8,6 +9,7 @@ class Menu(BasicANSI):
         self.values = values
         self.num_rows = num_rows
         self.callback_on_exit = callback_on_exit
+        self.menu_stack = []  # Initialize the menu stack
 
     def handle_key(self, key):
         print("KEY")
@@ -26,13 +28,43 @@ class Menu(BasicANSI):
                 if  self.values[row_idx][2].lower()==key:
                     # Mimic switch statement for values "00" and "01"
                     action_code = self.values[row_idx][0]
-                    if action_code == "00":
+                    if action_code == "01":
                         filename = self.values[row_idx][1]
                         self.load_menu(filename)
-                        # Insert your code for action "00" here
-                    elif action_code == "01":
+                        return
+                    # Gosub menu
+                    elif action_code == "02":
+                        # Gosub menu
+                        # Save current state to stack
+                        current_state = {
+                            'values': copy.deepcopy(self.values),
+                            'sauce_width': self.sid_data.sauceWidth,
+                            'sauce_height': self.sid_data.sauceHeight,
+                            'color_array': copy.deepcopy(self.sid_data.color_array),
+                            'color_bgarray': copy.deepcopy(self.sid_data.color_bgarray),
+                            'input_values': copy.deepcopy(self.sid_data.input_values)
+                        }
+                        self.menu_stack.append(current_state)
                         filename = self.values[row_idx][1]
                         self.load_menu(filename)
+                        return
+
+                    elif action_code == "03":
+                        # Return from Gosub
+                        if self.menu_stack:
+                            # Restore state from stack
+                            last_state = self.menu_stack.pop()
+                            self.values = last_state['values']
+                            self.sid_data.setSauceWidth(last_state['sauce_width'])
+                            self.sid_data.setSauceHeight(last_state['sauce_height'])
+                            self.sid_data.color_array = last_state['color_array']
+                            self.sid_data.color_bgarray = last_state['color_bgarray']
+                            self.sid_data.input_values = last_state['input_values']
+                            self.util.clear_screen()
+                            self.display_editor()
+                            return
+                        else:
+                            print("No menu to return to.")
                     else:
                         print(f"Unhandled action code: {action_code}")
 

@@ -63,7 +63,6 @@ class BasicANSI:
             if (stored_color is not None and stored_color != color) or (stored_bgcolor is not None and stored_bgcolor != bgcolor):
                 # If the color changes, output the current text batch
                 if current_text:
-                    print(current_text+"current_color: "+str(current_color))
                     self.util.output(current_text, current_color, current_bgcolor)
 
                 # Reset current_text and update the current_color
@@ -76,12 +75,10 @@ class BasicANSI:
 
         # Output any remaining text
         if current_text:
-            print("remaining "+current_text)
             self.util.output(current_text, current_color, current_bgcolor)
     
     
     def display_ansi(self):
-        print("display_ansi")
         self.ansi_string = ""
         self.current_color = 7
         self.current_bgcolor = 0
@@ -90,7 +87,6 @@ class BasicANSI:
         return self.ansi_string
 
     def draw_ansi_line(self, line_index):
-        print("draw_ansi_line")
         print(str(line_index)+"<"+str(len(self.sid_data.input_values)))
         if line_index < len(self.sid_data.input_values):
             self.output_ansi_with_color(1, line_index, self.sid_data.input_values[line_index])

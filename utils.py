@@ -341,9 +341,6 @@ class Utils:
     
         terminalWidth = self.sid_data.sauceWidth
 
-        # text_content = strip_sauce(text_content)
-
-        # Filter out the specific ANSI escape code
         filtered_content = text_content.replace("[?7h", "")
 
         posX, posY = 0, 0
@@ -413,13 +410,12 @@ class Utils:
                 elif instruction.attribute == Attribute.BOLD:  # Add this line
                     currentString = emit_current_string(currentString, currentColor, backgroundColor, blink, self.sid_data.startX, self.sid_data.startY)
                     
-                    #currentColor = currentColor + 8
+                    currentColor = currentColor + 8 # Adding this makes the foreground color of the ANSI image appear
                     self.sid_data.setStartX(posX)
                     self.sid_data.setStartY(posY)
                     isBold = True  # Add this line
                 elif instruction.attribute == Attribute.NORMAL:  # Add this line
                     isBold = False  # Add this line
-                    #currentColor = currentColor + 8
                     currentString = emit_current_string(currentString, currentColor, backgroundColor, blink, self.sid_data.startX, self.sid_data.startY) #modified 0, backgroundColor?
                     self.sid_data.setStartX(posX)
                     self.sid_data.setStartY(posY)
