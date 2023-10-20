@@ -19,6 +19,7 @@ class Utils:
         self.list1 = mylist1
         self.list2 = mylist2
         self.Sauce = Sauce
+        self.passwordRetries = 0
     
     def askinput(self, mylen, callback, accept_keys):
         print("Switched to wait_for_inpu")
@@ -81,22 +82,37 @@ class Utils:
                 bbs.show_oneliners()
             else:
                 self.goto_next_line()
-                self.output("Incorrect password. Try again: ", 3, 0)
-                self.askPassword(40, self.passwordCallback)  # Prompt again for the password
+                self.passwordRetries += 1
+                if self.passwordRetries < 3:
+                    self.output("Incorrect password. Try again: ", 3, 0)
+                    self.askPassword(40, self.passwordRetryCallback)  # Prompt again for the password
+                    
+                else:
+                    self.output("Too many tries!", 1, 0)
+                    self.sid_data.setCurrentAction("exited")
+                    return
         else:
             # This should not happen, but just in case
             self.goto_next_line()
             self.output("User not found. Please re-enter username: ", 3, 0)
             ask(40, self.usernameCallback)
 
+    def passwordRetryCallback(self, input):
+        if len(input)==0:
+            self.usernameCallback(input)
+        else:
+            self.passwordCallback(input)
+
+
     def usernameCallback(self, input):
-        db = self.mongo_client['bbs']
-        users_collection = db['users']
+        
         if input == '':
             self.goto_next_line()
             self.output("Please enter your name: ", 3, 0)
             self.ask(40, self.usernameCallback)
             return
+        db = self.mongo_client['bbs']
+        users_collection = db['users']
         user_document = users_collection.find_one({"username": input})
         self.sid_data.setUserName(input)
         self.goto_next_line()
