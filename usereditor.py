@@ -1,7 +1,7 @@
 from basicansi import BasicANSI
 
 class UserEditor(BasicANSI):
-    def __init__(self, util, users, callback_on_exit):
+    def __init__(self, util,  callback_on_exit):
         super().__init__(util)
 
         # Set the current action for the session
@@ -11,11 +11,15 @@ class UserEditor(BasicANSI):
         self.user_name = util.sid_data.user_name
         self.user_level = util.sid_data.user_level
 
-        # Retrieve the users collection from BBS
-        self.users = users
+          # Retrieve the users collection from BBS
+        mongo_client = util.mongo_client  # Assuming util has a MongoDB client attribute
+        db = mongo_client['bbs']
+        self.users = list(db['users'].find({}))  # This will fetch all documents from the "users" collection
 
         # Store the exit callback
         self.callback_on_exit = callback_on_exit
+
+        self.old_username = None  # Initialize with None or the current username if needed
 
         # Display the user editor menu for the first time
         self.display_menu()
@@ -46,6 +50,8 @@ class UserEditor(BasicANSI):
         self.util.goto_next_line()
         self.util.output("2. Change User Level", 6, 0)
         self.util.goto_next_line()
+        self.util.output("3. Delete user", 6, 0)
+        self.util.goto_next_line()
         self.util.output("X. Exit to main menu", 6, 0)
         self.util.goto_next_line()
 
@@ -65,6 +71,8 @@ class UserEditor(BasicANSI):
                 self.change_username()
             elif choice_idx == 2:
                 self.change_user_level()
+            elif choice_idx == 3:
+                self.delete_user()
             else:
                 self.util.goto_next_line()
                 self.util.output("Invalid choice. Please try again.", 6,0)
@@ -87,15 +95,45 @@ class UserEditor(BasicANSI):
 
     def save_username(self, new_username):
         """Save the new username."""
-        # Logic to save new username
-        # Update users collection and session data
-        self.user_name = new_username
-        self.util.sid_data.user_name = new_username
-        self.display_menu()
+        # Check if the new username is unique
+        if new_username in [user['username'] for user in self.users]:
+            self.util.output("Username already exists. Choose another.", 6, 0)
+            self.display_menu()
+            return
+
+        # Update the users collection using the old username
+        mongo_client = self.util.mongo_client
+        db = mongo_client['bbs']
+        update_result = db['users'].update_one({'username': self.old_username}, {'$set': {'username': new_username}})
+
+        # Check if the update was successful
+        if update_result.matched_count > 0:
+            # Update session data
+            self.util.sid_data.user_name = new_username
+
+            # Update local username cache
+            self.user_name = new_username
+
+            # Update self.users
+            for user in self.users:
+                if user['username'] == self.old_username:
+                    user['username'] = new_username
+                    break
+
+            self.display_menu()
+
+        else:
+            self.util.output("Error updating username. Try again.", 6, 0)
+            self.display_menu()
+
+        # Clear the old username now that the operation is complete
+        self.old_username = None
+
 
     def ask_new_username(self, existing_username):
         """Ask for new username."""
         if existing_username in [user['username'] for user in self.users]:
+            self.old_username = existing_username  # Store the old username
             self.util.goto_next_line()
             self.util.output("Enter new username:", 6, 0)
             self.util.ask(40, self.save_username)
@@ -136,3 +174,49 @@ class UserEditor(BasicANSI):
         except ValueError:
             self.util.output("Invalid user level. Please enter a number.", 6,0)
             self.display_menu()
+
+    def delete_user(self):
+        """Delete a user."""
+        self.util.goto_next_line()
+        self.util.output("Enter username to delete:", 6, 0)
+        self.util.ask(40, self.confirm_delete_user)
+
+    def confirm_delete_user(self, username_to_delete):
+        """Confirm if the user should be deleted."""
+        if username_to_delete not in [user['username'] for user in self.users]:
+            self.util.goto_next_line()
+            self.util.output("Username not found. Try again!", 6, 0)
+            self.util.goto_next_line()
+            self.display_menu()
+            return
+        
+        self.user_to_delete = username_to_delete  # Store the username temporarily
+        self.util.goto_next_line()
+        self.util.output(f"Are you sure you want to delete {username_to_delete}? (Y/N)", 6, 0)
+        self.util.ask(1, self.perform_delete_user)  # Asking for just one character (Y/N)
+
+    def perform_delete_user(self, decision):
+        """Perform the user deletion if confirmed."""
+        if decision.lower() == 'y':
+            # Proceed to delete the user
+            mongo_client = self.util.mongo_client
+            db = mongo_client['bbs']
+            delete_result = db['users'].delete_one({'username': self.user_to_delete})
+
+            if delete_result.deleted_count > 0:
+                # Update self.users
+                self.users = [user for user in self.users if user['username'] != self.user_to_delete]
+                self.util.goto_next_line()
+                self.util.output(f"User {self.user_to_delete} deleted successfully.", 6, 0)
+            else:
+                self.util.goto_next_line()
+                self.util.output("Error deleting user. Try again.", 6, 0)
+            
+            # Clear the temporary username store
+            self.user_to_delete = None
+        else:
+            self.util.goto_next_line()
+            self.util.output("User deletion cancelled.", 6, 0)
+        
+        self.util.goto_next_line()
+        self.display_menu()
