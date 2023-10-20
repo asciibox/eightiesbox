@@ -43,7 +43,7 @@ class MenuTextEditor(ANSIEditor):
            
             self.sid_data.setStartX(0)
             self.sid_data.setStartY(line_index + 1)
-            if line_index < len(self.sid_data.menu_box.values) and line_index < len(self.sid_data.input_values):
+            if line_index < len(self.sid_data.menu_box.values):
                 char_value = self.sid_data.menu_box.values[line_index][2]  # Assuming 'Key' field is the character.
                 if char_value == "":
                     char_value = " "    

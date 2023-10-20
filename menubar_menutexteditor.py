@@ -32,6 +32,8 @@ class MenuBarTextEditor(MenuBarANSIEditor):
                 self.leave_ansi_editor()            
             elif selected_option=="Import uploaded ANSI":
                 self.import_ansi()
+            elif selected_option=="Clear ANSI":
+                self.clear_ansi_editor()
             else:
                 print("Hello world")
             
@@ -43,6 +45,20 @@ class MenuBarTextEditor(MenuBarANSIEditor):
         self.in_sub_menu = False
         self.leave_menu_bar()
         # Reset to previous state or hide the menu bar
+
+    def clear_ansi_editor(self):
+        # Clear the input values
+        self.sid_data.input_values = []
+        
+        # Clear the color array
+        self.sid_data.color_array = []
+
+        # Clear the background color array
+        self.sid_data.color_bgarray = []
+
+        # Optionally, redraw the editor to reflect these changes on the screen
+        self.sid_data.menutexteditor.display_editor()
+
 
     def leave_ansi_editor(self):
          self.sid_data.setCurrentAction("wait_for_menu")
@@ -72,6 +88,7 @@ class MenuBarTextEditor(MenuBarANSIEditor):
         self.ask(20, self.import_filename_callback)  # filename_callback is the function to be called once filename is entered   
 
     def import_filename_callback(self, entered_filename):
+        
         if entered_filename=='':
             self.leave_menu_bar()
             self.in_sub_menu = False
@@ -85,11 +102,11 @@ class MenuBarTextEditor(MenuBarANSIEditor):
             file_data = base64.b64decode(file_data['file_data'])
             sauce = self.get_sauce(file_data)
             if sauce != None:
-                print("FOUND")
+
                 self.sid_data.setSauceWidth(sauce.columns)
                 self.sid_data.setSauceHeight(sauce.rows)
             else:
-                print("NOT FOUND")
+
                 self.sid_data.setSauceWidth(80)
                 self.sid_data.setSauceHeight(50)
 

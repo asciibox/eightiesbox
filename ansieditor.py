@@ -78,12 +78,15 @@ class ANSIEditor(BasicANSI):
         print("KEY")
         print(key)
         if key in ['AltGraph', 'Shift', 'Dead', 'CapsLock']:
+            print("RETURN")
             return
 
         if self.check_key_by_subclass and self.check_key_by_subclass(key) == True:
             return
             
-        if key == 'ArrowDown':
+        if key == 'AltGraph':
+            return
+        elif key == 'ArrowDown':
             if self.current_line_index < self.max_height - 1:
                 self.current_line_index += 1
                 self.emit_gotoXY(self.current_line_x, self.current_line_index+1)
@@ -95,7 +98,7 @@ class ANSIEditor(BasicANSI):
                 self.emit_gotoXY(self.current_line_x, self.current_line_index+1)
             return
 
-        if key == 'ArrowRight':
+        elif key == 'ArrowRight':
             if self.current_line_x < self.sid_data.sauceWidth - 1:
                 self.current_line_x += 1
                 self.emit_gotoXY(self.current_line_x, self.current_line_index+1)
@@ -180,20 +183,15 @@ class ANSIEditor(BasicANSI):
                 self.draw_line(self.current_line_index)
                 self.emit_gotoXY(self.current_line_x-1, self.current_line_index + 1)
                 self.current_line_x = self.current_line_x - 1
+                return
 
-        elif key == 'Control':
+        elif key == 'Tab':
             self.foregroundColor = self.foregroundColor + 1
             if self.foregroundColor > 15:
                 self.foregroundColor = 0
             self.update_first_line()
             return
 
-        elif key == 'Tab':
-            self.backgroundColor = self.backgroundColor + 1
-            if self.backgroundColor > 15:
-                self.backgroundColor = 0
-            self.update_first_line()
-            return
 
         elif key == 'Delete':
             current_str = self.sid_data.input_values[self.current_line_index]
@@ -220,6 +218,7 @@ class ANSIEditor(BasicANSI):
 
                 # Move the cursor back to its original position
                 self.emit_gotoXY(self.current_line_x, self.current_line_index + 1)
+            return
        
         elif key == 'Home':
              self.current_line_x = 0

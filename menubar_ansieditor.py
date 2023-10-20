@@ -115,17 +115,17 @@ class MenuBarANSIEditor(MenuBar):
             self.leave_menu_bar()
             self.in_sub_menu = False
             return
-        
+        entered_filename = self.util.format_filename(entered_filename)
         collection = self.mongo_client.bbs.ansifiles  # Replace with the actual MongoDB database and collection
         self.current_filename = entered_filename
         # Check if the filename already exists
         if collection.find_one({"filename": entered_filename}):
             self.goto_next_line()
-            self.output("File already exists!", 6, 0)
+            self.output("File "+entered_filename+" already exists!", 6, 0)
             self.goto_next_line()
 
             # Ask user if they want to overwrite the existing file
-            self.util.askYesNo("Do you want to overwrite this file?", self.overwrite_callback)
+            self.util.askYesNo("Do you want to overwrite "+entered_filename+"?", self.overwrite_callback)
         else:
             # Save the file because it doesn't exist
             self.save_file(entered_filename)

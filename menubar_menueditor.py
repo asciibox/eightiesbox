@@ -50,7 +50,7 @@ class MenuBarMenuEditor(MenuBar):
 
     def show_filenames(self, filenames):
         # Display filenames
-        display_filenames = [doc['filename'][:11] for doc in filenames]  # Limit filenames to 11 characters
+        display_filenames = [doc['filename'][:12] for doc in filenames]  # Limit filenames to 11 characters
 
         for y in range(0, 7):
             for x in range(0, 7):
@@ -94,7 +94,7 @@ class MenuBarMenuEditor(MenuBar):
             self.sid_data.setCurrentAction("wait_for_menu")
             self.in_sub_menu = False
             return
-        
+        entered_filename = self.util.format_filename(entered_filename)
         self.current_filename = entered_filename
 
         collection = self.mongo_client.bbs.menufiles  # Replace with the actual MongoDB database and collection
@@ -102,11 +102,11 @@ class MenuBarMenuEditor(MenuBar):
         # Check if this filename already exists
         if collection.find_one({"filename": entered_filename}):
             self.goto_next_line()
-            self.output("File already exists!", 6, 0)
+            self.output("File "+entered_filename+" already exists!", 6, 0)
             self.goto_next_line()
 
             # Ask user if they want to overwrite the existing file
-            self.util.askYesNo("Do you want to overwrite this file?", self.overwrite_callback)
+            self.util.askYesNo("Do you want to overwrite "+entered_filename+" ?", self.overwrite_callback)
         else:
             self.save_file(entered_filename)
 

@@ -26,8 +26,6 @@ class UserRegistration:
             "password" : "",
         }
 
-
-        self.goto_next_line()
         self.askYesNo("Are you a new user?", self.new_user_callback)
 
     def ask(self, length, callback):

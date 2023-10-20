@@ -28,6 +28,7 @@ class Utils:
         self.sid_data.setLocalInput("")
         self.sid_data.setAcceptKeys(accept_keys)
         self.sid_data.setCallback(callback)
+        self.sid_data.setViewStart(0)
         mystr = " "*(mylen)
         self.emit_current_string(mystr, 14, 4, False, self.sid_data.startX, self.sid_data.startY)
         self.emit_gotoXY(self.sid_data.startX, self.sid_data.startY)
@@ -548,4 +549,12 @@ class Utils:
             current_x = current_x+1
         return []
     
-    
+    def format_filename(self, filename):
+        filename = filename.upper()
+        if '.' in filename:
+            name, ext = filename.split('.', 1)
+            name = name[:8]
+            ext = ext[:3]
+            return f"{name}.{ext}"
+        else:
+            return filename[:8]+".MNU"
