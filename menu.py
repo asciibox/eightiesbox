@@ -1,6 +1,8 @@
 from basicansi import BasicANSI
 import base64
 import copy
+from messageareamenu import *
+from usereditor import *
 
 class Menu(BasicANSI):
     def __init__(self, util, values, num_rows, callback_on_exit):
@@ -10,6 +12,16 @@ class Menu(BasicANSI):
         self.num_rows = num_rows
         self.callback_on_exit = callback_on_exit
         self.menu_stack = []  # Initialize the menu stack
+
+    def message_menu_callback_on_exit(self):
+        self.util.sid_data.setCurrentAction("wait_for_menu")
+        self.util.clear_screen()
+        self.display_editor()
+
+    def user_editor_callback_on_exit(self):
+        self.util.sid_data.setCurrentAction("wait_for_menu")
+        self.util.clear_screen()
+        self.display_editor()
 
     def handle_key(self, key):
         print("KEY")
@@ -32,6 +44,23 @@ class Menu(BasicANSI):
                         filename = self.values[row_idx][1]
                         self.load_menu(filename)
                         return
+                    elif action_code == "81":
+                        areas = [
+                            {'name': 'General', 'min_level': 1},
+                            {'name': 'Tech Talk', 'min_level': 2},
+                            {'name': 'Off Topic', 'min_level': 1}
+                        ]
+                        self.sid_data.setMessageAreaMenu(MessageAreaMenu(self.util, areas, 32000, self.message_menu_callback_on_exit))
+                        return
+                    elif action_code == "83":                        
+                        # Example usage:
+                        users = [
+                            {'username': 'JohnDoe', 'level': 1},
+                            {'username': 'JaneDoe', 'level': 2}
+                        ]
+                        # Replace 'util' with your actual utility object
+                        user_editor = self.sid_data.setUserEditor(UserEditor(self.util, users, self.user_editor_callback_on_exit))
+
                     # Gosub menu
                     elif action_code == "02":
                         # Gosub menu

@@ -32,6 +32,10 @@ class SessionData:
         self.view_start = 0
         self.xWidth = 0 # The total characters on the screen horizontally
         self.yHeight = 0 # Those vertically
+        self.message_area_menu = None
+        self.user_editor = None
+
+        self.user_level = 0 # TODO
 
     def move_cursor_up(self):
         self.menu_current_index = (self.menu_current_index - 1) % len(self.menu_items)
@@ -119,3 +123,9 @@ class SessionData:
 
     def setMenu(self, value):
         self.menu = value
+
+    def setMessageAreaMenu(self, value):
+        self.message_area_menu = value
+    
+    def setUserEditor(self, value):
+        self.user_editor = value

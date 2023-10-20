@@ -282,9 +282,14 @@ class Utils:
         return []
 
     def keydown(self, key):
+        print("KEYDOWN"+key)
         # Ensure key is in the accepted keys
         if len(self.sid_data.accept_keys) > 0 and key.upper() not in self.sid_data.accept_keys:
+            print("NOT ACCEPTED")
             return 
+
+        if len(self.sid_data.localinput) >= self.sid_data.maxLength:
+            return
 
         # Appending new character or updating existing one
         if self.sid_data.localinput == '':
@@ -300,14 +305,19 @@ class Utils:
         # Adjust view_start if cursor is at the end of the visible region
         if self.sid_data.currentPos - self.sid_data.view_start == self.sid_data.maxLength:
             self.sid_data.view_start += 1
-
+        print("localinput:"+self.sid_data.localinput)
         # Cut the visible region from the input based on viewStart and maxLength
-        visible_str = self.sid_data.localinput[self.sid_data.view_start:self.sid_data.view_start + self.sid_data.maxLength]
+        if (self.sid_data.maxLength != 1):
+            visible_str = self.sid_data.localinput[self.sid_data.view_start:self.sid_data.view_start + self.sid_data.maxLength]
+        else:
+            visible_str = self.sid_data.localinput
+        print("visible_string:"+visible_str)
         myoutput = visible_str
         if self.sid_data.inputType == 'password':
             myoutput = "*" * len(visible_str)
 
-       # Emit the current string and set the cursor position
+        # Emit the current string and set the cursor position
+        print("EMITTING "+myoutput)
         self.emit_current_string(myoutput, 14, 4, False, self.sid_data.startX, self.sid_data.startY)
 
         # Adjust cursorX based on viewStart and current position

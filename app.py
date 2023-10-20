@@ -169,6 +169,10 @@ def handle_keypress(data):
         key = data['key']
         siddata.menu.handle_key(key)
         return
+    elif siddata.current_action == "wait_for_message_area":
+        key = data['key']
+        siddata.message_area_menu.handle_key(key)
+        return
     elif siddata.current_action == "wait_for_layered_menu":
         key = data['key']
         if siddata.menu_box.in_sub_menu:  # in_sub_menu is a new attribute to check if you're in a sub-menu
@@ -288,31 +292,31 @@ def handle_keypress(data):
 
         if key == "ä":
             # Handle ä
-            keydown(chr(132))
+            util.keydown(chr(132))
             return
         elif key == "ö":
             # Handle ö
-            keydown(chr(148))
+            util.keydown(chr(148))
             return
         elif key == "ü":
             # Handle ü
-            keydown(chr(129))
+            util.keydown(chr(129))
             return
         elif key == "ß":
             # Handle ß
-            keydown(chr(223))
+            util.keydown(chr(223))
             return
         elif key == "Ä":
             # Handle ß
-            keydown(chr(142))
+            util.keydown(chr(142))
             return
         elif key == "Ö":
             # Handle ß
-            keydown(chr(153))
+            util.keydown(chr(153))
             return
         elif key == "Ü":
             # Handle ß
-            keydown(chr(154))
+            util.keydown(chr(154))
             return
 
         
