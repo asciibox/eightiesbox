@@ -2,9 +2,11 @@
 from utils import *
 from sessiondata import *
 from oneliners import *
+import bcrypt
 
 class UserRegistration:
     def __init__(self, util, launchMenuCallback):
+        self.password_input = ""
         self.util = util
         self.goto_next_line = util.goto_next_line
         self.ask = util.ask
@@ -71,7 +73,9 @@ class UserRegistration:
             self.output("Please enter your new password: ", 6, 0)
             self.askPassword(40, self.password_callback)
             return
-        self.userdata['password'] = input
+        self.password_input = input
+        hashed_password = bcrypt.hashpw(input.encode('utf-8'), bcrypt.gensalt())
+        self.userdata['password'] = hashed_password.decode('utf-8')
         self.goto_next_line()
         self.output("Please repeat your new paswword: ", 6, 0)
         self.askPassword(40, self.password_repetition_callback)
@@ -82,7 +86,7 @@ class UserRegistration:
             self.output("Please repeat your new password: ", 6, 0)
             self.ask(40, self.password_repetition_callback)
             return
-        if input != self.userdata['password']:
+        if input != self.password_input:
             self.goto_next_line()
             self.output("Wrong password repetition", 1, 0)
             self.goto_next_line()

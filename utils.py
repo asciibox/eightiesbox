@@ -10,6 +10,7 @@ from stransi.color import ColorRole, SetColor
 from stransi.cursor import CursorMove, SaveCursor, RestoreCursor
 from ochre import ansi256  # Assuming this is where the colors list is defined
 from sauce import Sauce
+import bcrypt
 
 class Utils:
     def __init__(self, sio, my_client, mylist1, mylist2, sdata, Sauce):
@@ -72,30 +73,43 @@ class Utils:
         users_collection = db['users']
         
         # Retrieve the user document based on the username saved in self.sid_data
+
         user_document = users_collection.find_one({"username": self.sid_data.user_name})
         
         if user_document:
             # Check if the password matches
-            if input == user_document.get('password'):  # Replace 'password' with the actual field name in your MongoDB document
-                self.goto_next_line()
-                bbs = OnelinerBBS(self)
-                bbs.show_oneliners()
-            else:
-                self.goto_next_line()
-                self.passwordRetries += 1
-                if self.passwordRetries < 3:
-                    self.output("Incorrect password. Try again: ", 3, 0)
-                    self.askPassword(40, self.passwordRetryCallback)  # Prompt again for the password
-                    
+            hashed_password_from_db = user_document.get('password').encode('utf-8')
+            print(f"Hash from DB: {hashed_password_from_db}")
+            try:
+                if bcrypt.checkpw(input.encode('utf-8'), hashed_password_from_db):
+                    self.goto_next_line()
+                    bbs = OnelinerBBS(self)
+                    bbs.show_oneliners()
                 else:
-                    self.output("Too many tries!", 1, 0)
-                    self.sid_data.setCurrentAction("exited")
-                    return
+                    self.goto_next_line()
+                    self.passwordRetries += 1
+                    if self.passwordRetries < 3:
+                        self.output("Incorrect password. Try again: ", 3, 0)
+                        self.askPassword(40, self.passwordRetryCallback)  # Prompt again for the password
+                        
+                    else:
+                        self.output("Too many tries!", 1, 0)
+                        self.sid_data.setCurrentAction("exited")
+                        return
+            except ValueError as e:
+                    # Catch the "Invalid salt" error
+                    self.goto_next_line()
+                    self.output("An error occurred while verifying your password. Please contact the Sysop.", 6, 0)
+                    self.goto_next_line()
+                    self.output(str(e), 1, 0)
+                    self.goto_next_line()
+                    self.output("Please re-enter username: ", 3, 0)
+                    self.ask(40, self.usernameCallback)
         else:
             # This should not happen, but just in case
             self.goto_next_line()
-            self.output("User not found. Please re-enter username: ", 3, 0)
-            ask(40, self.usernameCallback)
+            self.output("User "+ self.sid_data.user_name + " not found. Please re-enter username: ", 3, 0)
+            self.ask(40, self.usernameCallback)
 
     def passwordRetryCallback(self, input):
         if len(input)==0:
@@ -105,29 +119,72 @@ class Utils:
 
 
     def usernameCallback(self, input):
-        
+        input = input.strip()
         if input == '':
             self.goto_next_line()
             self.output("Please enter your name: ", 3, 0)
             self.ask(40, self.usernameCallback)
             return
+
         db = self.mongo_client['bbs']
         users_collection = db['users']
-        user_document = users_collection.find_one({"username": input})
+        if (input.lower() == 'sysop'):
+            input = 'SYSOP';
         self.sid_data.setUserName(input)
+        user_document = users_collection.find_one({"username": input})
+
         self.goto_next_line()
+
+        if input == 'SYSOP':
+            if user_document:
+                # Sysop user exists
+                self.goto_next_line()
+                self.sid_data.setInputType("password")
+                self.output("Please enter your password: ", 3, 0)
+                self.askPassword(40, self.passwordCallback)
+            else:
+                # Sysop user doesn't exist; create a new Sysop user
+                self.goto_next_line()
+                self.sid_data.setInputType("password")
+                self.output("You are registering as SYSOP. Please enter a new password: ", 3, 0)
+                self.askPassword(40, self.sysopPasswordCreationCallback)
+            return
 
         if user_document:
             # User exists in the database
             self.goto_next_line()
             self.sid_data.setInputType("password")
             self.output("Please enter your password: ", 3, 0)
-            # You might want to pass along the expected password as an argument for the next callback
             self.askPassword(40, self.passwordCallback)
         else:
             # User doesn't exist in the database
             self.goto_next_line()
             registration = UserRegistration(self, self.launchMenuCallback)
+
+    # Callback for Sysop password creation
+    def sysopPasswordCreationCallback(self, first_password):
+        self.goto_next_line()
+        self.sid_data.setInputType("password")
+        self.output("Please confirm your new password: ", 3, 0)
+        self.askPassword(40, lambda second_password: self.sysopPasswordConfirmationCallback(first_password, second_password))
+
+    # Callback for Sysop password confirmation
+    def sysopPasswordConfirmationCallback(self, first_password, second_password):
+        if first_password == second_password:
+            # Passwords match; create Sysop user
+            db = self.mongo_client['bbs']
+            users_collection = db['users']
+            hashed_password = bcrypt.hashpw(first_password.encode('utf-8'), bcrypt.gensalt())
+            print(f"Hash before save: {hashed_password}")
+            new_sysop_user = {"username": "SYSOP", "password": hashed_password.decode('utf-8')}
+            users_collection.insert_one(new_sysop_user)
+            self.goto_next_line()
+            self.output("SYSOP account created successfully. Logging in...", 3, 0)
+            self.launchMenuCallback()
+        else:
+            self.goto_next_line()
+            self.output("Passwords did not match. Please try again.", 3, 0)
+            self.askPassword(40, self.sysopPasswordCreationCallback)
 
     def map_value(self, value, list1, list2):
         try:
@@ -141,19 +198,28 @@ class Utils:
 
     def launchMenuCallback(self):
 
+       
+
+        if self.sid_data.user_name!='SYSOP':
+           self.load_menu()
+        else:
+            self.goto_next_line()
+
+            self.askYesNo('Do you want to edit the menu? Otherwise we will take you to the ANSI editor.', self.menuCallback)
+        
+    def load_menu(self):
         db = self.mongo_client["bbs"]  # You can replace "mydatabase" with the name of your database
         collection = db["menufiles"]
-
+    
         file_data = collection.find_one({"filename": 'MAIN.MNU'})
-        
+            
         if file_data:
             self.sid_data.setMenu(Menu(self, [["" for _ in ['Type', 'Data', 'Key', 'Sec', 'Flags']] for _ in range(50)], 50, None))
             self.sid_data.menu.load_menu('MAIN.MNU')
         else:
             self.goto_next_line()
-            self.askYesNo('Do you want to edit the menu? Otherwise we will take you to the ANSI editor.', self.menuCallback)
-        
-        
+            self.menuCallback("y")
+
     def menuCallback(self, input):
         if input=='Y' or input=='y':
             self.sid_data.setMenuBox(MenuBox(self))

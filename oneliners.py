@@ -13,8 +13,10 @@ class OnelinerBBS:
         self.ask = util.ask
         self.launchMenuCallback = util.launchMenuCallback
         self.wait = util.wait
+        self.util = util
 
     def show_oneliners(self):
+        self.util.clear_screen()
         self.output_oneliners()
 
         self.goto_next_line()

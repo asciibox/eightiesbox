@@ -100,7 +100,7 @@ class SessionData:
         self.menu_box = menuBox
 
     def setUserName(self, username):
-        self_user_name = username
+        self.user_name = username
 
     def setMenuTextEditor(self, menutexteditor):
         self.menutexteditor = menutexteditor

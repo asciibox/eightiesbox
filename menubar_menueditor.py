@@ -220,6 +220,7 @@ class MenuBarMenuEditor(MenuBar):
             self.goto_next_line()
             self.output("File not found!", 6, 0)
             self.goto_next_line()
+            self.output("Please enter the filename to load: ", 6, 0)
             self.ask(11, self.load_filename_callback)  # load_filename_callback is the function to be called if the filename is not found
 
     def delete_menu(self):
