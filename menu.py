@@ -8,6 +8,7 @@ from messageeditor import MessageEditor
 from ansieditor import ANSIEditor
 from menubox import MenuBox
 from messageareachange import MessageAreaChange
+from messagereader import MessageReader
 
 class Menu(BasicANSI):
     def __init__(self, util, values, num_rows, callback_on_exit):
@@ -34,8 +35,6 @@ class Menu(BasicANSI):
         self.display_editor()
 
     def handle_key(self, key):
-        print("KEY")
-        print(key)
         if key in ['AltGraph', 'Shift', 'Dead', 'CapsLock']:
             return
         
@@ -54,14 +53,23 @@ class Menu(BasicANSI):
                         filename = self.values[row_idx][1]
                         self.load_menu(filename)
                         return
+                    elif action_code == "11":
+                        self.append_gosub()
+                        if self.sid_data.current_message_area is None:
+                            self.sid_data.setMessageAreaChange(MessageAreaChange(self.util, self.on_message_area_selected_11))
+                            self.sid_data.message_area_change.show_message_areas()
+                            return
+                        else:
+                            self.execute_action_11()
                     elif action_code == "12":
-                        self.sid_data.sauceWidth = self.sid_data.xWidth
-                        self.sid_data.sauceHeight = self.sid_data.yHeight
                         self.append_gosub()
-                        self.sid_data.setMessageEditor(MessageEditor(self.util, self.message_editor_callback_on_exit))
-                        return
+                        if self.sid_data.current_message_area is None:
+                            self.sid_data.setMessageAreaChange(MessageAreaChange(self.util, self.on_message_area_selected_12))
+                            self.sid_data.message_area_change.show_message_areas()
+                            return
+                        else:
+                            self.execute_action_12()
                     elif action_code == "13":
-                        self.append_gosub()
                         self.sid_data.setMessageAreaChange(MessageAreaChange(self.util))
                         self.sid_data.message_area_change.show_message_areas()
                         return
@@ -78,8 +86,7 @@ class Menu(BasicANSI):
                         # Replace 'util' with your actual utility object
                         self.sid_data.setUserEditor(UserEditor(self.util, self.user_editor_callback_on_exit))
                         return
-                    elif action_code == "84":   
-                        print("84")                     
+                    elif action_code == "84":         
                         # Example usage:
                         # Replace 'util' with your actual utility object
                         self.append_gosub()
@@ -92,8 +99,7 @@ class Menu(BasicANSI):
                         self.sid_data.color_bgarray = []
                         self.sid_data.ansi_editor.start()
                         return
-                    elif action_code == "85":     
-                        print("85")                   
+                    elif action_code == "85":        
                         # Example usage:
                         # Replace 'util' with your actual utility object
                         self.sid_data.setMenuBox(MenuBox(self.util))
@@ -121,6 +127,29 @@ class Menu(BasicANSI):
                             print("No menu to return to.")
                     else:
                         print(f"Unhandled action code: {action_code}")
+
+    def on_message_area_selected_12(self):
+            self.execute_action_12()
+
+    def on_message_area_selected_11(self):
+        if self.sid_data.current_message_area is not None:
+            # Proceed with reading messages
+            self.execute_action_11()
+        else:
+            # Return to the menu if no message area is selected
+            self.sid_data.menu.return_from_gosub()
+            self.sid_data.setCurrentAction("wait_for_menu")
+            
+    def execute_action_12(self):
+        self.sid_data.sauceWidth = self.sid_data.xWidth
+        self.sid_data.sauceHeight = self.sid_data.yHeight
+        self.sid_data.setMessageEditor(MessageEditor(self.util, self.message_editor_callback_on_exit))
+
+    def execute_action_11(self):
+        self.sid_data.sauceWidth = self.sid_data.xWidth
+        self.sid_data.sauceHeight = self.sid_data.yHeight
+        self.sid_data.setMessageReader(MessageReader(self.util, self.message_editor_callback_on_exit))
+        self.sid_data.message_reader.display_menu()
 
     def append_gosub(self):
         current_state = {

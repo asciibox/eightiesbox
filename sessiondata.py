@@ -38,8 +38,9 @@ class SessionData:
         self.message_editor = None
         self.message_area_change = None
         self.current_message_area = None
-
+        self.message_data = {}  # A local variable to save all input fields
         self.user_level = 1 # TODO
+        self.message_reader = None
 
     def move_cursor_up(self):
         self.menu_current_index = (self.menu_current_index - 1) % len(self.menu_items)
@@ -145,3 +146,9 @@ class SessionData:
 
     def setCurrentMessageArea(self, value):
         self.current_message_area = value
+
+    def SetMessageData(self, value):
+        self.message_data = value
+
+    def setMessageReader(self, value):
+        self.message_reader = value
