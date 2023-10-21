@@ -9,6 +9,7 @@ class MenuBar:
         self.clear_screen = util.clear_screen
         self.sid_data = util.sid_data
         
+        self.output_wrap = util.output_wrap
         self.output = util.output
         self.ask = util.ask
         self.goto_next_line = util.goto_next_line
