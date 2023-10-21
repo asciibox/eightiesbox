@@ -30,6 +30,8 @@ class MenuBarANSIEditor(MenuBar):
         if self.in_sub_menu:
             current_menu = self.current_main_menu_index
             selected_option = self.sub_menus[self.main_menu[self.current_main_menu_index]][self.current_sub_menu_indexes[current_menu]]
+            if selected_option=="Exit editor":
+                self.exit_editor()
             if selected_option=="Load ANSI":
                 self.load_ansi()
             elif selected_option=="Save ANSI":
@@ -52,6 +54,11 @@ class MenuBarANSIEditor(MenuBar):
         else:
             self.in_sub_menu = True
             self.draw_sub_menu()
+    
+    def exit_editor(self):
+        self.sid_data.menu.return_from_gosub()
+        self.sid_data.setCurrentAction("wait_for_menu")
+    
     def clear_ansi(self):
         self.current_line_x=0
         self.sid_data.input_values=[]

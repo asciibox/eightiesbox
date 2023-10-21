@@ -122,21 +122,24 @@ class ANSIEditor(BasicANSI):
             return
 
         elif key == 'Enter':
-            self.current_line_x = 0
-          
-            if self.max_height < self.sid_data.yHeight-4:
-                self.current_line_index = self.current_line_index +1
-                if (self.current_line_index>=self.max_height):
-                    self.max_height=self.current_line_index+1
+            self.current_line_x = 0  # Reset x coordinate to 0
+
+            if self.max_height < self.sid_data.yHeight - 3:
+                self.current_line_index += 1
+                if self.current_line_index >= self.max_height:
+                    self.max_height = self.current_line_index + 1
                     self.sid_data.sauceHeight = self.max_height
                     self.update_first_line()
-                    self.emit_gotoXY(self.current_line_x, self.current_line_index+1)
+                    self.emit_gotoXY(self.current_line_x, self.current_line_index + 1)
                     return
 
-                self.emit_gotoXY(self.current_line_x, self.current_line_index+1)
+                self.emit_gotoXY(self.current_line_x, self.current_line_index + 1)
+                return
             else:
-                self.emit_gotoXY(self.current_line_x, self.current_line_index+1)
-            return
+                if self.current_line_index < self.sid_data.yHeight - 3:
+                    self.current_line_index += 1  # Increment line index
+
+                self.emit_gotoXY(self.current_line_x, self.current_line_index + 1)  # Go to next line
         
         elif key == 'Escape':
             if self.sid_data.current_action == "wait_for_menubar_messageeditor":
@@ -219,7 +222,7 @@ class ANSIEditor(BasicANSI):
                 return
 
         elif key == 'Tab':
-            if self.sid_data.current_action != "wait_for_ansieditor":
+            if self.sid_data.current_action != "wait_for_ansieditor" and self.sid_data.current_action != "wait_for_menutexteditor":
                 return
             self.foregroundColor = self.foregroundColor + 1
             if self.foregroundColor > 15:
