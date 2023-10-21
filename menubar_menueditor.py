@@ -31,7 +31,10 @@ class MenuBarMenuEditor(MenuBar):
             elif selected_option=="Edit text":
                 self.edit_text()     
             elif selected_option=="Simulate text":
+                self.sid_data.menu.values = self.sid_data.menu_box.values
+                self.sid_data.menu.num_rows = self.sid_data.menu_box.num_rows
                 self.simulate_text()
+                self.sid_data.menu.callback_on_exit = self.simulate_callback_on_exit
             else:
                 print("Hello world")
             

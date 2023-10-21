@@ -340,7 +340,24 @@ class Utils:
         if os.path.exists(filepath):
             with codecs.open(filepath, 'r', 'cp437') as f:
                 text_content = f.read()
-                self.show_file_content(text_content, emit_current_string)
+
+            ansi_code_bytes = bytes(text_content, 'cp437')
+
+            sauce = self.get_sauce(ansi_code_bytes)
+
+            ansi_code_bytes = self.strip_sauce(ansi_code_bytes)
+            if sauce != None:
+                if sauce.columns and sauce.rows:
+                    self.sid_data.setSauceWidth(sauce.columns)
+                    self.sid_data.setSauceHeight(sauce.rows)
+                else:
+                    self.sid_data.setSauceWidth(80)
+                    self.sid_data.setSauceHeight(50)    
+            else:
+                self.sid_data.setSauceWidth(80)
+                self.sid_data.setSauceHeight(50)
+            ansi_code = ansi_code_bytes.decode('cp437')
+            self.show_file_content(ansi_code, emit_current_string)
 
 
     def show_file_content(self, text_content, emit_current_string):

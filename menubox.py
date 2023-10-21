@@ -298,6 +298,9 @@ class MenuBox:
             for i, field in enumerate(self.fields):
                 row[i] = ''  # Reset value
 
+        self.sid_data.input_values = []
+        self.sid_data.color_array = []
+        self.sid_data.color_bgarray = []
         self.draw_row(self.current_row_index)  # Redraw the updated row
         self.draw_all_rows()
 
