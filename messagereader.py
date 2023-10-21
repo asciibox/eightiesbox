@@ -122,16 +122,22 @@ class MessageReader :
                 {"$set": {"is_read": True}}
             )
 
-            # Display the message
+            # Display the message header
             self.util.clear_screen()
+            self.util.sid_data.startX = 0
+            self.util.sid_data.startY = 0
             self.util.output(f"From: {next_message['from']}", 7, 0)
             self.util.goto_next_line()
             self.util.output(f"To: {next_message['to']}", 7, 0)
             self.util.goto_next_line()
             self.util.output(f"Subject: {next_message['subject']}", 7, 0)
             self.util.goto_next_line()
-            self.util.output(next_message['content'], 7, 0)
-            self.util.goto_next_line()
+
+            # Display the message content line by line
+            message_content_lines = next_message['content'].split('\n')
+            for line in message_content_lines:
+                self.util.output(line, 7, 0)
+                self.util.goto_next_line()
 
             # Ask user if they want to continue
             self.util.output(f"Press Enter to read the {next} message or 'x' to stop: ", 7, 0)
@@ -140,6 +146,7 @@ class MessageReader :
         else:
             self.util.goto_next_line()
             self.util.output("No more messages matching your criteria.", 7, 0)
+            self.util.goto_next_line()
             self.current_message_id = None  # Reset the current message ID as we've reached the end
             self.util.wait_with_message(self.exit_to_main_menu)
 
@@ -186,7 +193,6 @@ class MessageReader :
 
     def get_total_messages(self):
         current_area = self.util.sid_data.current_message_area
-        print(self.util.sid_data.current_message_area)
         mongo_client = self.util.mongo_client
         db = mongo_client['bbs']
         count = db['messages'].count_documents({"area_id": current_area['_id']})
