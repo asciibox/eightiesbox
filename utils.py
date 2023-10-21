@@ -510,7 +510,7 @@ class Utils:
             additional_length = number_of_comments * 64 + 5 if number_of_comments else 0
 
             # Remove SAUCE and comments
-            return bytes[:-(128 + additional_length)]
+            return bytes[:-(129 + additional_length)]
         else:
             return bytes
 

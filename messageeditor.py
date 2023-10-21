@@ -8,9 +8,37 @@ class MessageEditor(ANSIEditor):
         self.setup_interface()
 
     def display_editor(self):
+        print("DISPLY EDITOR CALLED")
+        # Displaying "From:"
+        self.sid_data.setStartX(0)
+        self.sid_data.setStartY(0)
+        from_user = self.sid_data.user_name
+        self.output("From: ", 6, 0)
+        self.output(from_user, 11, 0)
+
+        # Moving to next line and displaying "To:"
+        self.goto_next_line()
+        self.sid_data.setStartX(0)
+        self.sid_data.setStartY(1)  # Assuming Y index is 0-based
+        to_user = self.message_data.get("To", "data")
+        self.output("To: ", 6, 0)
+        self.output(to_user, 14, 4)
+
+        # Moving to next line and displaying "Subject:"
+        self.goto_next_line()
+        self.sid_data.setStartX(0)
+        self.sid_data.setStartY(2)  # Assuming Y index is 0-based
+        subject = self.message_data.get("Subject", "data")
+        self.output("Subject: ", 6, 0)
+        self.output(subject, 14, 4)
+
+        self.current_line_index = 3  # For navigating vertically among characters
+        self.current_line_x = 0
+
+        print("DISPLY EDITOR FINISHED")
         for idx in range(4, self.max_height):
             self.draw_line(idx)
-        self.emit_gotoXY(0, 1)
+        self.emit_gotoXY(0, 4)
 
     def setup_interface(self):
         # Setting cursor position for "From:"

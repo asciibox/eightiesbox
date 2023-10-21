@@ -15,8 +15,7 @@ class MenuBarMessageEditor(MenuBarANSIEditor):
         # Add ANSI-specific methods here if needed
     def leave_menu_bar(self):
         self.sid_data.setCurrentAction("wait_for_messageeditor")
-        self.sid_data.message_editor.clear_screen()
-        self.sid_data.message_editor.update_first_line()
+        self.clear_screen()
         self.sid_data.message_editor.display_editor()
 
     def choose_field(self):
