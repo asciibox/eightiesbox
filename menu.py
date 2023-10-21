@@ -70,6 +70,7 @@ class Menu(BasicANSI):
                         else:
                             self.execute_action_12()
                     elif action_code == "13":
+                        self.append_gosub()
                         self.sid_data.setMessageAreaChange(MessageAreaChange(self.util))
                         self.sid_data.message_area_change.show_message_areas()
                         return

@@ -1,3 +1,5 @@
+from pymongo import MongoClient
+
 class MessageReader :
     def __init__(self, util, callback):
         self.util = util
@@ -84,9 +86,41 @@ class MessageReader :
             self.util.output("Invalid choice. Please try again.", 6, 0)
             self.display_menu()
 
-    # Below are stubs for the actual functionality.
     def read_forward(self):
-        pass  # Implement logic to read messages forward
+        # Get current area and its id
+        current_area = self.util.sid_data.current_message_area
+        area_id = current_area['_id']
+
+        # Connect to MongoDB
+        mongo_client = self.util.mongo_client
+        db = mongo_client['bbs']
+
+        # Find the next unread message in the current area
+        next_unread_message = db['messages'].find_one(
+            {"area_id": area_id, "is_read": False},
+            sort=[('_id', 1)])  # Sorting by _id to get oldest unread message
+
+        if next_unread_message:
+            # Mark message as read
+            db['messages'].update_one(
+                {"_id": next_unread_message['_id']},
+                {"$set": {"is_read": True}}
+            )
+
+            # Display the message
+            self.util.clear_screen()
+            self.util.output(f"From: {next_unread_message['from']}", 7, 0)
+            self.util.goto_next_line()
+            self.util.output(f"To: {next_unread_message['to']}", 7, 0)
+            self.util.goto_next_line()
+            self.util.output(f"Subject: {next_unread_message['subject']}", 7, 0)
+            self.util.goto_next_line()
+            self.util.output(next_unread_message['content'], 7, 0)
+            self.util.goto_next_line()
+
+        else:
+            self.util.output("No more unread messages in this area.", 7, 0)
+
 
     def read_backward(self):
         pass  # Implement logic to read messages backward
@@ -119,15 +153,17 @@ class MessageReader :
 
     def get_total_messages(self):
         current_area = self.util.sid_data.current_message_area
+        print(self.util.sid_data.current_message_area)
         mongo_client = self.util.mongo_client
         db = mongo_client['bbs']
-        count = db['messages'].count_documents({"area": current_area['name']})
+        count = db['messages'].count_documents({"area_id": current_area['_id']})
         return count
 
     def get_unread_messages(self):
         current_area = self.util.sid_data.current_message_area
+        print(self.util.sid_data.current_message_area)
         # Assuming there's an "is_read" field in the message document to track read/unread status
         mongo_client = self.util.mongo_client
         db = mongo_client['bbs']
-        count = db['messages'].count_documents({"area": current_area['name'], "is_read": False})
+        count = db['messages'].count_documents({"area_id": current_area['_id'], "is_read": False})
         return count

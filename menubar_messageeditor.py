@@ -67,6 +67,7 @@ class MenuBarMessageEditor(MenuBarANSIEditor):
             "to": self.sid_data.message_data['To'],  # Replace with the actual recipient's user ID or name
             "subject": self.sid_data.message_data['Subject'],  # Replace with the actual recipient's user ID or name
             "area": current_area['name'],  # Message area
+            "area_id" : current_area['_id'],
             "content": message_content,
             "is_read": False  # Add this line
         }

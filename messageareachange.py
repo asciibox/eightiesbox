@@ -60,8 +60,8 @@ class MessageAreaChange(AreaChange):
 
     def access_callback(self):
         if self.callback:  # Invoke the callback if it's set
-                self.callback()
-                return
+            self.callback()
+            return
 
         self.exit()
 
@@ -70,14 +70,15 @@ class MessageAreaChange(AreaChange):
         self.sid_data.setCurrentAction("wait_for_menu")
 
     def get_total_messages(self, selected_area):
+        print(selected_area)
         mongo_client = self.util.mongo_client
         db = mongo_client['bbs']
-        count = db['messages'].count_documents({"area": selected_area['name']})
+        count = db['messages'].count_documents({"area_id": selected_area['_id']})
         return count
 
     def get_unread_messages(self, selected_area):
         # Assuming there's an "is_read" field in the message document to track read/unread status
         mongo_client = self.util.mongo_client
         db = mongo_client['bbs']
-        count = db['messages'].count_documents({"area": selected_area['name'], "is_read": False})
+        count = db['messages'].count_documents({"area_id": selected_area['_id'], "is_read": False})
         return count
