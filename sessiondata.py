@@ -35,6 +35,7 @@ class SessionData:
         self.message_area_menu = None
         self.file_area_menu = None
         self.user_editor = None
+        self.message_editor = None
 
         self.user_level = 0 # TODO
 
@@ -133,3 +134,6 @@ class SessionData:
 
     def setFileAreaMenu(self, value):
         self.file_area_menu = value
+
+    def setMessageEditor(self, value):
+        self.message_editor = value

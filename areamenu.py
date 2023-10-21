@@ -11,8 +11,6 @@ class AreaMenu(BasicANSI):
         
         self.user_level = self.sid_data.user_level
         self.user_name = self.sid_data.user_name
-        print("SETTING")
-        print(callback_on_exit)
         self.callback_on_exit = callback_on_exit
         
         # Initialize the area menu stack

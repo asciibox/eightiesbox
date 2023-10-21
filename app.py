@@ -283,6 +283,9 @@ def handle_keypress(data):
     elif (siddata.current_action == "wait_for_ansieditor"):
         siddata.ansi_editor.handle_key(data['key'])
         return
+    elif (siddata.current_action == "wait_for_messageeditor"):
+        siddata.message_editor.handle_key(data['key'])
+        return
     elif (siddata.current_action == "wait_for_input"):
         key = data['key']
 

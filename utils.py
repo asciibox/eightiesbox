@@ -33,6 +33,7 @@ class Utils:
         self.sid_data.setViewStart(0)
         mystr = " "*(mylen)
         self.emit_current_string(mystr, 14, 4, False, self.sid_data.startX, self.sid_data.startY)
+        print("INIT GOING TO GOTOXY:"+str(self.sid_data.startX)+"/"+str(self.sid_data.startY))
         self.emit_gotoXY(self.sid_data.startX, self.sid_data.startY)
 
     def ask(self, mylen, callback, accept_keys = []):
@@ -282,10 +283,8 @@ class Utils:
         return []
 
     def keydown(self, key):
-        print("KEYDOWN"+key)
         # Ensure key is in the accepted keys
         if len(self.sid_data.accept_keys) > 0 and key.upper() not in self.sid_data.accept_keys:
-            print("NOT ACCEPTED")
             return 
 
         if len(self.sid_data.localinput) >= self.sid_data.maxLength:
@@ -317,7 +316,7 @@ class Utils:
             myoutput = "*" * len(visible_str)
 
         # Emit the current string and set the cursor position
-        print("EMITTING "+myoutput)
+        
         self.emit_current_string(myoutput, 14, 4, False, self.sid_data.startX, self.sid_data.startY)
 
         # Adjust cursorX based on viewStart and current position

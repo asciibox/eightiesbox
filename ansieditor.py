@@ -94,6 +94,10 @@ class ANSIEditor(BasicANSI):
             return
 
         elif key == 'ArrowUp':
+            if self.sid_data.current_action == "wait_for_messageeditor":
+                if self.current_line_index < 4:
+                    return
+
             if self.current_line_index > 0:
                 self.current_line_index -= 1
                 self.emit_gotoXY(self.current_line_x, self.current_line_index+1)
@@ -152,6 +156,8 @@ class ANSIEditor(BasicANSI):
             #self.code()
             #current_str = self.sid_data.input_values[self.current_line_index][self.current_line_x]
             #print(ord(current_str[0]))
+            if self.sid_data.current_action != "wait_for_ansieditor":
+                return
 
             self.display_ansi()
             self.characterSet = self.characterSet + 1
@@ -187,6 +193,8 @@ class ANSIEditor(BasicANSI):
                 return
 
         elif key == 'Tab':
+            if self.sid_data.current_action != "wait_for_ansieditor":
+                return
             self.foregroundColor = self.foregroundColor + 1
             if self.foregroundColor > 15:
                 self.foregroundColor = 0
@@ -232,6 +240,8 @@ class ANSIEditor(BasicANSI):
              return
 
         elif key == 'F12':
+            if self.sid_data.current_action != "wait_for_ansieditor":
+                return
             self.util.clear_screen()
             self.sid_data.startX = 0
             self.sid_data.startY = 0

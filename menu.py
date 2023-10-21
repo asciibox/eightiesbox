@@ -4,6 +4,7 @@ import copy
 from messageareamenu import *
 from fileareamenu import *
 from usereditor import *
+from messageeditor import MessageEditor
 
 class Menu(BasicANSI):
     def __init__(self, util, values, num_rows, callback_on_exit):
@@ -20,6 +21,11 @@ class Menu(BasicANSI):
         self.display_editor()
 
     def user_editor_callback_on_exit(self):
+        self.util.sid_data.setCurrentAction("wait_for_menu")
+        self.util.clear_screen()
+        self.display_editor()
+
+    def message_editor_callback_on_exit(self):
         self.util.sid_data.setCurrentAction("wait_for_menu")
         self.util.clear_screen()
         self.display_editor()
@@ -44,6 +50,11 @@ class Menu(BasicANSI):
                     if action_code == "01":
                         filename = self.values[row_idx][1]
                         self.load_menu(filename)
+                        return
+                    elif action_code == "12":
+                        self.sid_data.sauceWidth = self.sid_data.xWidth
+                        self.sid_data.sauceHeight = self.sid_data.yHeight
+                        self.sid_data.setMessageEditor(MessageEditor(self.util, self.message_editor_callback_on_exit))
                         return
                     elif action_code == "81":
                         
