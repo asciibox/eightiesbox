@@ -10,6 +10,7 @@ class MessageReader :
         self.util.clear_screen()
         self.util.sid_data.setStartX(0)
         self.util.sid_data.setStartY(0)
+        self.current_message_id = None
 
         # Display the menu
         self.util.output("Message Reading Menu", 6, 0)
@@ -101,12 +102,20 @@ class MessageReader :
         mongo_client = self.util.mongo_client
         db = mongo_client['bbs']
 
+        # Build the filter, considering the current message ID if available
+        final_filter = {**db_filter, "area_id": area_id}
+        if self.current_message_id is not None:
+            final_filter['_id'] = {'$gt': self.current_message_id} if sort_direction == 1 else {'$lt': self.current_message_id}
+
         # Find the next message based on the given filter and sort direction
         next_message = db['messages'].find_one(
-            {**db_filter, "area_id": area_id},
+            final_filter,
             sort=[('_id', sort_direction)])  # Sorting by _id to get the message based on filter and direction
 
         if next_message:
+            # Update the current message ID
+            self.current_message_id = next_message['_id']
+
             # Mark message as read
             db['messages'].update_one(
                 {"_id": next_message['_id']},
@@ -129,11 +138,15 @@ class MessageReader :
             self.util.ask(1, self.handle_input_for_reading)
 
         else:
+            self.util.goto_next_line()
             self.util.output("No more messages matching your criteria.", 7, 0)
+            self.current_message_id = None  # Reset the current message ID as we've reached the end
+            self.util.wait_with_message(self.exit_to_main_menu)
 
     def handle_input_for_reading(self, user_input):
         if user_input and user_input.lower() == 'x':
             self.exit_to_main_menu()
+            self.current_message_id = None  # Reset the current message ID
         else:
             self.read_messages_with_filter_and_direction(self.db_filter, self.sort_direction, self.next)
 
