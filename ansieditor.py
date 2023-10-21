@@ -119,13 +119,19 @@ class ANSIEditor(BasicANSI):
 
         elif key == 'Enter':
             self.current_line_x = 0
-            self.current_line_index = self.current_line_index + 1
-            if (self.current_line_index>=self.max_height):
-                self.max_height=self.current_line_index+1
-                self.sid_data.sauceHeight = self.max_height
+          
+            if self.max_height < self.sid_data.yHeight-4:
+                self.current_line_index = self.current_line_index +1
+                if (self.current_line_index>=self.max_height):
+                    self.max_height=self.current_line_index+1
+                    self.sid_data.sauceHeight = self.max_height
+                    self.update_first_line()
+                    self.emit_gotoXY(self.current_line_x, self.current_line_index+1)
+                    return
 
-                self.update_first_line()
-            self.emit_gotoXY(self.current_line_x, self.current_line_index+1)
+                self.emit_gotoXY(self.current_line_x, self.current_line_index+1)
+            else:
+                self.emit_gotoXY(self.current_line_x, self.current_line_index+1)
             return
         
         elif key == 'Escape':
@@ -310,7 +316,7 @@ class ANSIEditor(BasicANSI):
             if not self.sid_data.input_values[self.current_line_index]:
                 self.sid_data.input_values[self.current_line_index] = ""
             # Get the current string at the specified line index
-            current_str = self.sid_data.input_values[self.current_line_index]
+            current_str = self.sid_data.input_values[self.current_line_index-1]
 
             # Check if the length of current_str[:current_x] is shorter than the position of current_x
             if len(current_str) <= current_x:
@@ -321,7 +327,7 @@ class ANSIEditor(BasicANSI):
             new_str = current_str[:current_x] + key + current_str[current_x + 1:]
 
             # Assign the new string back to the list
-            self.sid_data.input_values[self.current_line_index] = new_str
+            self.sid_data.input_values[self.current_line_index-1] = new_str
 
             self.sid_data.setStartX(self.current_line_x)
            
