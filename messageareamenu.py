@@ -16,7 +16,7 @@ class MessageAreaMenu(AreaMenu):
         
         self.util.sid_data.setStartX(0)
         self.util.sid_data.setStartY(10)
-        self.util.output(f"Editing Origin for {selected_area['name']}:")
+        self.util.output_wrap(f"Editing Origin for {selected_area['name']}:")
         self.util.ask(40, self.save_origin)
         
     def save_origin(self, new_origin):
@@ -25,20 +25,20 @@ class MessageAreaMenu(AreaMenu):
         # Your logic to save the new Origin goes here. For now, it will just
         # print a confirmation message and go back to the menu.
         
-        self.util.output(f"Origin saved as: {new_origin}")
+        self.util.output_wrap(f"Origin saved as: {new_origin}")
         self.display_menu()
 
     def create_new_message_area(self):
         """Prompt for the new name of the message area."""
         self.util.goto_next_line()
-        self.util.output("Enter the name of the new message area:", 6, 0)
+        self.util.output_wrap("Enter the name of the new message area:", 6, 0)
         self.util.ask(40, self.ask_for_order)
 
     def ask_for_order(self, new_area_name):
         """Prompt for the order of the new message area."""
         self.new_area_name = new_area_name  # Store the name temporarily
         self.util.goto_next_line()
-        self.util.output("Enter the order number for the new message area (1-9999):", 6, 0)
+        self.util.output_wrap("Enter the order number for the new message area (1-9999):", 6, 0)
         self.util.ask(4, self.store_new_message_area)
 
     def store_new_message_area(self, order):
@@ -51,7 +51,7 @@ class MessageAreaMenu(AreaMenu):
 
         except ValueError:
             self.util.goto_next_line()
-            self.util.output("Invalid order number. It must be a number between 1 and 9999.", 6, 0)
+            self.util.output_wrap("Invalid order number. It must be a number between 1 and 9999.", 6, 0)
             self.util.goto_next_line()
             self.display_menu()
             return
@@ -75,14 +75,14 @@ class MessageAreaMenu(AreaMenu):
         self.areas = sorted(self.areas, key=lambda k: k['order'])
         
         self.util.goto_next_line()
-        self.util.output(f"Message area '{self.new_area_name}' created successfully.", 6, 0)
+        self.util.output_wrap(f"Message area '{self.new_area_name}' created successfully.", 6, 0)
         self.util.goto_next_line()
         self.display_menu()
 
     def change_order_message_area(self):
         """Change the order of a message area."""
         self.util.goto_next_line()
-        self.util.output("Enter the number of the message area you want to change:", 6, 0)
+        self.util.output_wrap("Enter the number of the message area you want to change:", 6, 0)
         self.util.ask(40, self.ask_new_order)
 
     def ask_new_order(self, idx):
@@ -91,19 +91,19 @@ class MessageAreaMenu(AreaMenu):
             idx = int(idx) - 1  # Convert input to zero-based index
             if idx < 0 or idx >= len(self.areas):
                 self.util.goto_next_line()
-                self.util.output("Invalid number. Please try again.", 6, 0)
+                self.util.output_wrap("Invalid number. Please try again.", 6, 0)
                 self.util.goto_next_line()
                 self.display_menu()
                 return
         except ValueError:
             self.util.goto_next_line()
-            self.util.output("Invalid input. Please enter a number.", 6, 0)
+            self.util.output_wrap("Invalid input. Please enter a number.", 6, 0)
             self.util.goto_next_line()
             self.display_menu()
             return
 
         self.util.goto_next_line()
-        self.util.output("Enter the new order value:", 6, 0)
+        self.util.output_wrap("Enter the new order value:", 6, 0)
         self.util.ask(40, lambda new_order: self.save_new_order(idx, new_order))
 
     def save_new_order(self, idx, new_order):
@@ -112,7 +112,7 @@ class MessageAreaMenu(AreaMenu):
             new_order = int(new_order)
         except ValueError:
             self.util.goto_next_line()
-            self.util.output("Invalid input. Order value must be an integer.", 6, 0)
+            self.util.output_wrap("Invalid input. Order value must be an integer.", 6, 0)
             self.util.goto_next_line()
             self.display_menu()
             return
@@ -133,7 +133,7 @@ class MessageAreaMenu(AreaMenu):
     def rename_message_area(self):
         """Start the process of renaming a message area."""
         self.util.goto_next_line()
-        self.util.output("Enter the number of the message area you want to rename:", 6, 0)
+        self.util.output_wrap("Enter the number of the message area you want to rename:", 6, 0)
         self.util.ask(40, self.ask_new_message_area_name)
 
     def ask_new_message_area_name(self, idx):
@@ -142,13 +142,13 @@ class MessageAreaMenu(AreaMenu):
             idx = int(idx) - 1  # Convert input to zero-based index
             if idx < 0 or idx >= len(self.areas):
                 self.util.goto_next_line()
-                self.util.output("Invalid number. Please try again.", 6, 0)
+                self.util.output_wrap("Invalid number. Please try again.", 6, 0)
                 self.util.goto_next_line()
                 self.display_menu()
                 return
         except ValueError:
             self.util.goto_next_line()
-            self.util.output("Invalid input. Please enter a number.", 6, 0)
+            self.util.output_wrap("Invalid input. Please enter a number.", 6, 0)
             self.util.goto_next_line()
             self.display_menu()
             return

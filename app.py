@@ -84,7 +84,7 @@ def onload(data):
     y = data.get('y')
     sid_data[request.sid].setYHeight(y)
     if server_available == False:
-        util.output("* Database connection could not get established *", 1,0)
+        util.output_wrap("* Database connection could not get established *", 1,0)
         print(server_available)
         time.sleep(3)
     
@@ -93,7 +93,7 @@ def onload(data):
     util.show_file(data2, util.emit_current_string)
     util.goto_next_line()
     
-    util.output("Please enter your name: ", 3, 0)
+    util.output_wrap("Please enter your name: ", 3, 0)
     util.ask(40, util.usernameCallback)
 
 @socketio.on('disconnect')

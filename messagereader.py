@@ -42,10 +42,10 @@ class MessageReader :
             self.util.output("B - Read Backward", 6, 0)
             self.util.goto_next_line()
 
-            self.util.output("U - Read Unread Messages (Forward)", 6, 0)
+            self.util.output_wrap("U - Read Unread Messages (Forward)", 6, 0)
             self.util.goto_next_line()
 
-            self.util.output("R - Read Unread Messages (Backward)", 6, 0)
+            self.util.output_wrap("R - Read Unread Messages (Backward)", 6, 0)
             self.util.goto_next_line()
             self.util.goto_next_line()
 
@@ -130,7 +130,7 @@ class MessageReader :
             self.util.goto_next_line()
             self.util.output(f"To: {next_message['to']}", 7, 0)
             self.util.goto_next_line()
-            self.util.output(f"Subject: {next_message['subject']}", 7, 0)
+            self.util.output_wrap(f"Subject: {next_message['subject']}", 7, 0)
             self.util.goto_next_line()
 
             # Display the message content line by line
@@ -140,12 +140,12 @@ class MessageReader :
                 self.util.goto_next_line()
 
             # Ask user if they want to continue
-            self.util.output(f"Press Enter to read the {next} message or 'x' to stop: ", 7, 0)
+            self.util.output_wrap(f"Press Enter to read the {next} message or 'x' to stop: ", 7, 0)
             self.util.ask(1, self.handle_input_for_reading)
 
         else:
             self.util.goto_next_line()
-            self.util.output("No more messages matching your criteria.", 7, 0)
+            self.util.output_wrap("No more messages matching your criteria.", 7, 0)
             self.util.goto_next_line()
             self.current_message_id = None  # Reset the current message ID as we've reached the end
             self.util.wait_with_message(self.exit_to_main_menu)

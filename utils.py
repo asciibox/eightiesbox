@@ -25,6 +25,9 @@ class Utils:
         self.passwordRetries = 0
     
     def askinput(self, mylen, callback, accept_keys):
+        if self.sid_data.startX + mylen >= self.sid_data.xWidth:
+            self.sid_data.setStartY(self.sid_data.startY + 1)  # Move to the next line
+            self.sid_data.setStartX(0)  # Reset the X coordinate for the new line
 
         self.sid_data.setCurrentAction("wait_for_input")
         self.sid_data.setCurrentPos(0)
@@ -39,7 +42,7 @@ class Utils:
         self.emit_gotoXY(self.sid_data.startX, self.sid_data.startY)
 
     def wait_with_message(self, callback):
-        self.output("Press any key to continue", 6 ,0)
+        self.output_wrap("Press any key to continue", 6 ,0)
         self.sid_data.setCallback(callback)
         self.sid_data.setCurrentAction("wait_for_any_button")
 
@@ -74,6 +77,32 @@ class Utils:
         self.sid_data.setCursorX(self.sid_data.startX+mylen)
         self.sid_data.setCursorY(self.sid_data.startY)
 
+    def output_wrap(self, currentString, currentColor, backgroundColor):
+        words = currentString.split(' ')  # Split the string by space to get individual words
+        line = ""
+
+        for word in words:
+            temp_line = line + word + " "  # Add the new word and a space to the current line
+            # Calculate the new length if this word is added
+            temp_len = self.sid_data.startX + len(temp_line)
+
+            if temp_len <= self.sid_data.xWidth:  # Check if adding this word exceeds the xWidth
+                line += word + " "
+            else:
+                # Emit the current line and reset for the new line
+                self.emit_current_string(line.strip(), currentColor, backgroundColor, False, self.sid_data.startX, self.sid_data.startY)
+                self.sid_data.setStartY(self.sid_data.startY + 1)  # Move to the next line
+                self.sid_data.setStartX(0)  # Reset the X coordinate for the new line
+                line = word + " "  # Start the new line with the word that couldn't fit
+
+        # Emit any remaining text
+        if line:
+            self.emit_current_string(line.strip(), currentColor, backgroundColor, False, self.sid_data.startX, self.sid_data.startY)
+            self.sid_data.startX = self.sid_data.startX + len(line.strip())+1
+
+        # Update the cursor position
+        self.sid_data.setCursorX(self.sid_data.startX)
+        self.sid_data.setCursorY(self.sid_data.startY)
 
 
     def passwordCallback(self, input):
@@ -97,26 +126,26 @@ class Utils:
                     self.goto_next_line()
                     self.passwordRetries += 1
                     if self.passwordRetries < 3:
-                        self.output("Incorrect password. Try again: ", 3, 0)
+                        self.output_wrap("Incorrect password. Try again: ", 3, 0)
                         self.askPassword(40, self.passwordRetryCallback)  # Prompt again for the password
                         
                     else:
-                        self.output("Too many tries!", 1, 0)
+                        self.output_wrap("Too many tries!", 1, 0)
                         self.sid_data.setCurrentAction("exited")
                         return
             except ValueError as e:
                     # Catch the "Invalid salt" error
                     self.goto_next_line()
-                    self.output("An error occurred while verifying your password. Please contact the Sysop.", 6, 0)
+                    self.output_wrap("An error occurred while verifying your password. Please contact the Sysop.", 6, 0)
                     self.goto_next_line()
                     self.output(str(e), 1, 0)
                     self.goto_next_line()
-                    self.output("Please re-enter username: ", 3, 0)
+                    self.output_wrap("Please re-enter username: ", 3, 0)
                     self.ask(40, self.usernameCallback)
         else:
             # This should not happen, but just in case
             self.goto_next_line()
-            self.output("User "+ self.sid_data.user_name + " not found. Please re-enter username: ", 3, 0)
+            self.output_wrap("User "+ self.sid_data.user_name + " not found. Please re-enter username: ", 3, 0)
             self.ask(40, self.usernameCallback)
 
     def passwordRetryCallback(self, input):
@@ -130,7 +159,7 @@ class Utils:
         input = input.strip()
         if input == '':
             self.goto_next_line()
-            self.output("Please enter your name: ", 3, 0)
+            self.output_wrap("Please enter your name: ", 3, 0)
             self.ask(40, self.usernameCallback)
             return
 
@@ -148,13 +177,13 @@ class Utils:
                 # Sysop user exists
                 self.goto_next_line()
                 self.sid_data.setInputType("password")
-                self.output("Please enter your password: ", 3, 0)
+                self.output_wrap("Please enter your password: ", 3, 0)
                 self.askPassword(40, self.passwordCallback)
             else:
                 # Sysop user doesn't exist; create a new Sysop user
                 self.goto_next_line()
                 self.sid_data.setInputType("password")
-                self.output("You are registering as SYSOP. Please enter a new password: ", 3, 0)
+                self.output_wrap("You are registering as SYSOP. Please enter a new password: ", 3, 0)
                 self.askPassword(40, self.sysopPasswordCreationCallback)
             return
 
@@ -162,7 +191,7 @@ class Utils:
             # User exists in the database
             self.goto_next_line()
             self.sid_data.setInputType("password")
-            self.output("Please enter your password: ", 3, 0)
+            self.output_wrap("Please enter your password: ", 3, 0)
             self.askPassword(40, self.passwordCallback)
         else:
             # User doesn't exist in the database
@@ -173,7 +202,7 @@ class Utils:
     def sysopPasswordCreationCallback(self, first_password):
         self.goto_next_line()
         self.sid_data.setInputType("password")
-        self.output("Please confirm your new password: ", 3, 0)
+        self.output_wrap("Please confirm your new password: ", 3, 0)
         self.askPassword(40, lambda second_password: self.sysopPasswordConfirmationCallback(first_password, second_password))
 
     # Callback for Sysop password confirmation
@@ -183,15 +212,14 @@ class Utils:
             db = self.mongo_client['bbs']
             users_collection = db['users']
             hashed_password = bcrypt.hashpw(first_password.encode('utf-8'), bcrypt.gensalt())
-            print(f"Hash before save: {hashed_password}")
             new_sysop_user = {"username": "SYSOP", "password": hashed_password.decode('utf-8')}
             users_collection.insert_one(new_sysop_user)
             self.goto_next_line()
-            self.output("SYSOP account created successfully. Logging in...", 3, 0)
+            self.output_wrap("SYSOP account created successfully. Logging in...", 3, 0)
             self.launchMenuCallback()
         else:
             self.goto_next_line()
-            self.output("Passwords did not match. Please try again.", 3, 0)
+            self.output_wrap("Passwords did not match. Please try again.", 3, 0)
             self.askPassword(40, self.sysopPasswordCreationCallback)
 
     def map_value(self, value, list1, list2):
@@ -201,7 +229,6 @@ class Utils:
         except ValueError:
             return value  # returns the original value if not found in list1
         except IndexError:
-            print(f"Index out of range in list2 for value {value}")
             return value  # returns the original value if index out of range in list2
 
     def launchMenuCallback(self):
@@ -311,13 +338,11 @@ class Utils:
         # Adjust view_start if cursor is at the end of the visible region
         if self.sid_data.currentPos - self.sid_data.view_start == self.sid_data.maxLength:
             self.sid_data.view_start += 1
-        print("localinput:"+self.sid_data.localinput)
         # Cut the visible region from the input based on viewStart and maxLength
         if (self.sid_data.maxLength != 1):
             visible_str = self.sid_data.localinput[self.sid_data.view_start:self.sid_data.view_start + self.sid_data.maxLength]
         else:
             visible_str = self.sid_data.localinput
-        print("visible_string:"+visible_str)
         myoutput = visible_str
         if self.sid_data.inputType == 'password':
             myoutput = "*" * len(visible_str)

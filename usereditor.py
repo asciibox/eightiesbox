@@ -36,7 +36,7 @@ class UserEditor(BasicANSI):
 
         self.util.goto_next_line()
         # Output the menu header
-        self.util.output("List of users:", 6, 0)
+        self.util.output_wrap("List of users:", 6, 0)
 
         # Display list of users
         for user in self.users:
@@ -46,13 +46,13 @@ class UserEditor(BasicANSI):
         self.util.goto_next_line()
 
         # Display menu options
-        self.util.output("1. Change Username", 6, 0)
+        self.util.output_wrap("1. Change Username", 6, 0)
         self.util.goto_next_line()
-        self.util.output("2. Change User Level", 6, 0)
+        self.util.output_wrap("2. Change User Level", 6, 0)
         self.util.goto_next_line()
-        self.util.output("3. Delete user", 6, 0)
+        self.util.output_wrap("3. Delete user", 6, 0)
         self.util.goto_next_line()
-        self.util.output("X. Exit to main menu", 6, 0)
+        self.util.output_wrap("X. Exit to main menu", 6, 0)
         self.util.goto_next_line()
 
         # Ask for user choice
@@ -75,14 +75,14 @@ class UserEditor(BasicANSI):
                 self.delete_user()
             else:
                 self.util.goto_next_line()
-                self.util.output("Invalid choice. Please try again.", 6,0)
+                self.util.output_wrap("Invalid choice. Please try again.", 6,0)
                 self.util.goto_next_line()
                 self.display_menu(False)
                 return
 
         except ValueError:
             self.util.goto_next_line()
-            self.util.output("Invalid input. Please try again.", 6,0)
+            self.util.outpu_wrapt("Invalid input. Please try again.", 6,0)
             self.util.goto_next_line()
             self.display_menu(False)
             return
@@ -90,14 +90,14 @@ class UserEditor(BasicANSI):
     def change_username(self):
         """Ask for existing username before changing."""
         self.util.goto_next_line()
-        self.util.output("Enter existing username:", 6, 0)
+        self.util.output_wrap("Enter existing username:", 6, 0)
         self.util.ask(40, self.ask_new_username)
 
     def save_username(self, new_username):
         """Save the new username."""
         # Check if the new username is unique
         if new_username in [user['username'] for user in self.users]:
-            self.util.output("Username already exists. Choose another.", 6, 0)
+            self.util.output_wrap("Username already exists. Choose another.", 6, 0)
             self.display_menu()
             return
 
@@ -123,7 +123,7 @@ class UserEditor(BasicANSI):
             self.display_menu()
 
         else:
-            self.util.output("Error updating username. Try again.", 6, 0)
+            self.util.output_wrap("Error updating username. Try again.", 6, 0)
             self.display_menu()
 
         # Clear the old username now that the operation is complete
@@ -135,11 +135,11 @@ class UserEditor(BasicANSI):
         if existing_username in [user['username'] for user in self.users]:
             self.old_username = existing_username  # Store the old username
             self.util.goto_next_line()
-            self.util.output("Enter new username:", 6, 0)
+            self.util.output_wrap("Enter new username:", 6, 0)
             self.util.ask(40, self.save_username)
         else:
             self.util.goto_next_line()
-            self.util.output("Username not found. Try again!", 6, 0)
+            self.util.output_wrap("Username not found. Try again!", 6, 0)
             self.util.goto_next_line()
             self.display_menu(False)
             return
@@ -147,18 +147,18 @@ class UserEditor(BasicANSI):
     def change_user_level(self):
         """Ask for existing username before changing user level."""
         self.util.goto_next_line()
-        self.util.output("Enter username to change user level:", 6, 0)
+        self.util.output_wrap("Enter username to change user level:", 6, 0)
         self.util.ask(40, self.ask_new_level)
 
     def ask_new_level(self, existing_username):
         """Ask for new user level."""
         if existing_username in [user['username'] for user in self.users]:
             self.util.goto_next_line()
-            self.util.output("Enter new user level:", 6, 0)
+            self.util.output_wrap("Enter new user level:", 6, 0)
             self.util.ask(40, self.save_user_level)
         else:
             self.util.goto_next_line()
-            self.util.output("Username not found. Try again...", 6, 0)
+            self.util.output_wrap("Username not found. Try again...", 6, 0)
             self.util.goto_next_line()
             self.display_menu(False)
             return
@@ -172,27 +172,27 @@ class UserEditor(BasicANSI):
             self.util.sid_data.user_level = self.user_level
             self.display_menu()
         except ValueError:
-            self.util.output("Invalid user level. Please enter a number.", 6,0)
+            self.util.output_wrap("Invalid user level. Please enter a number.", 6,0)
             self.display_menu()
 
     def delete_user(self):
         """Delete a user."""
         self.util.goto_next_line()
-        self.util.output("Enter username to delete:", 6, 0)
+        self.util.output_wrap("Enter username to delete:", 6, 0)
         self.util.ask(40, self.confirm_delete_user)
 
     def confirm_delete_user(self, username_to_delete):
         """Confirm if the user should be deleted."""
         if username_to_delete not in [user['username'] for user in self.users]:
             self.util.goto_next_line()
-            self.util.output("Username not found. Try again!", 6, 0)
+            self.util.output_wrap("Username not found. Try again!", 6, 0)
             self.util.goto_next_line()
             self.display_menu()
             return
         
         self.user_to_delete = username_to_delete  # Store the username temporarily
         self.util.goto_next_line()
-        self.util.output(f"Are you sure you want to delete {username_to_delete}? (Y/N)", 6, 0)
+        self.util.output_wrap(f"Are you sure you want to delete {username_to_delete}? (Y/N)", 6, 0)
         self.util.ask(1, self.perform_delete_user)  # Asking for just one character (Y/N)
 
     def perform_delete_user(self, decision):
@@ -207,16 +207,16 @@ class UserEditor(BasicANSI):
                 # Update self.users
                 self.users = [user for user in self.users if user['username'] != self.user_to_delete]
                 self.util.goto_next_line()
-                self.util.output(f"User {self.user_to_delete} deleted successfully.", 6, 0)
+                self.util.output_wrap(f"User {self.user_to_delete} deleted successfully.", 6, 0)
             else:
                 self.util.goto_next_line()
-                self.util.output("Error deleting user. Try again.", 6, 0)
+                self.util.output_wrap("Error deleting user. Try again.", 6, 0)
             
             # Clear the temporary username store
             self.user_to_delete = None
         else:
             self.util.goto_next_line()
-            self.util.output("User deletion cancelled.", 6, 0)
+            self.util.output_wrap("User deletion cancelled.", 6, 0)
         
         self.util.goto_next_line()
         self.display_menu()

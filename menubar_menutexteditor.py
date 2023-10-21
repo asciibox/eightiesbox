@@ -84,7 +84,7 @@ class MenuBarTextEditor(MenuBarANSIEditor):
 
         self.sid_data.setStartX(0)
         self.sid_data.setStartY(10)  # Assuming you are asking at the 10th line
-        self.output("Please enter the filename to load: ", 6,0)
+        self.output_wrap("Please enter the filename to load: ", 6,0)
         self.ask(20, self.import_filename_callback)  # filename_callback is the function to be called once filename is entered   
 
     def import_filename_callback(self, entered_filename):
@@ -129,6 +129,6 @@ class MenuBarTextEditor(MenuBarANSIEditor):
             
         else:
             self.goto_next_line()
-            self.output("File not found!", 6, 0)
+            self.output_wrap("File not found!", 6, 0)
             self.goto_next_line()
             self.ask(20, self.load_filename_callback)  # load_filename_callback is the function to be called if the filename is not found

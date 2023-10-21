@@ -85,7 +85,7 @@ class MenuBarANSIEditor(MenuBar):
 
         self.sid_data.setStartX(0)
         self.sid_data.setStartY(10)  # Assuming you are asking at the 10th line
-        self.output("Please enter the filename to load: ", 6,0)
+        self.output_wrap("Please enter the filename to load: ", 6,0)
         self.ask(20, self.load_filename_callback)  # filename_callback is the function to be called once filename is entered   
     
     def save_ansi(self):
@@ -98,7 +98,7 @@ class MenuBarANSIEditor(MenuBar):
 
         self.sid_data.setStartX(0)
         self.sid_data.setStartY(10)  # Assuming you are asking at the 10th line
-        self.output("Please enter the filename to save: ", 6,0)
+        self.output_wrap("Please enter the filename to save: ", 6,0)
         self.ask(20, self.save_filename_callback)  # filename_callback is the function to be called once filename is entered
 
     def show_filenames(self, filenames):
@@ -144,7 +144,7 @@ class MenuBarANSIEditor(MenuBar):
         else:
             # User doesn't want to overwrite, ask for a new filename
             self.goto_next_line()
-            self.output("Please enter the filename to save: ", 6, 0)
+            self.output_wrap("Please enter the filename to save: ", 6, 0)
             self.ask(20, self.save_filename_callback)
 
     def save_file(self, entered_filename):
@@ -160,7 +160,7 @@ class MenuBarANSIEditor(MenuBar):
             
             collection.insert_one(new_file_data)
             
-            self.output("File saved successfully!", 6, 0)
+            self.output_wrap("File saved successfully!", 6, 0)
             self.leave_menu_bar()
             self.in_sub_menu = False
 
@@ -207,7 +207,7 @@ class MenuBarANSIEditor(MenuBar):
             
         else:
             self.goto_next_line()
-            self.output("File not found!", 6, 0)
+            self.output_wrap("File not found!", 6, 0)
             self.goto_next_line()
             self.ask(20, self.load_filename_callback)  # load_filename_callback is the function to be called if the filename is not found
 
@@ -230,7 +230,7 @@ class MenuBarANSIEditor(MenuBar):
         
         self.sid_data.setStartX(0)
         self.sid_data.setStartY(10)  # Assuming you are asking at the 10th line
-        self.output("Please enter the filename to delete: ", 6, 0)
+        self.output_wrap("Please enter the filename to delete: ", 6, 0)
         self.ask(20, self.delete_filename_callback)  # delete_filename_callback is the function to be called once filename is entered
 
     def delete_uploaded_ansi(self):
@@ -243,7 +243,7 @@ class MenuBarANSIEditor(MenuBar):
         
         self.sid_data.setStartX(0)
         self.sid_data.setStartY(10)  # Assuming you are asking at the 10th line
-        self.output("Please enter the filename to delete: ", 6, 0)
+        self.output_wrap("Please enter the filename to delete: ", 6, 0)
         self.ask(20, self.delete_uploaded_ansi_callback)  # delete_filename_callback is the function to be called once filename is entered
 
     def delete_uploaded_ansi_callback(self, entered_filename):
@@ -260,16 +260,16 @@ class MenuBarANSIEditor(MenuBar):
             # Delete the file from the database
             collection.delete_one({"filename": entered_filename})
             self.goto_next_line()
-            self.output("File "+entered_filename+" deleted successfully!", 6, 0)
+            self.output_wrap("File "+entered_filename+" deleted successfully!", 6, 0)
             self.goto_next_line()
-            self.output("Please enter another filename to delete: ", 6, 0)
+            self.output_wrap("Please enter another filename to delete: ", 6, 0)
             self.ask(20, self.delete_filename_callback)  # delete_filename_callback is the function to be called once filename is entered
 
         else:
             self.goto_next_line()
-            self.output("File not found!", 6, 0)
+            self.output_wrap("File not found!", 6, 0)
             self.goto_next_line()
-            self.output("Please enter the filename to delete: ", 6, 0)
+            self.output_wrap("Please enter the filename to delete: ", 6, 0)
             self.ask(20, self.delete_filename_callback)  # delete_filename_callback is the function to be called if the filename is not found
 
 
@@ -287,16 +287,16 @@ class MenuBarANSIEditor(MenuBar):
             # Delete the file from the database
             collection.delete_one({"filename": entered_filename})
             self.goto_next_line()
-            self.output("File "+entered_filename+" deleted successfully!", 6, 0)
+            self.output_wrap("File "+entered_filename+" deleted successfully!", 6, 0)
             self.goto_next_line()
-            self.output("Please enter another filename to delete: ", 6, 0)
+            self.output_wrap("Please enter another filename to delete: ", 6, 0)
             self.ask(20, self.delete_filename_callback)  # delete_filename_callback is the function to be called once filename is entered
 
         else:
             self.goto_next_line()
-            self.output("File not found!", 6, 0)
+            self.output_wrap("File not found!", 6, 0)
             self.goto_next_line()
-            self.output("Please enter the filename to delete: ", 6, 0)
+            self.output_wrap("Please enter the filename to delete: ", 6, 0)
             self.ask(20, self.delete_filename_callback)  # delete_filename_callback is the function to be called if the filename is not found
 
 
@@ -321,7 +321,7 @@ class MenuBarANSIEditor(MenuBar):
 
         self.sid_data.setStartX(0)
         self.sid_data.setStartY(10)  # Assuming you are asking at the 10th line
-        self.output("Please enter the filename to load: ", 6,0)
+        self.output_wrap("Please enter the filename to load: ", 6,0)
         self.ask(20, self.import_filename_callback)  # filename_callback is the function to be called once filename is entered   
 
     def import_filename_callback(self, entered_filename):
@@ -342,7 +342,6 @@ class MenuBarANSIEditor(MenuBar):
                 self.sid_data.setSauceWidth(sauce.columns)
                 self.sid_data.setSauceHeight(sauce.rows)
             else:
-                print("NOT FOUND")
                 self.sid_data.setSauceWidth(80)
                 self.sid_data.setSauceHeight(50)
 
@@ -368,7 +367,7 @@ class MenuBarANSIEditor(MenuBar):
             
         else:
             self.goto_next_line()
-            self.output("File not found!", 6, 0)
+            self.output_wrap("File not found!", 6, 0)
             self.goto_next_line()
             self.ask(20, self.load_filename_callback)  # load_filename_callback is the function to be called if the filename is not found
 

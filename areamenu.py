@@ -36,28 +36,28 @@ class AreaMenu(BasicANSI):
         for idx, area in enumerate(self.areas):
             order_display = area.get('order', 'N/A')  # If 'order' is not available, display 'N/A'
             min_level = area.get('min_level')
-            self.util.output(f"{idx+1}. {area['name']} (Order: {order_display}, minimum level: {min_level}", 6, 0)
+            self.util.output_wrap(f"{idx+1}. {area['name']} (Order: {order_display}, minimum level: {min_level}", 6, 0)
             self.util.goto_next_line()
                 
         self.util.goto_next_line()
         if self.headline_type=="Message":
-            self.util.output("C. Create new message area", 6,0)
+            self.util.output_wrap("C. Create new message area", 6,0)
             self.util.goto_next_line()
-            self.util.output("L. Change min_level of a message area", 6,0)
+            self.util.output_wrap("L. Change min_level of a message area", 6,0)
             self.util.goto_next_line()
-            self.util.output("O. Change order of a message area", 6,0)
+            self.util.output_wrap("O. Change order of a message area", 6,0)
             self.util.goto_next_line()
-            self.util.output("R. Rename message area", 6,0)
+            self.util.output_wrap("R. Rename message area", 6,0)
         else:
-            self.util.output("C. Create new file area", 6,0)
+            self.util.output_wrap("C. Create new file area", 6,0)
             self.util.goto_next_line()
-            self.util.output("L. Change min_level of a file area", 6,0)
+            self.util.output_wrap("L. Change min_level of a file area", 6,0)
             self.util.goto_next_line()
-            self.util.output("O. Change order of a file area", 6,0)
+            self.util.output_wrap("O. Change order of a file area", 6,0)
             self.util.goto_next_line()
-            self.util.output("R. Rename file area", 6,0)
+            self.util.output_wrap("R. Rename file area", 6,0)
         self.util.goto_next_line()
-        self.util.output("X. Exit to main menu", 6,0)
+        self.util.output_wrap("X. Exit to main menu", 6,0)
             
         self.util.goto_next_line()
         # Ask for user choice
@@ -109,16 +109,16 @@ class AreaMenu(BasicANSI):
             if self.user_level >= selected_area['min_level']:
                 self.edit_origin(selected_area)
             else:
-                self.util.output("You don't have permission to access this area.", 6,0)
+                self.util.output_wrap("You don't have permission to access this area.", 6,0)
                 self.display_menu()
                 
         except (ValueError, IndexError):
-            self.util.output("Invalid choice. Please try again.", 6,0 )
+            self.util.output_wrap("Invalid choice. Please try again.", 6,0 )
             self.display_menu()
 
     def change_min_level(self):
         self.util.goto_next_line()
-        self.util.output("Enter the index of the area to change min_level:", 6, 0)
+        self.util.output_wrap("Enter the index of the area to change min_level:", 6, 0)
         self.util.ask(2, self.update_min_level)
         
     def update_min_level(self, choice):
@@ -128,11 +128,11 @@ class AreaMenu(BasicANSI):
             
             if self.user_level >= selected_area['min_level']:
                 self.util.goto_next_line()
-                self.util.output(f"Current min_level is {selected_area['min_level']}. Enter new min_level:", 6, 0)
+                self.util.output_wrap(f"Current min_level is {selected_area['min_level']}. Enter new min_level:", 6, 0)
                 self.util.ask(5, lambda new_level: self.set_new_min_level(choice_idx, new_level))
                 
             else:
-                self.util.output("You don't have permission to access this area.", 6, 0)
+                self.util.output_wrap("You don't have permission to access this area.", 6, 0)
                 self.display_menu()
                 
         except (ValueError, IndexError):
@@ -146,9 +146,9 @@ class AreaMenu(BasicANSI):
             
             # Add code here to persist the change to database if needed
             
-            self.util.output(f"Successfully updated min_level to {new_level}", 6, 0)
+            self.util.output_wrap(f"Successfully updated min_level to {new_level}", 6, 0)
             self.display_menu()
             
         except ValueError:
-            self.util.output("Invalid input for min_level. Please try again.", 6, 0)
+            self.util.output_wrap("Invalid input for min_level. Please try again.", 6, 0)
             self.display_menu()

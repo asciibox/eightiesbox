@@ -83,7 +83,7 @@ class MenuBarMenuEditor(MenuBar):
 
         self.sid_data.setStartX(0)
         self.sid_data.setStartY(10)  # Assuming you are asking at the 10th line
-        self.output("Please enter the filename to load: ", 6,0)
+        self.output_wrap("Please enter the filename to load: ", 6,0)
         self.ask(11, self.load_filename_callback)  # filename_callback is the function to be called once filename is entered   
     
     def save_menu(self):
@@ -96,7 +96,7 @@ class MenuBarMenuEditor(MenuBar):
 
         self.sid_data.setStartX(0)
         self.sid_data.setStartY(10)  # Assuming you are asking at the 10th line
-        self.output("Please enter the filename to save: ", 6, 0)
+        self.output_wrap("Please enter the filename to save: ", 6, 0)
         self.ask(11, self.save_filename_callback)  # filename_callback is the function to be called once filename is entered
 
 
@@ -115,7 +115,7 @@ class MenuBarMenuEditor(MenuBar):
         # Check if this filename already exists
         if collection.find_one({"filename": entered_filename}):
             self.goto_next_line()
-            self.output("File "+entered_filename+" already exists!", 6, 0)
+            self.output_wrap("File "+entered_filename+" already exists!", 6, 0)
             self.goto_next_line()
 
             # Ask user if they want to overwrite the existing file
@@ -131,7 +131,7 @@ class MenuBarMenuEditor(MenuBar):
         else:
             # User doesn't want to overwrite, ask for a new filename
             self.goto_next_line()
-            self.output("Please enter the filename to save: ", 6, 0)
+            self.output_wrap("Please enter the filename to save: ", 6, 0)
             self.ask(11, self.save_filename_callback)
 
 
@@ -159,7 +159,7 @@ class MenuBarMenuEditor(MenuBar):
 
         collection.insert_one(new_file_data)
 
-        self.output("File saved successfully!", 6, 0)
+        self.output_wrap("File saved successfully!", 6, 0)
         self.sid_data.menu_box.draw_all_rows()
         self.sid_data.setCurrentAction("wait_for_menubox")
         self.in_sub_menu = False
@@ -218,16 +218,16 @@ class MenuBarMenuEditor(MenuBar):
                 row_data = row.get('row_data', [])
                 self.sid_data.menu_box.values[y] = row_data
                 
-            self.output("File loaded successfully!", 6, 0)
+            self.output_wrap("File loaded successfully!", 6, 0)
             self.sid_data.menu_box.draw_all_rows()
             self.sid_data.setCurrentAction("wait_for_menubox")
             self.in_sub_menu = False
             
         else:
             self.goto_next_line()
-            self.output("File not found!", 6, 0)
+            self.output_wrap("File not found!", 6, 0)
             self.goto_next_line()
-            self.output("Please enter the filename to load: ", 6, 0)
+            self.output_wrap("Please enter the filename to load: ", 6, 0)
             self.ask(11, self.load_filename_callback)  # load_filename_callback is the function to be called if the filename is not found
 
     def delete_menu(self):
@@ -240,7 +240,7 @@ class MenuBarMenuEditor(MenuBar):
         
         self.sid_data.setStartX(0)
         self.sid_data.setStartY(10)  # Assuming you are asking at the 10th line
-        self.output("Please enter the filename to delete: ", 6, 0)
+        self.output_wrap("Please enter the filename to delete: ", 6, 0)
         self.ask(11, self.delete_filename_callback)  # delete_filename_callback is the function to be called once filename is entered
 
 
@@ -259,16 +259,16 @@ class MenuBarMenuEditor(MenuBar):
             # Delete the file from the database
             collection.delete_one({"filename": entered_filename})
             self.goto_next_line()
-            self.output("File "+entered_filename+" deleted successfully!", 6, 0)
+            self.output_wrap("File "+entered_filename+" deleted successfully!", 6, 0)
             self.goto_next_line()
-            self.output("Please enter another filename to delete: ", 6, 0)
+            self.output_wrap("Please enter another filename to delete: ", 6, 0)
             self.ask(11, self.delete_filename_callback)  # delete_filename_callback is the function to be called once filename is entered
 
         else:
             self.goto_next_line()
-            self.output("File not found!", 6, 0)
+            self.output_wrap("File not found!", 6, 0)
             self.goto_next_line()
-            self.output("Please enter the filename to delete: ", 6, 0)
+            self.output_wrap("Please enter the filename to delete: ", 6, 0)
             self.ask(11, self.delete_filename_callback)  # delete_filename_callback is the function to be called if the filename is not found
 
 
@@ -294,7 +294,7 @@ class MenuBarMenuEditor(MenuBar):
 
         self.sid_data.setStartX(0)
         self.sid_data.setStartY(10)  # Assuming you are asking at the 10th line
-        self.output("Please enter the filename to load: ", 6,0)
+        self.output_wrap("Please enter the filename to load: ", 6,0)
         self.ask(20, self.load_ansi_callback)  # filename_callback is the function to be called once filename is entered   
     
     def leave_menu_bar(self):
@@ -318,7 +318,6 @@ class MenuBarMenuEditor(MenuBar):
         if file_data:
             # Decode the Base64-encoded string into bytes
             ansi_code_bytes = base64.b64decode(file_data['ansi_code'])
-            print("Last 128 bytes after BASE64 decoding:", ansi_code_bytes[-128:])
             # Convert the bytes to a string using cp1252 encoding
            
             # Clear the existing values in MenuBox
@@ -352,7 +351,7 @@ class MenuBarMenuEditor(MenuBar):
             
         else:
             self.goto_next_line()
-            self.output("File not found!", 6, 0)
+            self.output_wrap("File not found!", 6, 0)
             self.goto_next_line()
             self.ask(20, self.load_filename_callback)  # load_filename_callback is the function to be called if the filename is not found
 

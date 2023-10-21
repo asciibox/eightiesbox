@@ -233,4 +233,4 @@ class Menu(BasicANSI):
             
         else:
             self.util.goto_next_line()
-            self.util.output("File "+filename+" not found!", 6, 0)
+            self.util.output_wrap("File "+filename+" not found!", 6, 0)
