@@ -144,6 +144,14 @@ class Menu(BasicANSI):
     def execute_action_12(self):
         self.sid_data.sauceWidth = self.sid_data.xWidth
         self.sid_data.sauceHeight = self.sid_data.yHeight
+        self.sid_data.input_values = []
+        
+        # Clear the color array
+        self.sid_data.color_array = []
+
+        # Clear the background color array
+        self.sid_data.color_bgarray = []
+
         self.sid_data.setMessageEditor(MessageEditor(self.util, self.message_editor_callback_on_exit))
 
     def execute_action_11(self):

@@ -197,10 +197,19 @@ class ANSIEditor(BasicANSI):
 
         elif key == 'Backspace':
             if self.current_line_x > self.startX:
+                
+                if self.current_line_index >= len(self.sid_data.input_values):
+                    # If the current_line_index is out of range, simply return
+                    return
 
                 current_x = self.current_line_x-1
-
                 current_str = self.sid_data.input_values[self.current_line_index]
+
+                # Additional check to see if the string is too short
+                if current_x >= len(current_str):
+                    self.emit_gotoXY(self.current_line_x-1, self.current_line_index + 1)
+                    self.current_line_x = self.current_line_x - 1
+                    return
 
                 # Construct a new string with the changed character
                 new_str = current_str[:current_x] + current_str[current_x + 1:]
