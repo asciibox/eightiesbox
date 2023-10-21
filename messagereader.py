@@ -28,6 +28,9 @@ class MessageReader :
         self.util.goto_next_line()
         self.util.output("--------------------", 6, 0)
         self.util.goto_next_line()
+        self.db_filter=""
+        self.sort_filter=""
+        self.next = ""
 
         if total_messages == 0:
             self.util.output("No messages found", 7, 0)
@@ -86,51 +89,68 @@ class MessageReader :
             self.util.output("Invalid choice. Please try again.", 6, 0)
             self.display_menu()
 
-    def read_forward(self):
+    def read_messages_with_filter_and_direction(self, db_filter, sort_direction, next):
         # Get current area and its id
         current_area = self.util.sid_data.current_message_area
         area_id = current_area['_id']
+        self.db_filter = db_filter
+        self.sort_direction = sort_direction
+        self.next = next
 
         # Connect to MongoDB
         mongo_client = self.util.mongo_client
         db = mongo_client['bbs']
 
-        # Find the next unread message in the current area
-        next_unread_message = db['messages'].find_one(
-            {"area_id": area_id, "is_read": False},
-            sort=[('_id', 1)])  # Sorting by _id to get oldest unread message
+        # Find the next message based on the given filter and sort direction
+        next_message = db['messages'].find_one(
+            {**db_filter, "area_id": area_id},
+            sort=[('_id', sort_direction)])  # Sorting by _id to get the message based on filter and direction
 
-        if next_unread_message:
+        if next_message:
             # Mark message as read
             db['messages'].update_one(
-                {"_id": next_unread_message['_id']},
+                {"_id": next_message['_id']},
                 {"$set": {"is_read": True}}
             )
 
             # Display the message
             self.util.clear_screen()
-            self.util.output(f"From: {next_unread_message['from']}", 7, 0)
+            self.util.output(f"From: {next_message['from']}", 7, 0)
             self.util.goto_next_line()
-            self.util.output(f"To: {next_unread_message['to']}", 7, 0)
+            self.util.output(f"To: {next_message['to']}", 7, 0)
             self.util.goto_next_line()
-            self.util.output(f"Subject: {next_unread_message['subject']}", 7, 0)
+            self.util.output(f"Subject: {next_message['subject']}", 7, 0)
             self.util.goto_next_line()
-            self.util.output(next_unread_message['content'], 7, 0)
+            self.util.output(next_message['content'], 7, 0)
             self.util.goto_next_line()
+
+            # Ask user if they want to continue
+            self.util.output(f"Press Enter to read the {next} message or 'x' to stop: ", 7, 0)
+            self.util.ask(1, self.handle_input_for_reading)
 
         else:
-            self.util.output("No more unread messages in this area.", 7, 0)
+            self.util.output("No more messages matching your criteria.", 7, 0)
+
+    def handle_input_for_reading(self, user_input):
+        if user_input and user_input.lower() == 'x':
+            self.exit_to_main_menu()
+        else:
+            self.read_messages_with_filter_and_direction(self.db_filter, self.sort_direction, self.next)
 
 
-    def read_backward(self):
-        pass  # Implement logic to read messages backward
+
+    def read_forward(self):
+        self.read_messages_with_filter_and_direction({}, 1, 'next')
 
     def read_unread_forward(self):
-        pass  # Implement logic to read unread messages forward
+        self.read_messages_with_filter_and_direction({"is_read": False}, 1, 'next')
+
+    def read_backward(self):
+        self.read_messages_with_filter_and_direction({}, -1, 'previous')
 
     def read_unread_backward(self):
-        pass  # Implement logic to read unread messages backward
-
+        self.read_messages_with_filter_and_direction({"is_read": False}, -1, 'previous')
+        
     def next_message(self):
         pass  # Implement logic to jump to the next message
 
