@@ -1,4 +1,4 @@
-from menubar_menueditor import *
+from menubar_menueditor import MenuBarMenuEditor
 
 class MenuBox:
     def __init__(self, util):
@@ -30,6 +30,12 @@ class MenuBox:
         self.clear_screen()
         self.draw_all_rows()
 
+        self.sid_data.input_values = []
+        self.sid_data.color_array = []
+        self.sid_data.color_bgarray = []
+
+        # self.sid_data.setMenu(Menu(self.util, self.sid_data.menu_box.values, self.sid_data.menu_box.num_rows, self.simulate_callback_on_exit))
+
         self.menu_structure = {
             'Goto & Gosub': ['Goto new menu', 'Gosub new menu', 'Return from gosub'],
             'Message base': ['Read message', 'Write message', 'Area change'],
@@ -39,7 +45,7 @@ class MenuBox:
             'Multiline options': ['Users online', 'Chat between nodes', 'Add conference', 'Join conference', 'Delete conference'],
             'Display text': ['Display ANS / ASC', 'Display ANS / ASC and wait'],
             'BBS List': ['Long list display', 'Short list display', 'Add BBS'],
-            'Administration': ['Setup message areas', 'Setup file base', 'User editor']
+            'Administration': ['Setup message areas', 'Setup file base', 'User editor', 'ANSI Editor', 'Menu editor']
         }
 
     def get_value_for_field_and_row(self, field, row_idx):

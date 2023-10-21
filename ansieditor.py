@@ -1,6 +1,7 @@
 from menu2ansi import *
 from menubar_ansieditor import *
 from menubar_menutexteditor import *
+from menubar_messageeditor import *
 import datetime
 from basicansi import *
 import random
@@ -128,23 +129,38 @@ class ANSIEditor(BasicANSI):
             return
         
         elif key == 'Escape':
-            if self.sid_data.current_action == "wait_for_menubar_ansieditor":
+            if self.sid_data.current_action == "wait_for_menubar_messageeditor":
+                self.sid_data.setCurrentAction("wait_for_messageeditor")
+                self.sid_data.message_editor.clear_screen()
+                self.sid_data.message_editor.update_first_line()
+                self.sid_data.message_editor.display_editor()
+            elif self.sid_data.current_action == "wait_for_menubar_ansieditor":
                 self.sid_data.setCurrentAction("wait_for_ansieditor")
                 self.sid_data.ansi_editor.clear_screen()
                 self.sid_data.ansi_editor.update_first_line()
                 self.sid_data.ansi_editor.display_editor()
             elif self.sid_data.current_action == "wait_for_menubar_menueditor":
                 print("RETURNING FROM MENUEDITOR")
+            elif self.sid_data.current_action == "wait_for_messageeditor":
+                sub_menus = {
+                    'File': ['Send message', 'Exit message editor without saving'],
+                    'Edit': ['Clear message', 'Hide menu bar'],
+                }
+                self.sid_data.setMenuBar(MenuBarMessageEditor(sub_menus, self.util))
+
+                return
             elif self.sid_data.current_action == "wait_for_menutexteditor":
                 sub_menus = {
                     'File': ['Leave ANSI editor', 'Load ANSI', 'Import uploaded ANSI'],
                     'Edit': ['Clear ANSI', 'Leave menu bar'],
                 }
                 self.sid_data.setMenuBar(MenuBarTextEditor(sub_menus, self.util))
+                self.sid_data.setCurrentAction("wait_for_menubar_messageeditor")
+                return
                 
             elif self.sid_data.current_action == "wait_for_ansieditor":
                 sub_menus = {
-                        'File': ['Load ANSI', 'Save ANSI', 'Delete ANSI', 'Upload ANSI','Import uploaded ANSI','Delete uploaded ANSI'],
+                        'File': ['Exit editor', 'Load ANSI', 'Save ANSI', 'Delete ANSI', 'Upload ANSI','Import uploaded ANSI','Delete uploaded ANSI'],
                         'Edit': ['Clear ANSI', 'Leave menu bar'],
                 }
                 self.sid_data.setMenuBar(MenuBarANSIEditor(sub_menus, self.util))

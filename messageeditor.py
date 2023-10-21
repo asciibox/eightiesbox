@@ -7,6 +7,11 @@ class MessageEditor(ANSIEditor):
         self.message_data = {}  # A local variable to save all input fields
         self.setup_interface()
 
+    def display_editor(self):
+        for idx in range(4, self.max_height):
+            self.draw_line(idx)
+        self.emit_gotoXY(0, 1)
+
     def setup_interface(self):
         # Setting cursor position for "From:"
         self.util.clear_screen()

@@ -244,7 +244,7 @@ def handle_keypress(data):
         
         return
 
-    if siddata.current_action == "wait_for_menubar_menueditor" or siddata.current_action == "wait_for_menubar_ansieditor" or siddata.current_action == "wait_for_menubar_menutexteditor":
+    if siddata.current_action == "wait_for_menubar_menueditor" or siddata.current_action == "wait_for_menubar_ansieditor" or siddata.current_action == "wait_for_menubar_menutexteditor" or siddata.current_action == "wait_for_menubar_messageeditor":
         key = data['key']
         
         if key == 'ArrowLeft':

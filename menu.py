@@ -5,6 +5,8 @@ from messageareamenu import *
 from fileareamenu import *
 from usereditor import *
 from messageeditor import MessageEditor
+from ansieditor import ANSIEditor
+from menubox import MenuBox
 
 class Menu(BasicANSI):
     def __init__(self, util, values, num_rows, callback_on_exit):
@@ -67,21 +69,37 @@ class Menu(BasicANSI):
                     elif action_code == "83":                        
                         # Example usage:
                         # Replace 'util' with your actual utility object
-                        user_editor = self.sid_data.setUserEditor(UserEditor(self.util, self.user_editor_callback_on_exit))
+                        self.sid_data.setUserEditor(UserEditor(self.util, self.user_editor_callback_on_exit))
+                        return
+                    elif action_code == "84":   
+                        print("84")                     
+                        # Example usage:
+                        # Replace 'util' with your actual utility object
+                        self.append_gosub()
+                        self.sid_data.setANSIEditor(ANSIEditor(self.util))
+
+                        self.sid_data.setCurrentAction("wait_for_ansieditor")
+                        # Clear the editor
+                        self.sid_data.input_values = []
+                        self.sid_data.color_array = []
+                        self.sid_data.color_bgarray = []
+                        self.sid_data.ansi_editor.start()
+                        return
+                    elif action_code == "85":     
+                        print("85")                   
+                        # Example usage:
+                        # Replace 'util' with your actual utility object
+                        self.sid_data.setMenuBox(MenuBox(self.util))
+                        self.sid_data.setCurrentAction("wait_for_menubox")
+                        self.sid_data.menu_box.clear_screen()
+                        self.sid_data.menu_box.draw_all_rows()
+                        return
 
                     # Gosub menu
                     elif action_code == "02":
                         # Gosub menu
                         # Save current state to stack
-                        current_state = {
-                            'values': copy.deepcopy(self.values),
-                            'sauce_width': self.sid_data.sauceWidth,
-                            'sauce_height': self.sid_data.sauceHeight,
-                            'color_array': copy.deepcopy(self.sid_data.color_array),
-                            'color_bgarray': copy.deepcopy(self.sid_data.color_bgarray),
-                            'input_values': copy.deepcopy(self.sid_data.input_values)
-                        }
-                        self.menu_stack.append(current_state)
+                        self.append_gosub()
                         filename = self.values[row_idx][1]
                         self.load_menu(filename)
                         return
@@ -90,21 +108,34 @@ class Menu(BasicANSI):
                         # Return from Gosub
                         if self.menu_stack:
                             # Restore state from stack
-                            last_state = self.menu_stack.pop()
-                            self.values = last_state['values']
-                            self.sid_data.setSauceWidth(last_state['sauce_width'])
-                            self.sid_data.setSauceHeight(last_state['sauce_height'])
-                            self.sid_data.color_array = last_state['color_array']
-                            self.sid_data.color_bgarray = last_state['color_bgarray']
-                            self.sid_data.input_values = last_state['input_values']
-                            self.util.clear_screen()
-                            self.display_editor()
+                            self.return_from_gosub()
                             return
                         else:
                             print("No menu to return to.")
                     else:
                         print(f"Unhandled action code: {action_code}")
 
+    def append_gosub(self):
+        current_state = {
+            'values': copy.deepcopy(self.values),
+            'sauce_width': self.sid_data.sauceWidth,
+            'sauce_height': self.sid_data.sauceHeight,
+            'color_array': copy.deepcopy(self.sid_data.color_array),
+            'color_bgarray': copy.deepcopy(self.sid_data.color_bgarray),
+            'input_values': copy.deepcopy(self.sid_data.input_values)
+        }
+        self.menu_stack.append(current_state)
+
+    def return_from_gosub(self):
+        last_state = self.menu_stack.pop()
+        self.values = last_state['values']
+        self.sid_data.setSauceWidth(last_state['sauce_width'])
+        self.sid_data.setSauceHeight(last_state['sauce_height'])
+        self.sid_data.color_array = last_state['color_array']
+        self.sid_data.color_bgarray = last_state['color_bgarray']
+        self.sid_data.input_values = last_state['input_values']
+        self.util.clear_screen()
+        self.display_editor()
 
     def load_menu(self, filename):
 # Look for the filename in the database

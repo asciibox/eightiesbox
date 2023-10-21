@@ -11,6 +11,8 @@ from stransi.cursor import CursorMove, SaveCursor, RestoreCursor
 from ochre import ansi256  # Assuming this is where the colors list is defined
 from sauce import Sauce
 import bcrypt
+import os
+from menu import *
 
 class Utils:
     def __init__(self, sio, my_client, mylist1, mylist2, sdata, Sauce):

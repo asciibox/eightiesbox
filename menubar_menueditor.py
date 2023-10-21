@@ -1,7 +1,6 @@
 from pymongo import MongoClient
 from menutexteditor import *
 from menubar import MenuBar
-from menu import Menu
 
 ''' When editing a menu '''
 class MenuBarMenuEditor(MenuBar):
@@ -11,6 +10,8 @@ class MenuBarMenuEditor(MenuBar):
         # Add any additional properties or methods specific to MenuBarANSI here
         util.sid_data.setCurrentAction("wait_for_menubar_menueditor")
         self.current_filename = ""
+        
+        
 
         # Add ANSI-specific methods here if needed
     def choose_field(self):
@@ -39,7 +40,10 @@ class MenuBarMenuEditor(MenuBar):
             self.draw_sub_menu()
 
     def simulate_text(self):
-        self.sid_data.setMenu(Menu(self.util, self.sid_data.menu_box.values, self.sid_data.menu_box.num_rows, self.simulate_callback_on_exit))
+        self.util.sid_data.setCurrentAction("wait_for_menu")
+        self.sid_data.menu_box.callback_on_exit = self.simulate_callback_on_exit
+        self.sid_data.menu_box.menu_stack = []  # Initialize the menu stack
+
         self.util.clear_screen()
         self.sid_data.menu.display_editor()
 
