@@ -25,7 +25,7 @@ class MenuBarMessageEditor(MenuBarANSIEditor):
             if selected_option=="Send message":
                 self.send_message()            
             if selected_option=="Exit message editor without saving":
-                self.exit_messsage_editor()          
+                self.exit_message_editor()          
             if selected_option=="Clear message":
                 self.clear_text()            
             if selected_option=="Hide menu bar":
@@ -60,5 +60,6 @@ class MenuBarMessageEditor(MenuBarANSIEditor):
 
     def exit_message_editor(self):
         self.sid_data.setCurrentAction("wait_for_menu")
-        self.clear_screen()
+        self.sid_data.menu.return_from_gosub()
+
         

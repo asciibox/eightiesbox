@@ -8,12 +8,13 @@ class SessionData:
         self.callback = None
         self.color_array = []  # Initialize an empty 2D array
         self.color_bgarray = []  # Initialize an empty 2D array
+        self.currentPos = 0
         self.current_action = None
         self.cursorX = 0
         self.cursorY = 0
-        self.localinput = ""
+        self.file_area_menu = None
         self.insert = False
-        self.currentPos = 0
+        self.localinput = ""
         self.maxLength = 0
         self.inputType = ''
         self.input_values = []
@@ -24,18 +25,19 @@ class SessionData:
         self.menu_current_index = 0  # To keep track of the current selected menu item
         self.menu_items = []  # To hold the menu items
         self.menutexteditor = None
+        self.message_area_menu = None
         self.sauceWidth = 80 # The loaded number of characters on the screen horizontally (effective editing width)
         self.sauceHeight = 25 # The loaded number of characters vertically in the sauce record (effective editing height)
         self.startX = 0
         self.startY = 0
+        self.user_editor = None
         self.user_name = ""
         self.view_start = 0
         self.xWidth = 0 # The total characters on the screen horizontally
         self.yHeight = 0 # Those vertically
-        self.message_area_menu = None
-        self.file_area_menu = None
-        self.user_editor = None
         self.message_editor = None
+        self.message_area_change = None
+        self.current_message_area = None
 
         self.user_level = 0 # TODO
 
@@ -137,3 +139,9 @@ class SessionData:
 
     def setMessageEditor(self, value):
         self.message_editor = value
+
+    def setMessageAreaChange(self, value):
+        self.message_area_change = value
+
+    def setCurrentMessageArea(self, value):
+        self.current_message_area = value

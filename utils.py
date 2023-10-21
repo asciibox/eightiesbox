@@ -38,6 +38,11 @@ class Utils:
         print("INIT GOING TO GOTOXY:"+str(self.sid_data.startX)+"/"+str(self.sid_data.startY))
         self.emit_gotoXY(self.sid_data.startX, self.sid_data.startY)
 
+    def wait_with_message(self, callback):
+        self.output("Press any key to continue", 6 ,0)
+        self.sid_data.setCallback(callback)
+        self.sid_data.setCurrentAction("wait_for_any_button")
+
     def ask(self, mylen, callback, accept_keys = []):
         self.sid_data.setInputType("text")
         self.askinput(mylen, callback, accept_keys)

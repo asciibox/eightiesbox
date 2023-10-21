@@ -7,6 +7,7 @@ from usereditor import *
 from messageeditor import MessageEditor
 from ansieditor import ANSIEditor
 from menubox import MenuBox
+from messageareachange import MessageAreaChange
 
 class Menu(BasicANSI):
     def __init__(self, util, values, num_rows, callback_on_exit):
@@ -56,7 +57,13 @@ class Menu(BasicANSI):
                     elif action_code == "12":
                         self.sid_data.sauceWidth = self.sid_data.xWidth
                         self.sid_data.sauceHeight = self.sid_data.yHeight
+                        self.append_gosub()
                         self.sid_data.setMessageEditor(MessageEditor(self.util, self.message_editor_callback_on_exit))
+                        return
+                    elif action_code == "13":
+                        self.append_gosub()
+                        self.sid_data.setMessageAreaChange(MessageAreaChange(self.util))
+                        self.sid_data.message_area_change.show_message_areas()
                         return
                     elif action_code == "81":
                         
