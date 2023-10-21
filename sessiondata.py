@@ -39,7 +39,7 @@ class SessionData:
         self.message_area_change = None
         self.current_message_area = None
 
-        self.user_level = 0 # TODO
+        self.user_level = 1 # TODO
 
     def move_cursor_up(self):
         self.menu_current_index = (self.menu_current_index - 1) % len(self.menu_items)
