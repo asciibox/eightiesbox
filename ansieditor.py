@@ -61,7 +61,8 @@ class ANSIEditor(BasicANSI):
         self.strip_sauce = util.strip_sauce
 
         self.input_x = ""
-
+        self.default_foregroundColor = 6
+        self.default_backgroundColor = 0
        
     def start(self):
         self.clear_screen()
@@ -78,9 +79,8 @@ class ANSIEditor(BasicANSI):
 
     def handle_key(self, key):
         random_number = random.randint(1, 100)  # Generates a random integer between 1 and 100
-        print("KEY" + str(random_number))
+        # print("KEY" + str(random_number))
         if key in ['AltGraph', 'Shift', 'Dead', 'CapsLock']:
-            print("RETURN")
             return
 
         if self.check_key_by_subclass and self.check_key_by_subclass(key) == True:
@@ -115,6 +115,10 @@ class ANSIEditor(BasicANSI):
                 self.current_line_x -= 1
 
                 self.emit_gotoXY(self.current_line_x, self.current_line_index+1)
+            return
+        
+        elif key == 'Insert':
+            self.sid_data.setInsert(not self.sid_data.insert)
             return
 
         elif key == 'Enter':
@@ -308,38 +312,53 @@ class ANSIEditor(BasicANSI):
                 key = chr(ascii_value)
 
         # Handle character input
-        if len(key) == 1:  # Check if it's a single character input
+        if len(key) == 1:
             current_x = self.current_line_x
+            #print("current_x:"+str(current_x))
+            #print("self.current_line_index"+str(self.current_line_index))
+            #print("self.current_line_x"+str(self.current_line_x))
+
             while len(self.sid_data.input_values) <= self.current_line_index:
                 self.sid_data.input_values.append("")
+                
+            current_str = self.sid_data.input_values[self.current_line_index]
+            
+            if len(current_str) < current_x:
+                current_str += ' ' * (current_x - len(current_str))
+                
+            # Update the array with the padded string
+            self.sid_data.input_values[self.current_line_index] = current_str
+            #print("current_str:"+current_str)
+            if self.sid_data.insert:
+                new_str = current_str[:current_x] + key + current_str[current_x:]
+                self.shift_color_attributes_right_from(current_x, self.current_line_index)
+                self.current_line_x += 1  # Move the cursor to the right
+            else:
+                new_str = current_str[:current_x] + key + current_str[current_x + 1:]
 
-            if not self.sid_data.input_values[self.current_line_index]:
-                self.sid_data.input_values[self.current_line_index] = ""
-            # Get the current string at the specified line index
-            current_str = self.sid_data.input_values[self.current_line_index-1]
-
-            # Check if the length of current_str[:current_x] is shorter than the position of current_x
-            if len(current_str) <= current_x:
-                # Pad current_str with spaces until its length matches current_x
-                current_str += ' ' * (current_x - len(current_str) + 1)
-
-            # Construct a new string with the changed character
-            new_str = current_str[:current_x] + key + current_str[current_x + 1:]
-
-            # Assign the new string back to the list
-            self.sid_data.input_values[self.current_line_index-1] = new_str
-
-            self.sid_data.setStartX(self.current_line_x)
-           
-            self.sid_data.setStartY(self.current_line_index+1)
-
-            self.output(key, self.foregroundColor, self.backgroundColor )
+            self.sid_data.input_values[self.current_line_index] = new_str
+            #print("new_str:"+new_str)
             self.set_color_at_position(current_x+1, self.current_line_index, self.foregroundColor, self.backgroundColor)
             
-            if self.current_line_x+1 < self.sid_data.sauceWidth:
-                self.current_line_x = self.current_line_x+1
+            if self.sid_data.insert:
+                self.draw_line(self.current_line_index)
+                self.emit_gotoXY(self.current_line_x, self.current_line_index + 1)
+            else:
+                self.sid_data.setStartX(self.current_line_x)
+                self.sid_data.setStartY(self.current_line_index + 1)
+                self.output(key, self.foregroundColor, self.backgroundColor)
+                
+    # Additional logic for cursor movement could go here...
+
+            if self.current_line_x + 1 < self.sid_data.sauceWidth:
+                if not self.sid_data.insert:
+                    self.current_line_x += 1
             else:
                 self.emit_gotoXY(self.sid_data.sauceWidth-1, self.current_line_index+1)
+
+
+
+
 
         # Extract the function key number (e.g., 'F1' -> 1)
         try:
@@ -355,6 +374,34 @@ class ANSIEditor(BasicANSI):
                 self.foregroundColor = fkey_num - 1  # Set foreground to one of the colors 0-7
             self.update_first_line()
             self.emit_gotoXY(self.current_line_x, self.current_line_index + 1)
+
+    def shift_color_attributes_right_from(self, start_x, line_index):
+        # Check if the line exists in color_array and color_bgarray
+        while len(self.sid_data.color_array) <= line_index:
+            self.sid_data.color_array.append([])
+        while len(self.sid_data.color_bgarray) <= line_index:
+            self.sid_data.color_bgarray.append([])
+
+        # Append default colors to the end of the line to maintain the line length
+        self.sid_data.color_array[line_index].append(self.default_foregroundColor)
+        self.sid_data.color_bgarray[line_index].append(self.default_backgroundColor)
+        
+        # Start shifting colors from right to left, starting from the end.
+        # Note that we start shifting from the next position (start_x + 1),
+        # to preserve the original color at start_x.
+        for i in range(len(self.sid_data.color_array[line_index]) - 1, start_x + 1, -1):
+            self.sid_data.color_array[line_index][i] = self.sid_data.color_array[line_index][i-1]
+            self.sid_data.color_bgarray[line_index][i] = self.sid_data.color_bgarray[line_index][i-1]
+
+        while len(self.sid_data.color_array[line_index]) <= start_x + 1:
+            self.sid_data.color_array[line_index].append(self.default_foregroundColor)
+        while len(self.sid_data.color_bgarray[line_index]) <= start_x + 1:
+            self.sid_data.color_bgarray[line_index].append(self.default_backgroundColor)
+
+        # Now you can safely set the color without running into an IndexError
+        self.sid_data.color_array[line_index][start_x + 1] = self.foregroundColor
+        self.sid_data.color_bgarray[line_index][start_x + 1] = self.backgroundColor
+
 
     def set_wait_for(self):
         self.sid_data.setCurrentAction("wait_for_ansieditor")
