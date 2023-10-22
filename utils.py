@@ -362,7 +362,7 @@ class Utils:
         if len(self.sid_data.accept_keys) > 0 and key.upper() not in self.sid_data.accept_keys:
             return 
 
-        if len(self.sid_data.localinput) >= self.sid_data.maxLength:
+        if len(self.sid_data.localinput) >= self.sid_data.maxLength and self.sid_data.maxLength > 1:
             return
 
         # Appending new character or updating existing one
@@ -373,8 +373,11 @@ class Utils:
             self.sid_data.setLocalInput(self.sid_data.localinput[:self.sid_data.currentPos] + key + self.sid_data.localinput[self.sid_data.currentPos:])
             self.sid_data.setCurrentPos(self.sid_data.currentPos + 1)
         else:
-            self.sid_data.setLocalInput(self.sid_data.localinput[:self.sid_data.currentPos] + key + self.sid_data.localinput[self.sid_data.currentPos + 1:])
-            self.sid_data.setCurrentPos(self.sid_data.currentPos + 1)
+            if self.sid_data.maxLength > 1:
+                self.sid_data.setLocalInput(self.sid_data.localinput[:self.sid_data.currentPos] + key + self.sid_data.localinput[self.sid_data.currentPos + 1:])
+                self.sid_data.setCurrentPos(self.sid_data.currentPos + 1)
+            else:
+                self.sid_data.localinput = key
 
         # Adjust view_start if cursor is at the end of the visible region
         if self.sid_data.currentPos - self.sid_data.view_start == self.sid_data.maxLength:

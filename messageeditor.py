@@ -1,4 +1,6 @@
 from ansieditor import ANSIEditor
+from pymongo import MongoClient
+from userpicker import UserPicker
 
 class MessageEditor(ANSIEditor):
     def __init__(self, util, callback_on_exit):
@@ -73,8 +75,44 @@ class MessageEditor(ANSIEditor):
         self.ask(40, self.to_input_callback)
 
     def to_input_callback(self, response):
-        self.sid_data.message_data["To"] = response
+    # Assume you've connected to MongoDB and got the users_collection object
+    # client = MongoClient("mongodb://localhost:27017/")
+    # users_collection = client.my_database.users
+        if response == 'All':
+            self.sid_data.message_data["To"] = response
+            self.ask_subject()
+            return
+
+        db = self.util.mongo_client['bbs']
+        users_collection = db['users']
+
+        existing_user = users_collection.find_one({"username": response})
+        
+        if existing_user is None:
+            # If the user does not exist, redirect to UserPicker class
+            self.goto_user_picker(response)
+        else:
+            # If the user exist, proceed to ask_subject
+            self.sid_data.message_data["To"] = response
+            self.ask_subject()
+
+
+    def user_picker_callback(self, username):
+        self.sid_data.message_data["To"] = username
+        self.clear_screen()
+        self.util.sid_data.setStartX(0)
+        self.util.sid_data.setStartY(0)
+        self.util.output("From: ", 6,0 )
+        self.util.output(self.util.sid_data.user_name, 11, 0)
+        self.util.goto_next_line()
+        self.util.output("To: "+username, 6, 0)
         self.ask_subject()
+
+    def goto_user_picker(self, username):
+        # You could initialize a UserPicker instance here, or however you've planned to navigate to UserPicker
+        # Assume UserPicker is another class handling user picking functionalities
+        self.util.sid_data.user_picker = UserPicker(self.util, username, self.user_picker_callback)
+        self.util.sid_data.user_picker.show_options()
 
     def ask_subject(self):
         # Go to the next line for "Subject:"

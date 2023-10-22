@@ -28,6 +28,9 @@ class MessageAreaChange(AreaChange):
                 self.displayed_areas.append(area)  # Add area to displayed_areas list
 
         if not areas_found:
+            self.util.clear_screen()
+            self.sid_data.setStartX(0)
+            self.sid_data.setStartY(0)    
             self.util.output_wrap("No message areas found", 1, 0)
             self.util.goto_next_line()
             self.util.wait_with_message(self.exit)

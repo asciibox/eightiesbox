@@ -174,6 +174,10 @@ def handle_keypress(data):
     global sid_data, util
     siddata = sid_data[request.sid]
     print(siddata.current_action)
+    if siddata.current_action == "wait_for_userpicker":
+        key = data['key']
+        siddata.user_picker.handle_key(key)
+        return
     if siddata.current_action == "wait_for_menu":
         key = data['key']
         siddata.menu.handle_key(key)
