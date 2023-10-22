@@ -77,8 +77,26 @@ class MessageAreaChange(AreaChange):
         return count
 
     def get_unread_messages(self, selected_area):
-        # Assuming there's an "is_read" field in the message document to track read/unread status
+        user_id = self.util.sid_data.user_document['_id']
+        area_id = selected_area['_id']
+
+        # Connect to MongoDB
         mongo_client = self.util.mongo_client
         db = mongo_client['bbs']
-        count = db['messages'].count_documents({"area_id": selected_area['_id'], "is_read": False})
+
+        # Query read_messages for the current user and selected area
+        read_messages_cursor = db['read_messages'].find({
+            "user_id": user_id,
+            "area_id": area_id
+        })
+
+        # Convert the cursor to a list of message IDs that have been read
+        read_message_ids = [msg['message_id'] for msg in read_messages_cursor]
+
+        # Count unread messages
+        count = db['messages'].count_documents({
+            "area_id": area_id,
+            "_id": {'$nin': read_message_ids}
+        })
+
         return count

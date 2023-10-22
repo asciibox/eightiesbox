@@ -78,7 +78,6 @@ class MenuBarMessageEditor(MenuBarANSIEditor):
             "area": current_area['name'],  # Message area
             "area_id" : current_area['_id'],
             "content": message_content,
-            "is_read": False  # Add this line
         }
 
         # Insert the message into the MongoDB database

@@ -102,25 +102,32 @@ class MessageReader :
         mongo_client = self.util.mongo_client
         db = mongo_client['bbs']
 
-        # Build the filter, considering the current message ID if available
-        final_filter = {**db_filter, "area_id": area_id}
-        if self.current_message_id is not None:
-            final_filter['_id'] = {'$gt': self.current_message_id} if sort_direction == 1 else {'$lt': self.current_message_id}
+        read_messages = db['read_messages'].find({
+        "user_id": self.util.sid_data.user_document['_id'],
+        "area_id": area_id
+        })
 
-        # Find the next message based on the given filter and sort direction
+        read_message_ids = [msg['message_id'] for msg in read_messages]
+
+        # Build your final filter without is_read
+        final_filter = {**db_filter, "area_id": area_id, '_id': {'$nin': read_message_ids}}
+        if self.current_message_id is not None:
+            final_filter['_id'].update({'$gt': self.current_message_id} if sort_direction == 1 else {'$lt': self.current_message_id})
+
         next_message = db['messages'].find_one(
             final_filter,
-            sort=[('_id', sort_direction)])  # Sorting by _id to get the message based on filter and direction
+            sort=[('_id', sort_direction)]
+        )
 
         if next_message:
             # Update the current message ID
             self.current_message_id = next_message['_id']
 
-            # Mark message as read
-            db['messages'].update_one(
-                {"_id": next_message['_id']},
-                {"$set": {"is_read": True}}
-            )
+            db['read_messages'].insert_one({
+            "user_id": self.util.sid_data.user_document['_id'],
+            "message_id": next_message['_id'],
+            "area_id": area_id,
+            })
 
             # Display the message header
             self.util.clear_screen()
@@ -149,6 +156,25 @@ class MessageReader :
             self.util.goto_next_line()
             self.current_message_id = None  # Reset the current message ID as we've reached the end
             self.util.wait_with_message(self.exit_to_main_menu)
+
+    def read_forward(self):
+        self.read_messages_with_filter_and_direction({}, 1, 'next')
+
+    def read_unread_forward(self):
+        self.read_messages_with_filter_and_direction({}, 1, 'next')
+
+    def read_backward(self):
+        self.read_messages_with_filter_and_direction({}, -1, 'previous')
+
+    def read_unread_backward(self):
+        self.read_messages_with_filter_and_direction({}, -1, 'previous')
+
+    def handle_input_for_reading(self, user_input):
+        if user_input and user_input.lower() == 'x':
+            self.exit_to_main_menu()
+            self.current_message_id = None  # Reset the current message ID
+        else:
+            self.read_messages_with_filter_and_direction(self.db_filter, self.sort_direction, self.next)
 
     def display_message_content(self):
         yHeight_limit = self.util.sid_data.yHeight - 3  # Define a limit, adjust based on your needs
@@ -183,26 +209,7 @@ class MessageReader :
         self.util.output_wrap(f"Press Enter to read the {self.next} message or 'x' to stop: ", 7, 0)
         self.util.ask(1, self.handle_input_for_reading)
 
-    def handle_input_for_reading(self, user_input):
-        if user_input and user_input.lower() == 'x':
-            self.exit_to_main_menu()
-            self.current_message_id = None  # Reset the current message ID
-        else:
-            self.read_messages_with_filter_and_direction(self.db_filter, self.sort_direction, self.next)
-
-
-
-    def read_forward(self):
-        self.read_messages_with_filter_and_direction({}, 1, 'next')
-
-    def read_unread_forward(self):
-        self.read_messages_with_filter_and_direction({"is_read": False}, 1, 'next')
-
-    def read_backward(self):
-        self.read_messages_with_filter_and_direction({}, -1, 'previous')
-
-    def read_unread_backward(self):
-        self.read_messages_with_filter_and_direction({"is_read": False}, -1, 'previous')
+  
         
     def next_message(self):
         pass  # Implement logic to jump to the next message
@@ -233,9 +240,26 @@ class MessageReader :
 
     def get_unread_messages(self):
         current_area = self.util.sid_data.current_message_area
-        print(self.util.sid_data.current_message_area)
-        # Assuming there's an "is_read" field in the message document to track read/unread status
+        user_id = self.util.sid_data.user_document['_id']
+        area_id = current_area['_id']
+
+        # Connect to MongoDB
         mongo_client = self.util.mongo_client
         db = mongo_client['bbs']
-        count = db['messages'].count_documents({"area_id": current_area['_id'], "is_read": False})
+
+        # Query read_messages for the current user and area
+        read_messages_cursor = db['read_messages'].find({
+            "user_id": user_id,
+            "area_id": area_id
+        })
+
+        # Convert the cursor to a list of message IDs that have been read
+        read_message_ids = [msg['message_id'] for msg in read_messages_cursor]
+
+        # Count unread messages
+        count = db['messages'].count_documents({
+            "area_id": area_id,
+            "_id": {'$nin': read_message_ids}
+        })
+
         return count
