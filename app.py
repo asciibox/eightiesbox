@@ -44,19 +44,26 @@ for i, value in enumerate(list2):
 
 # When a new connection occurs
 def on_new_connection():
+    global sid_data
     request_sid = request.sid
     sid_data[request_sid] = SessionData()
     global util
-    util = Utils(socketio, mongo_client, list1, list2, sid_data, Sauce)
+    sid_data[request_sid].util = Utils(socketio, mongo_client, list1, list2, sid_data, Sauce, request_sid)
 
 # When a connection closes
 def on_connection_close():
+    global sid_data
     request_sid = request.sid
     if request_sid in sid_data:
         del sid_data[request_sid]
 
 startFile = 'welcome'
 
+
+@socketio.on('custom_disconnect')
+def custom_disconnect(data):
+    print("custom disconnect")
+    on_connection_close()
 
 @app.route('/')
 def index():
@@ -84,20 +91,20 @@ def onload(data):
     y = data.get('y')
     sid_data[request.sid].setYHeight(y)
     if server_available == False:
-        util.output_wrap("* Database connection could not get established *", 1,0)
+        sid_data[request.sid].util.output_wrap("* Database connection could not get established *", 1,0)
         print(server_available)
         time.sleep(3)
     
     data2 = { 'filename' : startFile+'-'+str(x)+'x'+str(y), 'x' : x, 'y': y}
     
-    util.show_file(data2, util.emit_current_string)
-    util.goto_next_line()
+    sid_data[request.sid].util.show_file(data2, sid_data[request.sid].util.emit_current_string)
+    sid_data[request.sid].util.goto_next_line()
     
-    util.output_wrap("Please enter your name: ", 3, 0)
-    util.ask(40, util.usernameCallback)
+    sid_data[request.sid].util.output_wrap("Please enter your name: ", 3, 0)
+    sid_data[request.sid].util.ask(40, sid_data[request.sid].util.usernameCallback)
 
 @socketio.on('disconnect')
-def disconnect(data):
+def disconnect():
     on_connection_close()
 
 db = mongo_client["bbs"]  # You can replace "mydatabase" with the name of your database
@@ -162,6 +169,8 @@ def generate_unique_filename(filename):
 
 @socketio.on('input_keypress')
 def handle_keypress(data):
+    print("HANDLE")
+    print(request.sid)
     global sid_data, util
     siddata = sid_data[request.sid]
     print(siddata.current_action)
@@ -400,7 +409,7 @@ def handle_keypress(data):
 
         # Handle character input
         elif len(key) == 1:
-            util.keydown(key)
+            sid_data[request.sid].util.keydown(key)
             
 
 

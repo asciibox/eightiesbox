@@ -35,3 +35,7 @@ socket.on('upload', (data) => {
     const uploadDiv = document.getElementById('fileUploadDiv');
     uploadDiv.style.display = 'inline';
 });
+
+window.addEventListener("beforeunload", function(event) {
+    socket.emit('custom_disconnect', {});
+  });

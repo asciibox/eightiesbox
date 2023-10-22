@@ -43,6 +43,7 @@ class SessionData:
         self.message_reader = None
         self.user_document = None # Holds all user data, id, name and security level
         self.who_is_online = None
+        self.util = None
 
     def move_cursor_up(self):
         self.menu_current_index = (self.menu_current_index - 1) % len(self.menu_items)

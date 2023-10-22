@@ -15,10 +15,10 @@ import os
 from menu import *
 
 class Utils:
-    def __init__(self, sio, my_client, mylist1, mylist2, sdata, Sauce):
+    def __init__(self, sio, my_client, mylist1, mylist2, sdata, Sauce, request_id):
         self.socketio = sio
         self.mongo_client = my_client
-        self.sid_data = sdata.get(request.sid)
+        self.sid_data = sdata.get(request_id)
         self.all_sid_data = sdata
         self.list1 = mylist1
         self.list2 = mylist2

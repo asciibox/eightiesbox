@@ -15,20 +15,17 @@ class WhoIsOnline:
         self.util.goto_next_line()
         for index, (sid, sid_data) in enumerate(self.util.all_sid_data.items()):
             user_doc = sid_data.user_document
-            
+            print(index)
+            print("/")
+            print(sid_data)
             # Make sure user_doc is not empty
             if not user_doc:
+                self.util.output(str(index + 1)+". Logging in", 6, 0)
+                self.util.goto_next_line()
                 continue
+                            
+            display_str = f"{index + 1}. Username: {user_doc['username']}, Age: {user_doc.get('age', '?')}, Sex: {user_doc.get('sex', '?')}, Hobbies: {user_doc.get('hobbies', '?')}"
 
-            if not user_doc['age']:
-                user_doc['age']='?'
-            if not user_doc['sex']:
-                user_doc['sex']='?'
-            if not user_doc['hobbies']:
-                user_doc['hobbies']='?'
-            
-                
-            display_str = f"{index + 1}. Username: {user_doc['username']}, Age: {user_doc['age']}, Sex: {user_doc['sex']}, Hobbies: {user_doc['hobbies']}"
 
             self.util.output(display_str, 6, 0)
             self.util.goto_next_line()
