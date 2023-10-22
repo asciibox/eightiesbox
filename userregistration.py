@@ -170,7 +170,15 @@ class UserRegistration:
             existing_user = users_collection.find_one({"username": self.userdata["username"]})
             # If username does not exist, insert the new user data
             if existing_user is None:
-                users_collection.insert_one(self.userdata)
+                insert_result = users_collection.insert_one(self.userdata)
+                new_user_id = insert_result.inserted_id
+
+                # Update self.userdata to include the new _id
+                self.userdata.update({"_id": new_user_id})
+
+                # Update self.sid_data.user_document to include the new _id
+                self.sid_data.user_document = {**self.userdata, "_id": new_user_id}
+                
                 self.goto_next_line()
                 self.output("User created successfully.", 6, 0)
                 bbs = OnelinerBBS(self.util)

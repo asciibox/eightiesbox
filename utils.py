@@ -214,7 +214,14 @@ class Utils:
             users_collection = db['users']
             hashed_password = bcrypt.hashpw(first_password.encode('utf-8'), bcrypt.gensalt())
             new_sysop_user = {"username": "SYSOP", "password": hashed_password.decode('utf-8')}
-            users_collection.insert_one(new_sysop_user)
+            # Insert the document and capture the result
+            insert_result = users_collection.insert_one(new_sysop_user)
+
+            # Retrieve the _id from the result
+            new_sysop_user_id = insert_result.inserted_id
+
+            # Add the _id to the sid_data.user_document
+            self.sid_data.user_document = {**new_sysop_user, "_id": new_sysop_user_id}
             self.goto_next_line()
             self.output_wrap("SYSOP account created successfully. Logging in...", 3, 0)
             self.launchMenuCallback()
