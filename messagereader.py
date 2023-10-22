@@ -133,15 +133,15 @@ class MessageReader :
             self.util.output_wrap(f"Subject: {next_message['subject']}", 7, 0)
             self.util.goto_next_line()
 
-            # Display the message content line by line
-            message_content_lines = next_message['content'].split('\n')
-            for line in message_content_lines:
-                self.util.output(line, 7, 0)
-                self.util.goto_next_line()
+            # Set up the content lines and index
+            self.current_message_content_lines = next_message['content'].split('\n')
+            self.current_message_line_index = 0
 
-            # Ask user if they want to continue
-            self.util.output_wrap(f"Press Enter to read the {next} message or 'x' to stop: ", 7, 0)
-            self.util.ask(1, self.handle_input_for_reading)
+            self.display_message_content()
+
+            # If you're adding a prompt after the message, place it here.
+            #self.util.output_wrap(f"Press Enter to read the {next} message or 'x' to stop: ", 7, 0)
+            #self.util.ask(1, self.handle_input_for_reading)
 
         else:
             self.util.goto_next_line()
@@ -149,6 +149,39 @@ class MessageReader :
             self.util.goto_next_line()
             self.current_message_id = None  # Reset the current message ID as we've reached the end
             self.util.wait_with_message(self.exit_to_main_menu)
+
+    def display_message_content(self):
+        yHeight_limit = self.util.sid_data.yHeight - 3  # Define a limit, adjust based on your needs
+
+        for i in range(self.current_message_line_index, len(self.current_message_content_lines)):
+            line = self.current_message_content_lines[i]
+
+            # Check if you're at the end of the screen
+            if self.util.sid_data.startY >= yHeight_limit:
+                self.current_message_line_index = i  # Save current index
+                self.util.output_wrap("Press any key for next page...", 7, 0)
+                self.util.wait_with_message(self.continue_displaying_message)
+                return  # Exit the loop and wait for user action
+
+            self.util.output(line, 7, 0)
+            self.util.goto_next_line()
+
+        # Display prompt only after the entire message has been read
+        self.show_next_message_prompt()
+
+    def continue_displaying_message(self):
+        # Clear the screen and reset the coordinates
+        self.util.clear_screen()
+        self.util.sid_data.startY = 0
+        self.util.sid_data.startX = 0
+
+        # If we're here, it means the user pressed a key to see the next page
+        # We continue displaying the message from where we left off
+        self.display_message_content()
+
+    def show_next_message_prompt(self):
+        self.util.output_wrap(f"Press Enter to read the {self.next} message or 'x' to stop: ", 7, 0)
+        self.util.ask(1, self.handle_input_for_reading)
 
     def handle_input_for_reading(self, user_input):
         if user_input and user_input.lower() == 'x':

@@ -55,8 +55,17 @@ class MenuBarMessageEditor(MenuBarANSIEditor):
         self.sid_data.message_editor.display_editor()
 
     def send_message(self):
-        # Collect the message content from self.sid_data.input_values
-        message_content = "\n".join(self.sid_data.input_values)
+
+        all_page_contents = []
+    
+        # Loop through each page's list of input values
+        for page in self.sid_data.message_editor.input_values_page:
+            # Join the strings in the current page and append to all_page_contents
+            page_content = "\n".join(page)
+            all_page_contents.append(page_content)
+        
+        # Finally, join all pages' contents
+        message_content = "\n".join(all_page_contents)
         
         # Fetch the current message area
         current_area = self.sid_data.current_message_area

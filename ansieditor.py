@@ -89,20 +89,10 @@ class ANSIEditor(BasicANSI):
         if key == 'AltGraph':
             return
         elif key == 'ArrowDown':
-            if self.current_line_index < self.max_height - 1:
-                self.current_line_index += 1
-                self.emit_gotoXY(self.current_line_x, self.current_line_index+1)
-            return
+            self.arrow_down_pressed()
 
         elif key == 'ArrowUp':
-            if self.sid_data.current_action == "wait_for_messageeditor":
-                if self.current_line_index < 4:
-                    return
-
-            if self.current_line_index > 0:
-                self.current_line_index -= 1
-                self.emit_gotoXY(self.current_line_x, self.current_line_index+1)
-            return
+            self.arrow_up_pressed()
 
         elif key == 'ArrowRight':
             if self.current_line_x < self.sid_data.sauceWidth - 1:
@@ -122,24 +112,7 @@ class ANSIEditor(BasicANSI):
             return
 
         elif key == 'Enter':
-            self.current_line_x = 0  # Reset x coordinate to 0
-
-            if self.max_height < self.sid_data.yHeight - 3:
-                self.current_line_index += 1
-                if self.current_line_index >= self.max_height:
-                    self.max_height = self.current_line_index + 1
-                    self.sid_data.sauceHeight = self.max_height
-                    self.update_first_line()
-                    self.emit_gotoXY(self.current_line_x, self.current_line_index + 1)
-                    return
-
-                self.emit_gotoXY(self.current_line_x, self.current_line_index + 1)
-                return
-            else:
-                if self.current_line_index < self.sid_data.yHeight - 3:
-                    self.current_line_index += 1  # Increment line index
-
-                self.emit_gotoXY(self.current_line_x, self.current_line_index + 1)  # Go to next line
+            self.enter_pressed()
         
         elif key == 'Escape':
             if self.sid_data.current_action == "wait_for_menubar_messageeditor":
@@ -260,6 +233,7 @@ class ANSIEditor(BasicANSI):
                 self.sid_data.color_bgarray[cur_y][-1] = None  # Clear the last position
 
                 # Use draw_line to redraw the entire line
+                
                 self.clear_line(cur_y+1)
                 self.draw_line(cur_y)
 
@@ -498,8 +472,38 @@ class ANSIEditor(BasicANSI):
         self.sid_data.color_array[y][x] = color
         self.sid_data.color_bgarray[y][x] = bgcolor
 
- 
+    def enter_pressed(self):
+        self.current_line_x = 0  # Reset x coordinate to 0
 
+        if self.max_height < self.sid_data.yHeight - 3:
+            self.current_line_index += 1
+            if self.current_line_index >= self.max_height:
+                self.max_height = self.current_line_index + 1
+                self.sid_data.sauceHeight = self.max_height
+                self.update_first_line()
+                self.emit_gotoXY(self.current_line_x, self.current_line_index + 1)
+                return
 
+            self.emit_gotoXY(self.current_line_x, self.current_line_index + 1)
+            return
+        else:
+            if self.current_line_index < self.sid_data.yHeight - 3:
+                self.current_line_index += 1  # Increment line index
 
+            self.emit_gotoXY(self.current_line_x, self.current_line_index + 1)  # Go to next line
             
+    def arrow_down_pressed(self):
+        if self.current_line_index < self.max_height - 1:
+            self.current_line_index += 1
+            self.emit_gotoXY(self.current_line_x, self.current_line_index+1)
+        
+    def arrow_up_pressed(self):
+
+        if self.sid_data.current_action == "wait_for_messageeditor":
+                if self.current_line_index < 4:
+                    return
+
+        if self.current_line_index > 0:
+            self.current_line_index -= 1
+            self.emit_gotoXY(self.current_line_x, self.current_line_index+1)
+        
