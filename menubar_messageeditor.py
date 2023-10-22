@@ -57,7 +57,8 @@ class MenuBarMessageEditor(MenuBarANSIEditor):
     def send_message(self):
 
         all_page_contents = []
-    
+
+        self.sid_data.message_editor.save_current_page_data()
         # Loop through each page's list of input values
         for page in self.sid_data.message_editor.input_values_page:
             # Join the strings in the current page and append to all_page_contents

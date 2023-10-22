@@ -112,7 +112,8 @@ class Utils:
         # Retrieve the user document based on the username saved in self.sid_data
 
         user_document = users_collection.find_one({"username": self.sid_data.user_name})
-        
+        self.sid_data.user_document = user_document
+
         if user_document:
             # Check if the password matches
             hashed_password_from_db = user_document.get('password').encode('utf-8')
@@ -232,16 +233,48 @@ class Utils:
             return value  # returns the original value if index out of range in list2
 
     def launchMenuCallback(self):
-
-       
-
         if self.sid_data.user_name!='SYSOP':
-           self.load_menu()
+           self.check_for_new_messsages()
         else:
             self.goto_next_line()
 
             self.askYesNo('Do you want to edit the menu? Otherwise we will take you to the ANSI editor.', self.menuCallback)
         
+    def check_for_new_messsages(self):
+        if self.get_all_unread_messages_addressed_to_user_count() > 0:
+                self.sid_data.setMessageReader(MessageReader(self, self.message_reader_new_messages_callback_on_exit))
+                self.sid_data.message_reader.display_unread_messages_addressed_to_user()
+        else:
+            self.load_menu()
+
+    def message_reader_new_messages_callback_on_exit(self):
+        self.load_menu()
+    
+
+    def get_all_unread_messages_addressed_to_user_count(self):
+        user_id = self.sid_data.user_document['_id']
+        user_name = self.sid_data.user_name  # Assuming the username is stored in user_name field
+
+        # Connect to MongoDB
+        mongo_client = self.mongo_client
+        db = mongo_client['bbs']
+
+        # Query read_messages for the current user across all areas
+        read_messages_cursor = db['read_messages'].find({
+            "user_id": user_id
+        })
+
+        # Convert the cursor to a list of message IDs that have been read
+        read_message_ids = [msg['message_id'] for msg in read_messages_cursor]
+
+        # Count all unread messages addressed to the current user
+        unread_message_count = db['messages'].count_documents({
+            "_id": {'$nin': read_message_ids},
+            "to": user_name  # Filtering by the 'to' field
+        })
+
+        return unread_message_count
+
     def load_menu(self):
         db = self.mongo_client["bbs"]  # You can replace "mydatabase" with the name of your database
         collection = db["menufiles"]

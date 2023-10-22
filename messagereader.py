@@ -31,7 +31,7 @@ class MessageReader :
         self.util.goto_next_line()
         self.db_filter=""
         self.sort_filter=""
-        self.next = ""
+        self.next = "next"
 
         if total_messages == 0:
             self.util.output("No messages found", 7, 0)
@@ -156,6 +156,72 @@ class MessageReader :
             self.util.goto_next_line()
             self.current_message_id = None  # Reset the current message ID as we've reached the end
             self.util.wait_with_message(self.exit_to_main_menu)
+
+    def display_unread_messages_addressed_to_user(self):
+        self.next = "next"
+        # Setting filter to only select messages addressed to the user
+        user_name = self.util.sid_data.user_name
+        db_filter = {"to": user_name}
+        sort_direction = 1  # Sorting in ascending order
+
+        # Connect to MongoDB
+        mongo_client = self.util.mongo_client
+        db = mongo_client['bbs']
+
+        # Query read_messages to find messages that have been read by the user
+        read_messages = db['read_messages'].find({
+            "user_id": self.util.sid_data.user_document['_id']
+        })
+        read_message_ids = [msg['message_id'] for msg in read_messages]
+
+        # Build your final filter for unread and addressed messages
+        final_filter = {**db_filter, '_id': {'$nin': read_message_ids}}
+
+        # Fetch the next unread message addressed to the user
+        next_message = db['messages'].find_one(
+            final_filter,
+            sort=[('_id', sort_direction)]
+        )
+
+        if next_message:
+            # Update the current message ID
+            self.current_message_id = next_message['_id']
+
+            # Insert read message for the user in read_messages collection
+            db['read_messages'].insert_one({
+                "user_id": self.util.sid_data.user_document['_id'],
+                "message_id": next_message['_id']
+            })
+
+            # Display the message header
+            self.util.clear_screen()
+            self.util.sid_data.setStartX(0)  # Set the start X coordinate
+            self.util.sid_data.setStartY(0)  # Set the start Y coordinate
+            self.util.output(f"From: {next_message['from']}", 7, 0)
+            self.util.goto_next_line()
+            self.util.output(f"To: {next_message['to']}", 7, 0)
+            self.util.goto_next_line()
+            self.util.output_wrap(f"Subject: {next_message['subject']}", 7, 0)
+            self.util.goto_next_line()
+
+            # Display the message content
+            self.current_message_content_lines = next_message['content'].split('\n')
+            self.current_message_line_index = 0
+
+            self.display_message_content()
+
+            # If you're adding a prompt after the message, place it here.
+            #self.util.output_wrap(f"Press Enter to read the next message or 'x' to stop: ", 7, 0)
+            #self.util.ask(1, self.handle_input_for_reading)
+
+        else:
+            self.util.goto_next_line()
+            self.util.output_wrap("No more personal, unread messages.", 7, 0)
+            self.util.goto_next_line()
+            self.current_message_id = None  # Reset the current message ID as we've reached the end
+            self.util.wait_with_message(self.exit_to_main_menu)
+    
+
 
     def read_forward(self):
         self.read_messages_with_filter_and_direction({}, 1, 'next')

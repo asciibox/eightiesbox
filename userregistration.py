@@ -12,6 +12,7 @@ class UserRegistration:
         self.ask = util.ask
         self.askYesNo = util.askYesNo
         self.output = util.output
+        self.output_wrap = util.output_wrap
         self.usernameCallback = util.usernameCallback
         self.mongo_client = util.mongo_client
         self.sid_data = util.sid_data
