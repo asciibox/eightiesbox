@@ -15,9 +15,6 @@ class WhoIsOnline:
         self.util.goto_next_line()
         for index, (sid, sid_data) in enumerate(self.util.all_sid_data.items()):
             user_doc = sid_data.user_document
-            print(index)
-            print("/")
-            print(sid_data)
             # Make sure user_doc is not empty
             if not user_doc:
                 self.util.output(str(index + 1)+". Logging in", 6, 0)

@@ -17,6 +17,8 @@ class OnelinerBBS:
 
     def show_oneliners(self):
         self.util.clear_screen()
+        self.util.sid_data.startX = 0
+        self.util.sid_data.startY = 0
         self.output_oneliners()
 
         self.goto_next_line()
