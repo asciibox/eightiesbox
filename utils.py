@@ -19,6 +19,7 @@ class Utils:
         self.socketio = sio
         self.mongo_client = my_client
         self.sid_data = sdata.get(request.sid)
+        self.all_sid_data = sdata
         self.list1 = mylist1
         self.list2 = mylist2
         self.Sauce = Sauce

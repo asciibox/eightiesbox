@@ -41,7 +41,8 @@ class SessionData:
         self.message_data = {}  # A local variable to save all input fields
         self.user_level = 1 # TODO
         self.message_reader = None
-        self.user_document = None
+        self.user_document = None # Holds all user data, id, name and security level
+        self.who_is_online = None
 
     def move_cursor_up(self):
         self.menu_current_index = (self.menu_current_index - 1) % len(self.menu_items)
@@ -153,3 +154,6 @@ class SessionData:
 
     def setMessageReader(self, value):
         self.message_reader = value
+
+    def setWhoIsOnline(self, value):
+        self.who_is_online = value

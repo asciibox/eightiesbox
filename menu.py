@@ -9,6 +9,7 @@ from ansieditor import ANSIEditor
 from menubox import MenuBox
 from messageareachange import MessageAreaChange
 from messagereader import MessageReader
+from whoisonline import WhoIsOnline
 
 class Menu(BasicANSI):
     def __init__(self, util, values, num_rows, callback_on_exit):
@@ -18,6 +19,11 @@ class Menu(BasicANSI):
         self.num_rows = num_rows
         self.callback_on_exit = callback_on_exit
         self.menu_stack = []  # Initialize the menu stack
+
+    def who_is_online_callback_on_exit(self):
+        self.util.sid_data.setCurrentAction("wait_for_menu")
+        self.util.clear_screen()
+        self.display_editor()
 
     def message_menu_callback_on_exit(self):
         self.util.sid_data.setCurrentAction("wait_for_menu")
@@ -73,6 +79,13 @@ class Menu(BasicANSI):
                         self.append_gosub()
                         self.sid_data.setMessageAreaChange(MessageAreaChange(self.util))
                         self.sid_data.message_area_change.show_message_areas()
+                        return
+                    elif action_code == "51":
+                        
+                        who_is_online = WhoIsOnline(self.util, self.who_is_online_callback_on_exit)
+                        self.sid_data.setWhoIsOnline(who_is_online)
+                        # Display online users
+                        who_is_online.display_online_users()
                         return
                     elif action_code == "81":
                         
