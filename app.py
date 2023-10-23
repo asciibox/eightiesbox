@@ -15,6 +15,7 @@ from ansieditor import *
 from sauce import Sauce
 import time
 import base64
+from f10actionhandler import F10ActionHandler
 
 app = Flask(__name__)
 socketio = SocketIO(app)
@@ -174,11 +175,66 @@ def handle_keypress(data):
     global sid_data, util
     siddata = sid_data[request.sid]
     print(siddata.current_action)
-    if siddata.current_action == "wait_for_userpicker":
+
+    key = data['key']
+    if key == 'F10':
+       siddata.setF10ActionHandler(F10ActionHandler(siddata.util))
+       siddata.f10actionhandler.handle_F10()
+       return
+    elif siddata.current_action == "in_chat" and siddata.chat_partner:
+        partner_sid_data = siddata.chat_partner
+        partner_util = partner_sid_data.util  # Assume util is accessible from sid_data
+
+        if key == 'Escape':
+           siddata.current_action = siddata.previous_action
+           partner_sid_data.current_action = partner_sid_data.previous_action
+
+        if key == 'Enter':
+            siddata.cursorY += 1
+            siddata.cursorX = 0
+            siddata.util.emit_gotoXY(siddata.cursorX, siddata.cursorY)
+            siddata.startX = siddata.cursorX
+            siddata.startY = siddata.cursorY
+            
+            partner_sid_data.cursorY += 1
+            partner_sid_data.cursorX = 0
+            partner_util.emit_gotoXY(partner_sid_data.cursorX, partner_sid_data.cursorY)
+            partner_sid_data.startX = partner_sid_data.cursorX
+            partner_sid_data.startY = partner_sid_data.cursorY
+            
+            
+        if key == 'Backspace':
+            siddata.startX = siddata.startX -1
+            siddata.util.output(" ", 6,0)
+            siddata.cursorX = siddata.cursorX - 2
+            siddata.util.emit_gotoXY(siddata.cursorX, siddata.cursorY)
+            siddata.startX = siddata.startX -1
+            
+            partner_sid_data.startX = partner_sid_data.startX - 1
+            partner_util.output(" ", 6,0)
+            partner_sid_data.cursorX = partner_sid_data.cursorX - 2
+            partner_util.emit_gotoXY(partner_sid_data.cursorX, partner_sid_data.cursorY)
+            partner_sid_data.startX = partner_sid_data.startX - 1
+            
+        if len(key) == 1:
+            # Update partner's screen
+            partner_util.output(key, 3, 1)
+            # Update your own screen
+            siddata.util.output(key, 3, 4)
+        return
+    elif siddata.current_action == "wait_for_f10_action":
+        print("WAIT FOR F10 ACTION")
+        key = data['key']
+        siddata.f10actionhandler.handle_key(key)
+        return
+    elif siddata.current_action == "wait_for_multi_line_chat":
+        siddata.multi_line_chat.stop_waiting_for_request() 
+        return
+    elif siddata.current_action == "wait_for_userpicker":
         key = data['key']
         siddata.user_picker.handle_key(key)
         return
-    if siddata.current_action == "wait_for_menu":
+    elif siddata.current_action == "wait_for_menu":
         key = data['key']
         siddata.menu.handle_key(key)
         return

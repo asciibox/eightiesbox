@@ -58,8 +58,17 @@ class MessageAreaChange(AreaChange):
             self.util.wait_with_message(self.access_callback)
             
         except (ValueError, IndexError):
-            self.util.output_wrap("Invalid counter. Please try again.", 7, 0)
+            self.util.output_wrap("Invalid counter.", 7, 0)
+            self.util.goto_next_line()
+            self.util.askYesNo("Do you want to stop creating a new message ?", self.invalid_counter_callback)
+        
+
+    def invalid_counter_callback(self, response):
+        if response.lower() == 'y':
+            self.exit()
+        else:
             self.show_message_areas()
+            
 
     def access_callback(self):
         if self.callback:  # Invoke the callback if it's set

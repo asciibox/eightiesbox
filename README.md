@@ -76,78 +76,87 @@ pip install ochre flask pymongo flask_socketio bcrypt
 ## Windows
 
 1. **Download MongoDB**
-    - Navigate to [MongoDB Community Download Page](https://www.mongodb.com/try/download/community).
-    - Download the installer suitable for your Windows version.
+
+   - Navigate to [MongoDB Community Download Page](https://www.mongodb.com/try/download/community).
+   - Download the installer suitable for your Windows version.
 
 2. **Installation**
-    - Run the installer.
-    - When prompted, choose to install MongoDB **without setting it up as a service**.
+
+   - Run the installer.
+   - When prompted, choose to install MongoDB **without setting it up as a service**.
 
 3. **Create Data Directory**
-    - Open the Command Prompt as an administrator.
-    - Run the following command to create a directory for MongoDB to store its data:
-      ```
-      mkdir C:\data
-      ```
+
+   - Open the Command Prompt as an administrator.
+   - Run the following command to create a directory for MongoDB to store its data:
+     ```
+     mkdir C:\data
+     ```
 
 4. **Run MongoDB**
-    - Navigate to the `bin` folder where `mongod.exe` is located, typically `C:\Program Files\MongoDB\Server\[version]\bin\`.
-    - Run `mongod.exe`.
+   - Navigate to the `bin` folder where `mongod.exe` is located, typically `C:\Program Files\MongoDB\Server\[version]\bin\`.
+   - Run `mongod.exe`.
 
 ## macOS
 
 1. **Download MongoDB**
-    - Visit [MongoDB Community Download Page](https://www.mongodb.com/try/download/community).
-    - Download the TGZ file.
+
+   - Visit [MongoDB Community Download Page](https://www.mongodb.com/try/download/community).
+   - Download the TGZ file.
 
 2. **Installation**
-    - Open the Terminal.
-    - Extract the downloaded TGZ file.
-    - Move the extracted files to the desired installation directory, e.g., `/usr/local/mongodb`.
+
+   - Open the Terminal.
+   - Extract the downloaded TGZ file.
+   - Move the extracted files to the desired installation directory, e.g., `/usr/local/mongodb`.
 
 3. **Create Data Directory**
-    - In the Terminal, run:
-      ```
-      mkdir -p /data/db
-      ```
+
+   - In the Terminal, run:
+     ```
+     mkdir -p /data/db
+     ```
 
 4. **Run MongoDB**
-    - Navigate to the `bin` folder inside your MongoDB installation directory.
-    - Run `./mongod`.
+   - Navigate to the `bin` folder inside your MongoDB installation directory.
+   - Run `./mongod`.
 
 ## Linux (Ubuntu)
 
 1. **Download MongoDB**
-    - Open Terminal.
-    - Import the MongoDB public key:
-      ```
-      wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add -
-      ```
-    - Create a list file for MongoDB:
-      ```
-      echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/4.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
-      ```
-    - Reload the package database:
-      ```
-      sudo apt-get update
-      ```
+
+   - Open Terminal.
+   - Import the MongoDB public key:
+     ```
+     wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add -
+     ```
+   - Create a list file for MongoDB:
+     ```
+     echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/4.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
+     ```
+   - Reload the package database:
+     ```
+     sudo apt-get update
+     ```
 
 2. **Installation**
-    - Install MongoDB:
-      ```
-      sudo apt-get install -y mongodb-org
-      ```
-    - **Important:** Do not start the MongoDB service.
+
+   - Install MongoDB:
+     ```
+     sudo apt-get install -y mongodb-org
+     ```
+   - **Important:** Do not start the MongoDB service.
 
 3. **Create Data Directory**
-    - Run:
-      ```
-      sudo mkdir -p /data/db
-      ```
+
+   - Run:
+     ```
+     sudo mkdir -p /data/db
+     ```
 
 4. **Run MongoDB**
-    - Navigate to the `bin` folder inside the MongoDB installation directory.
-    - Run `mongod`.
+   - Navigate to the `bin` folder inside the MongoDB installation directory.
+   - Run `mongod`.
 
 # Quickstart
 
@@ -162,7 +171,6 @@ Open the page using http://localhost:5000
 ## Accessing the BBS
 
 - **URL**: Open your web browser and navigate to [http://localhost:5000](http://localhost:5000).
-  
 - **Registration**: Register an account using the username `sysop` and set a secure password.
 
 ## Start Page and Resolution
@@ -211,3 +219,28 @@ After the initial oneliners, you'll be prompted to navigate to the menu editor. 
 - You can add more fields by utilizing the "Type" and the "Data" fields in the menu editor.
 - Enter the filenames in the `Data` field for the menus you'd like to navigate to. It's advisable to use uppercase filenames.
 
+# BBS advantages
+
+Setting up a BBS, is a legal and often hobbyist activity aimed at creating a community, fostering discussions, or sharing information.
+While it may be considered retro or unconventional given the current technological landscape, it's not criminal or harmful in the way that terrorist activities are.
+Rather than causing harm, many people find value in the more intimate, text-based interactions that BBSes offer, as well as the sense of community that they can provide.
+
+## Exploitative Data Practices of Major Tech Corporations
+
+The issue of data privacy and the ever-increasing monetization of user data by large tech companies is a growing concern for many people. In this context, BBSes could offer several advantages:
+
+### Privacy-Focused
+
+One of the distinct advantages of Bulletin Board Systems (BBS) is their focus on text-based communication, which inherently limits the amount of personal information being shared.
+Unlike mainstream social media platforms, where sharing images and videos is common, BBS users often communicate using only text.
+This reduces the likelihood of unintentional oversharing of personal or sensitive information, such as locations, faces, or other identifiable markers.
+
+Less Data Collection: Since BBSes are generally not commercial and don't rely on advertising for revenue, they have less incentive to collect user data.
+
+### No Profiling
+
+BBS operators generally don't have the means or the interest in performing detailed user profiling like large tech companies do.
+
+### Direct Ownership
+
+The data on a BBS usually resides in a single server, often owned by an individual or a small group, rather than being distributed across multiple data centers worldwide.

@@ -265,7 +265,7 @@ class ANSIEditor(BasicANSI):
             self.pressedF9 = not self.pressedF9 # Toggle the state of pressedF9
             return
 
-        elif key == 'F10':
+        elif key == 'F11':
             if self.foregroundColor < 8:
                 self.foregroundColor += 8
             else:

@@ -45,6 +45,13 @@ class SessionData:
         self.who_is_online = None
         self.util = None
         self.user_picker = None
+        self.incoming_requests = []
+        self.outgoing_requests = []
+        self.multi_line_chat = None
+        self.contacted_users = []
+        self.f10actionhandler = None
+        self.chat_partner = None
+        self.previous_action = None
 
     def move_cursor_up(self):
         self.menu_current_index = (self.menu_current_index - 1) % len(self.menu_items)
@@ -159,3 +166,9 @@ class SessionData:
 
     def setWhoIsOnline(self, value):
         self.who_is_online = value
+
+    def setMultilineChat(self, value):
+        self.multi_line_chat = value
+
+    def setF10ActionHandler(self, value):
+        self.f10actionhandler = value

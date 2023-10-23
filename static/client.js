@@ -6,11 +6,14 @@ let drawing = false;
 // Listen for 'draw' events from the server
 socket.on('draw', async (data) => {
     //console.log(data);
-    
-
     // console.log(data.ascii_codes+" currentColor:"+data.currentColor+" data.backgroundColor: "+data.backgroundColor+" data.x:"+data.x+" data.y:"+data.y);
     await writeAsciiHTMLPos(data.ascii_codes, data.currentColor, data.backgroundColor, data.x, data.y);
 });
+
+socket.on('draw_to_status_bar', async (data) => {
+    await writeAsciiToStatusBar(data.ascii_codes, data.currentColor, data.backgroundColor);
+});
+
 
 socket.on('initPage', (data) => {
     initPage(data);

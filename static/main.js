@@ -779,6 +779,39 @@ function clearLine(y) {
         }
     });
 }  
+
+
+
+function writeAsciiToStatusBar(ascii_codes, currentColor, backgroundColor) {
+    
+    return new Promise((resolve, reject) => {
+        console.log("writeASCIIHTMLPOS");
+        let x = 0;
+        let y = VISIBLE_HEIGHT_CHARACTERS-1;
+       
+       
+        try {
+           
+            for (var i = 0; i < ascii_codes.length; i++) {
+                var index = getCharIndex(currentColor, ascii_codes[i]);
+
+
+                draw(index, x + i, y, currentColor);
+                console.log(index);
+                var charIndex = getCharIndex(backgroundColor, 219);
+                drawbg(charIndex, x + i, y, backgroundColor);
+            }
+           
+            resolve();
+        } catch (error) {
+            reject(error);
+        }
+    });
+}  
+
+
+
+
   function backSpace() {
     /*'var index = getCharIndex(currentColor, 32);    
     bglayer.putTileAt(index, currentX-1, currentY);        

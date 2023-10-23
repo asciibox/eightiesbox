@@ -10,6 +10,7 @@ from menubox import MenuBox
 from messageareachange import MessageAreaChange
 from messagereader import MessageReader
 from whoisonline import WhoIsOnline
+from multilinechat import MultilineChat
 
 class Menu(BasicANSI):
     def __init__(self, util, values, num_rows, callback_on_exit):
@@ -86,6 +87,12 @@ class Menu(BasicANSI):
                         self.sid_data.setWhoIsOnline(who_is_online)
                         # Display online users
                         who_is_online.display_online_users()
+                        return
+                    elif action_code == "52":
+                        self.append_gosub()
+                        multi_line_chat = MultilineChat(self.util)
+                        self.sid_data.setMultilineChat(multi_line_chat)
+                        self.sid_data.multi_line_chat.ask_username()
                         return
                     elif action_code == "81":
                         

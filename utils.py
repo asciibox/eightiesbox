@@ -24,6 +24,7 @@ class Utils:
         self.list2 = mylist2
         self.Sauce = Sauce
         self.passwordRetries = 0
+        self.request_id = request_id
     
     def askinput(self, mylen, callback, accept_keys):
         if self.sid_data.startX + mylen >= self.sid_data.xWidth:
@@ -77,6 +78,16 @@ class Utils:
         self.sid_data.setStartX(self.sid_data.startX+mylen)
         self.sid_data.setCursorX(self.sid_data.startX+mylen)
         self.sid_data.setCursorY(self.sid_data.startY)
+        self.update_status_bar()
+
+    def update_status_bar(self):
+      
+        # Generate the status bar content based on pending_requests
+        status_bar = "Incoming Requests: "+str(len(self.sid_data.incoming_requests))+" - Press F10 for more"
+        status_content = status_bar+" "*(self.sid_data.xWidth-len(status_bar))
+
+        # Output the status bar content
+        self.emit_status_bar(status_content, 6, 4)
 
     def output_wrap(self, currentString, currentColor, backgroundColor):
         words = currentString.split(' ')  # Split the string by space to get individual words
@@ -306,7 +317,7 @@ class Utils:
 
 
     def emit_gotoXY(self, x, y):
-        sid = request.sid  # Get the Session ID
+        sid = self.request_id  # Get the Session ID
         self.socketio.emit('draw', {
                 'ascii_codes': [],
                 'x': x,
@@ -316,21 +327,22 @@ class Utils:
         self.sid_data.setCursorY(y)
 
     def clear_screen(self):
-        sid = request.sid  # Get the Session ID
+        sid = self.request_id  # Get the Session ID
         self.socketio.emit('clear', {}, room=sid)
 
     def clear_line(self, y):
-        sid = request.sid  # Get the Session ID
+        sid = self.request_id  # Get the Session ID
         self.socketio.emit('clearline', {'y': y}, room=sid)
 
     def emit_upload(self):
-        sid = request.sid  # Get the Session ID
+        sid = self.request_id  # Get the Session ID
         self.socketio.emit('upload', {}, room=sid)
 
     def emit_current_string(self, currentString, currentColor, backgroundColor, blink, x, y):
         #  input("Press Enter to continue...")
 
-        sid = request.sid  # Get the Session ID
+        sid = self.request_id  # Get the Session ID
+        # print("PRINTING "+currentString+" to "+sid)
         if currentString:
             ascii_codes = [ord(char) for char in currentString]
 
@@ -356,6 +368,31 @@ class Utils:
                 }, room=sid)
 
         return []
+
+    def emit_status_bar(self, currentString, currentColor, backgroundColor):
+        #  input("Press Enter to continue...")
+
+        sid = self.request_id  # Get the Session ID
+        if currentString:
+            ascii_codes = [ord(char) for char in currentString]
+
+            if self.sid_data.map_character_set == True:
+                mapped_ascii_codes = [self.map_value(code, self.list2, self.list1) for code in ascii_codes]
+                
+                self.socketio.emit('draw_to_status_bar', {
+                    'ascii_codes': mapped_ascii_codes,
+                    'currentColor': currentColor,
+                    'backgroundColor': backgroundColor
+                }, room=sid)
+            else:
+                self.socketio.emit('draw_to_status_bar', {
+                    'ascii_codes': ascii_codes,
+                    'currentColor': currentColor,
+                    'backgroundColor': backgroundColor
+                }, room=sid)
+
+        return []
+
 
     def keydown(self, key):
         # Ensure key is in the accepted keys
