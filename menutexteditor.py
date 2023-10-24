@@ -3,6 +3,15 @@ from ansieditor import *
 class MenuTextEditor(ANSIEditor):
     def __init__(self, util):
         super().__init__(util)
+        self.hotkeys_shown = False
+
+    def keypress_event(self):
+        if (self.current_line_x > 1):
+                self.draw_hotkeys()
+        else:
+            self.draw_first_two_characters()
+            self.hotkeys_shown = False
+        self.emit_gotoXY(self.current_line_x, self.current_line_index+1)
 
     def check_key_by_subclass(self, key):
         if key == 'ArrowRight':
@@ -12,6 +21,7 @@ class MenuTextEditor(ANSIEditor):
                 self.draw_hotkeys()
             else:
                 self.draw_first_two_characters()
+                self.hotkeys_shown = False
             self.emit_gotoXY(self.current_line_x, self.current_line_index+1)
             return True
 
@@ -24,6 +34,7 @@ class MenuTextEditor(ANSIEditor):
                 self.emit_gotoXY(self.current_line_x, self.current_line_index+1)
             else:
                 self.draw_first_two_characters()
+                self.hotkeys_shown = False
                 self.cursorX = self.current_line_x
                 self.cursorY = self.current_line_index
                 self.startX = self.current_line_x
@@ -39,6 +50,8 @@ class MenuTextEditor(ANSIEditor):
 
     # Display the key on the left
     def draw_hotkeys(self):
+        if self.hotkeys_shown == True:
+            return
         for line_index in range(0, len(self.sid_data.menu_box.values)):
            
             self.sid_data.setStartX(0)
@@ -50,6 +63,7 @@ class MenuTextEditor(ANSIEditor):
                 self.output(char_value+"|", 6, 4)
             else:
                 self.output(" |", 6, 4)
+        self.hotkeys_shown = True
 
     def draw_first_two_characters(self):
       

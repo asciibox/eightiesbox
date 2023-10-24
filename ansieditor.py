@@ -299,6 +299,7 @@ class ANSIEditor(BasicANSI):
 
         # Handle character input
         if len(key) == 1:
+            self.keypress_event()
             current_x = self.current_line_x
             #print("current_x:"+str(current_x))
             #print("self.current_line_index"+str(self.current_line_index))
@@ -388,6 +389,9 @@ class ANSIEditor(BasicANSI):
         self.sid_data.color_array[line_index][start_x + 1] = self.foregroundColor
         self.sid_data.color_bgarray[line_index][start_x + 1] = self.backgroundColor
 
+
+    def keypress_event(self):
+        pass
 
     def set_wait_for(self):
         self.sid_data.setCurrentAction("wait_for_ansieditor")
