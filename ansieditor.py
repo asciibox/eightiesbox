@@ -217,7 +217,7 @@ class ANSIEditor(BasicANSI):
             current_str = self.sid_data.input_values[self.current_line_index]
             
             if self.current_line_x <= len(current_str):  # Ensure the cursor is within the line length
-                current_x = self.current_line_x - 1
+                current_x = self.current_line_x
                 new_str = current_str[:current_x] + current_str[current_x + 1:]
 
                 # Assign the new string back to the list
