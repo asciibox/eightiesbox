@@ -138,6 +138,19 @@ class Utils:
             try:
                 if bcrypt.checkpw(input.encode('utf-8'), hashed_password_from_db):
                     self.goto_next_line()
+
+                    # Repopulate incoming_requests for the newly logged-in user
+                    username = self.sid_data.user_document["username"]
+                    for other_sid, other_sid_data in self.all_sid_data.items():
+                        for out_req in other_sid_data.outgoing_requests:
+                            if out_req['to'] == username:
+                                self.sid_data.incoming_requests.append({
+                                    'from': other_sid_data.user_document["username"],
+                                    'status': out_req['status'],
+                                    'sid_data': other_sid_data  # Store the sid_data of the request sender
+                                })
+
+                    # Now proceed to initialize OnelinerBBS
                     bbs = OnelinerBBS(self)
                     bbs.show_oneliners()
                 else:
