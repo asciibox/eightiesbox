@@ -14,10 +14,10 @@ class BasicANSI:
         self.sid_data = util.sid_data
         self.emit_gotoXY = util.emit_gotoXY
         self.util = util
-
-        self.color_array = None
-        self.color_bgarray = None
-        self.input_values = None
+            
+        self.color_array = util.sid_data.color_array
+        self.color_bgarray = util.sid_data.color_bgarray
+        self.input_values = util.sid_data.input_values
 
         pass
 
@@ -73,8 +73,6 @@ class BasicANSI:
         self.sid_data.setStartX(0)
         self.sid_data.setStartY(line_index+1)
         if line_index < len(self.input_values):
-            print(line_index)
-            print(self.input_values[line_index])
             self.output_with_color(0, line_index, self.input_values[line_index], None, 0)
         self.sid_data.setMapCharacterSet(False)
 
