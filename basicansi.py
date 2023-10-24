@@ -15,9 +15,17 @@ class BasicANSI:
         self.emit_gotoXY = util.emit_gotoXY
         self.util = util
 
+        self.color_array = None
+        self.color_bgarray = None
+        self.input_values = None
+
         pass
 
-    def display_editor(self):
+    def display_editor(self, color_array, color_bgarray, input_values):
+
+        self.color_array = color_array
+        self.color_bgarray = color_bgarray
+        self.input_values = input_values
         for idx in range(0, self.max_height):
             self.draw_line(idx)
         self.emit_gotoXY(0, 1)
@@ -29,8 +37,10 @@ class BasicANSI:
         # Display the input value with color 6
         self.sid_data.setStartX(0)
         self.sid_data.setStartY(line_index+1)
-        if line_index < len(self.sid_data.input_values):
-            self.output_with_color(0, line_index, self.sid_data.input_values[line_index], None, 0)
+        if line_index < len(self.input_values):
+            print(line_index)
+            print(self.input_values[line_index])
+            self.output_with_color(0, line_index, self.input_values[line_index], None, 0)
         self.sid_data.setMapCharacterSet(False)
 
 
@@ -48,14 +58,14 @@ class BasicANSI:
             cur_y = y
 
             # Safely get stored color for the current position
-            if cur_y < len(self.sid_data.color_array) and cur_x < len(self.sid_data.color_array[cur_y]):
-                stored_color = self.sid_data.color_array[cur_y][cur_x]
+            if cur_y < len(self.color_array) and cur_x < len(self.color_array[cur_y]):
+                stored_color = self.color_array[cur_y][cur_x]
             else:
                 stored_color = None
 
             # Safely get stored color for the current position
-            if cur_y < len(self.sid_data.color_bgarray) and cur_x < len(self.sid_data.color_bgarray[cur_y]):
-                stored_bgcolor = self.sid_data.color_bgarray[cur_y][cur_x]
+            if cur_y < len(self.color_bgarray) and cur_x < len(self.color_bgarray[cur_y]):
+                stored_bgcolor = self.color_bgarray[cur_y][cur_x]
             else:
                 stored_bgcolor = None
 
@@ -87,9 +97,9 @@ class BasicANSI:
         return self.ansi_string
 
     def draw_ansi_line(self, line_index):
-        print(str(line_index)+"<"+str(len(self.sid_data.input_values)))
-        if line_index < len(self.sid_data.input_values):
-            self.output_ansi_with_color(1, line_index, self.sid_data.input_values[line_index])
+        print(str(line_index)+"<"+str(len(self.input_values)))
+        if line_index < len(self.input_values):
+            self.output_ansi_with_color(1, line_index, self.input_values[line_index])
 
     def output_ansi_with_color(self, x, y, text):
         if not text:
@@ -105,13 +115,13 @@ class BasicANSI:
             cur_x = x + idx
             cur_y = y
             
-            if cur_y < len(self.sid_data.color_array) and cur_x < len(self.sid_data.color_array[cur_y]):
-                stored_color = self.sid_data.color_array[cur_y][cur_x]
+            if cur_y < len(self.color_array) and cur_x < len(self.color_array[cur_y]):
+                stored_color = self.color_array[cur_y][cur_x]
             else:
                 stored_color = None
 
-            if cur_y < len(self.sid_data.color_bgarray) and cur_x < len(self.sid_data.color_bgarray[cur_y]):
-                stored_bgcolor = self.sid_data.color_bgarray[cur_y][cur_x]
+            if cur_y < len(self.color_bgarray) and cur_x < len(self.color_bgarray[cur_y]):
+                stored_bgcolor = self.color_bgarray[cur_y][cur_x]
             else:
                 stored_bgcolor = None
 

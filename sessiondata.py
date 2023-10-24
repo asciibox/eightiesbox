@@ -8,6 +8,8 @@ class SessionData:
         self.callback = None
         self.color_array = []  # Initialize an empty 2D array
         self.color_bgarray = []  # Initialize an empty 2D array
+        self.copy_color_array = []  # Initialize an empty 2D array
+        self.copy_color_bgarray = []  # Initialize an empty 2D array
         self.currentPos = 0
         self.current_action = None
         self.cursorX = 0
@@ -18,6 +20,7 @@ class SessionData:
         self.maxLength = 0
         self.inputType = ''
         self.input_values = []
+        self.copy_input_values = []
         self.map_character_set = False
         self.menu = None
         self.menu_bar = None
@@ -52,6 +55,7 @@ class SessionData:
         self.f10actionhandler = None
         self.chat_partner = None
         self.previous_action = None
+        self.copy_action = True
 
     def move_cursor_up(self):
         self.menu_current_index = (self.menu_current_index - 1) % len(self.menu_items)

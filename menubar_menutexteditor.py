@@ -18,7 +18,7 @@ class MenuBarTextEditor(MenuBarANSIEditor):
         self.sid_data.setCurrentAction("wait_for_menutexteditor")
         self.sid_data.menutexteditor.clear_screen()
         self.sid_data.menutexteditor.update_first_line()
-        self.sid_data.menutexteditor.display_editor()
+        self.sid_data.menutexteditor.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values)
 
     def choose_field(self):
         if self.in_sub_menu:
@@ -57,7 +57,7 @@ class MenuBarTextEditor(MenuBarANSIEditor):
         self.sid_data.color_bgarray = []
 
         # Optionally, redraw the editor to reflect these changes on the screen
-        self.sid_data.menutexteditor.display_editor()
+        self.sid_data.menutexteditor.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values)
 
 
     def leave_ansi_editor(self):
@@ -69,7 +69,7 @@ class MenuBarTextEditor(MenuBarANSIEditor):
         self.sid_data.menutexteditor.max_height = len(self.sid_data.input_values)
         self.sid_data.menutexteditor.clear_screen()
         self.sid_data.menutexteditor.update_first_line()
-        self.sid_data.menutexteditor.display_editor()
+        self.sid_data.menutexteditor.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values)
         self.sid_data.setCurrentAction("wait_for_menutexteditor")
         self.sid_data.menutexteditor.current_line_x=0
         self.sid_data.menutexteditor.current_line_index=0

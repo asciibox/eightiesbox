@@ -112,6 +112,7 @@ class MultilineChat:
             self.util.sid_data.outgoing_requests.remove(to_remove)
 
         # Notify the user and start chat
+        self.util.sid_data.copy_action = False # TODO does not work
         self.util.output(f"Request from {from_username} has been ACCEPTED.", 6, 0)
         self.util.sid_data.setCurrentAction("in_chat")
 

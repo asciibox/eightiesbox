@@ -67,7 +67,7 @@ class ANSIEditor(BasicANSI):
     def start(self):
         self.clear_screen()
         self.update_first_line()
-        self.display_editor()
+        self.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values )
 
     def check_key_by_subclass(self, key):
         return
@@ -119,12 +119,12 @@ class ANSIEditor(BasicANSI):
                 self.sid_data.setCurrentAction("wait_for_messageeditor")
                 self.sid_data.message_editor.clear_screen()
                 self.sid_data.message_editor.update_first_line()
-                self.sid_data.message_editor.display_editor()
+                self.sid_data.message_editor.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values)
             elif self.sid_data.current_action == "wait_for_menubar_ansieditor":
                 self.sid_data.setCurrentAction("wait_for_ansieditor")
                 self.sid_data.ansi_editor.clear_screen()
                 self.sid_data.ansi_editor.update_first_line()
-                self.sid_data.ansi_editor.display_editor()
+                self.sid_data.ansi_editor.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values)
             elif self.sid_data.current_action == "wait_for_menubar_menueditor":
                 print("RETURNING FROM MENUEDITOR")
             elif self.sid_data.current_action == "wait_for_messageeditor":

@@ -24,22 +24,22 @@ class Menu(BasicANSI):
     def who_is_online_callback_on_exit(self):
         self.util.sid_data.setCurrentAction("wait_for_menu")
         self.util.clear_screen()
-        self.display_editor()
+        self.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values)
 
     def message_menu_callback_on_exit(self):
         self.util.sid_data.setCurrentAction("wait_for_menu")
         self.util.clear_screen()
-        self.display_editor()
+        self.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values)
 
     def user_editor_callback_on_exit(self):
         self.util.sid_data.setCurrentAction("wait_for_menu")
         self.util.clear_screen()
-        self.display_editor()
+        self.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values)
 
     def message_editor_callback_on_exit(self):
         self.util.sid_data.setCurrentAction("wait_for_menu")
         self.util.clear_screen()
-        self.display_editor()
+        self.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values)
 
     def handle_key(self, key):
         if key in ['AltGraph', 'Shift', 'Dead', 'CapsLock']:
@@ -200,7 +200,7 @@ class Menu(BasicANSI):
         self.sid_data.color_bgarray = last_state['color_bgarray']
         self.sid_data.input_values = last_state['input_values']
         self.util.clear_screen()
-        self.display_editor()
+        self.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values)
 
     def load_menu(self, filename):
 # Look for the filename in the database
@@ -248,7 +248,7 @@ class Menu(BasicANSI):
                 self.values[y] = row_data
                 
             self.util.clear_screen()
-            self.display_editor()
+            self.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values)
 
             
         else:

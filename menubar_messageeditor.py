@@ -52,7 +52,7 @@ class MenuBarMessageEditor(MenuBarANSIEditor):
         self.sid_data.color_bgarray = []
 
         # Optionally, redraw the editor to reflect these changes on the screen
-        self.sid_data.message_editor.display_editor()
+        self.sid_data.message_editor.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values)
 
     def send_message(self):
 

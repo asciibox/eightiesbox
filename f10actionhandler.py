@@ -75,6 +75,7 @@ class F10ActionHandler:
 
                     # Set current state to in_chat
                     self.util.sid_data.setCurrentAction("in_chat")
+                    self.util.sid_data.copy_action = False
                     self.statusinfo(f"You have accepted the request from {selected_user}")
                     break
 

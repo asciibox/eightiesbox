@@ -327,6 +327,10 @@ class Utils:
         self.sid_data.setCursorY(y)
 
     def clear_screen(self):
+        if self.sid_data.copy_action == True:
+            self.sid_data.copy_color_bgarray=[]
+            self.sid_data.copy_color_array=[]
+            self.sid_data.copy_input_values=[]
         sid = self.request_id  # Get the Session ID
         self.socketio.emit('clear', {}, room=sid)
 
@@ -342,8 +346,12 @@ class Utils:
         #  input("Press Enter to continue...")
 
         sid = self.request_id  # Get the Session ID
-        # print("PRINTING "+currentString+" to "+sid)
+        #print(currentString)
+        #print(" to "+str(y))
         if currentString:
+            if self.sid_data.copy_action == True:
+                self.emit_current_string_2copy(currentString, currentColor, backgroundColor, blink, x, y)
+
             ascii_codes = [ord(char) for char in currentString]
 
             if self.sid_data.map_character_set == True:
@@ -710,37 +718,37 @@ class Utils:
         
         return string
 
-    def set_color_at_position(self, x, y, color, bgcolor):
+    def set_color_at_position(self, x, y, color, bgcolor, color_array, color_bgarray):
         #print(f"Setting color at position: X={x}, Y={y}")
         
         # Expand the outer list (for y coordinate) as required
-        while len(self.sid_data.color_array) <= y:
-            self.sid_data.color_array.append([])
-            #print(f"Expanding outer list to {len(self.sid_data.color_array)} due to Y={y}")
+        while len(color_array) <= y:
+            color_array.append([])
+            #print(f"Expanding outer list to {len(color_array)} due to Y={y}")
             
         # Now, expand the inner list (for x coordinate) as required
-        while len(self.sid_data.color_array[y]) <= x:
-            self.sid_data.color_array[y].append(None)
-            #print(f"Expanding inner list at Y={y} to {len(self.sid_data.color_array[y])} due to X={x}")
+        while len(color_array[y]) <= x:
+            color_array[y].append(None)
+            #print(f"Expanding inner list at Y={y} to {len(color_array[y])} due to X={x}")
 
         # Print current size
-        #print(f"Current size of color_array: Width={len(self.sid_data.color_array[y])}, Height={len(self.sid_data.color_array)}")
+        #print(f"Current size of color_array: Width={len(color_array[y])}, Height={len(color_array)}")
 
         # Do the same for the background color array
-        while len(self.sid_data.color_bgarray) <= y:
-            self.sid_data.color_bgarray.append([])
-            #print(f"Expanding outer bg list to {len(self.sid_data.color_bgarray)} due to Y={y}")
+        while len(color_bgarray) <= y:
+            color_bgarray.append([])
+            #print(f"Expanding outer bg list to {len(color_bgarray)} due to Y={y}")
             
-        while len(self.sid_data.color_bgarray[y]) <= x:
-            self.sid_data.color_bgarray[y].append(None)
-            #print(f"Expanding inner bg list at Y={y} to {len(self.sid_data.color_bgarray[y])} due to X={x}")
+        while len(color_bgarray[y]) <= x:
+            color_bgarray[y].append(None)
+            #print(f"Expanding inner bg list at Y={y} to {len(color_bgarray[y])} due to X={x}")
 
         # Print current size of bg array
-        #print(f"Current size of color_bgarray: Width={len(self.sid_data.color_bgarray[y])}, Height={len(self.sid_data.color_bgarray)}")
+        #print(f"Current size of color_bgarray: Width={len(color_bgarray[y])}, Height={len(color_bgarray)}")
 
         # Set the color and background color at the given coordinates
-        self.sid_data.color_array[y][x] = color
-        self.sid_data.color_bgarray[y][x] = bgcolor
+        color_array[y][x] = color
+        color_bgarray[y][x] = bgcolor
 
         # Print successful setting of color
         #print(f"Successfully set color {color} and bgcolor {bgcolor} at X={x}, Y={y}")
@@ -770,12 +778,44 @@ class Utils:
             # Assign the new string back to the list
             self.sid_data.input_values[current_y] = new_str
 
-            self.set_color_at_position(current_x+1, current_y, currentColor, backgroundColor)
+            self.set_color_at_position(current_x+1, current_y, currentColor, backgroundColor, self.sid_data.color_array, self.sid_data.color_bgarray)
             
             #if self.current_line_x+1 < self.sid_data.xWidth:
             current_x = current_x+1
         return []
     
+    def emit_current_string_2copy(self, currentString, currentColor, backgroundColor, blink, current_x, current_y):
+            current_y -= 1
+            if (current_x < 0):
+                current_x = 0
+            if (current_y < 0):
+                current_y = 0
+            for key in currentString:
+                while len(self.sid_data.copy_input_values) <= current_y:
+                    self.sid_data.copy_input_values.append("")
+
+                if not self.sid_data.copy_input_values[current_y]:
+                    self.sid_data.copy_input_values[current_y] = ""
+                # Get the current string at the specified line index
+                current_str = self.sid_data.copy_input_values[current_y]
+                # Check if the length of current_str[:current_x] is shorter than the position of current_x
+                if len(current_str) <= current_x:
+                    # Pad current_str with spaces until its length matches current_x
+                    current_str += ' ' * (current_x - len(current_str) + 1)
+
+                # Construct a new string with the changed character
+                new_str = current_str[:current_x] + key + current_str[current_x + 1:]
+
+                # Assign the new string back to the list
+                self.sid_data.copy_input_values[current_y] = new_str
+
+                self.set_color_at_position(current_x+1, current_y, currentColor, backgroundColor, self.sid_data.copy_color_array, self.sid_data.copy_color_bgarray)
+                # print("current_y:"+str(current_y))
+                #if self.current_line_x+1 < self.sid_data.xWidth:
+                current_x = current_x+1
+            return []
+    
+
     def format_filename(self, filename):
         filename = filename.upper()
         if '.' in filename:
