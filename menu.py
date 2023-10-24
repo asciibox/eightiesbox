@@ -24,22 +24,27 @@ class Menu(BasicANSI):
     def who_is_online_callback_on_exit(self):
         self.util.sid_data.setCurrentAction("wait_for_menu")
         self.util.clear_screen()
-        self.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values)
+        self.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values, self.values)
 
     def message_menu_callback_on_exit(self):
         self.util.sid_data.setCurrentAction("wait_for_menu")
         self.util.clear_screen()
-        self.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values)
+        self.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values, self.values)
 
     def user_editor_callback_on_exit(self):
         self.util.sid_data.setCurrentAction("wait_for_menu")
         self.util.clear_screen()
-        self.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values)
+        self.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values, self.values)
 
     def message_editor_callback_on_exit(self):
         self.util.sid_data.setCurrentAction("wait_for_menu")
         self.util.clear_screen()
-        self.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values)
+        self.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values, self.values)
+
+    def set_wait(self):
+        self.util.sid_data.setCurrentAction("wait_for_menu")
+        self.util.clear_screen()
+        self.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values, self.values)
 
     def handle_key(self, key):
         if key in ['AltGraph', 'Shift', 'Dead', 'CapsLock']:
@@ -110,23 +115,33 @@ class Menu(BasicANSI):
                     elif action_code == "84":         
                         # Example usage:
                         # Replace 'util' with your actual utility object
-                        self.append_gosub()
-                        self.sid_data.setANSIEditor(ANSIEditor(self.util))
+                        if self.sid_data.xWidth < 50:
+                            self.util.output("Your screen resolution is too low", 1, 0)
+                            self.util.goto_next_line()
+                            self.util.wait_with_message(self.set_wait)
+                        else:
+                            self.append_gosub()
+                            self.sid_data.setANSIEditor(ANSIEditor(self.util))
 
-                        self.sid_data.setCurrentAction("wait_for_ansieditor")
-                        # Clear the editor
-                        self.sid_data.input_values = []
-                        self.sid_data.color_array = []
-                        self.sid_data.color_bgarray = []
-                        self.sid_data.ansi_editor.start()
+                            self.sid_data.setCurrentAction("wait_for_ansieditor")
+                            # Clear the editor
+                            self.sid_data.input_values = []
+                            self.sid_data.color_array = []
+                            self.sid_data.color_bgarray = []
+                            self.sid_data.ansi_editor.start()
                         return
                     elif action_code == "85":        
                         # Example usage:
-                        # Replace 'util' with your actual utility object
-                        self.sid_data.setMenuBox(MenuBox(self.util))
-                        self.sid_data.setCurrentAction("wait_for_menubox")
-                        self.sid_data.menu_box.clear_screen()
-                        self.sid_data.menu_box.draw_all_rows()
+                        if self.sid_data.xWidth < 50:
+                            self.util.output("Your screen resolution is too low", 1,0)
+                            self.util.goto_next_line()
+                            self.util.wait_with_message(self.set_wait)
+                        else:
+                            # Replace 'util' with your actual utility object
+                            self.sid_data.setMenuBox(MenuBox(self.util))
+                            self.sid_data.setCurrentAction("wait_for_menubox")
+                            #self.sid_data.menu_box.clear_screen()
+                            #self.sid_data.menu_box.draw_all_rows()
                         return
 
                     # Gosub menu
@@ -200,7 +215,7 @@ class Menu(BasicANSI):
         self.sid_data.color_bgarray = last_state['color_bgarray']
         self.sid_data.input_values = last_state['input_values']
         self.util.clear_screen()
-        self.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values)
+        self.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values, self.values)
 
     def load_menu(self, filename):
 # Look for the filename in the database
@@ -248,7 +263,7 @@ class Menu(BasicANSI):
                 self.values[y] = row_data
                 
             self.util.clear_screen()
-            self.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values)
+            self.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values, self.values)
 
             
         else:

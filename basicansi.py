@@ -21,14 +21,49 @@ class BasicANSI:
 
         pass
 
-    def display_editor(self, color_array, color_bgarray, input_values):
+    def display_editor(self, color_array, color_bgarray, input_values, menu_values):
 
-        self.color_array = color_array
-        self.color_bgarray = color_bgarray
-        self.input_values = input_values
-        for idx in range(0, self.max_height):
-            self.draw_line(idx)
-        self.emit_gotoXY(0, 1)
+        if self.sid_data.xWidth < 50:
+            self.util.clear_screen()
+            self.util.sid_data.startX  = 0
+            self.util.sid_data.startY  = 0
+            for line_index in range(0, self.max_height):
+                action_value = menu_values[line_index][0]  # Assuming 'Key' field is the character.
+                if len(str(action_value))==2:
+                    char_value = menu_values[line_index][2]  # Assuming 'Key' field is the character.
+                    self.util.output(char_value, 6, 0)
+                    self.util.output(" ", 6,0)
+                    self.display_menu_name(int(action_value[0]), int(action_value[1]), self.util.menu_structure)
+                    self.util.goto_next_line()
+
+        else:
+            self.color_array = color_array
+            self.color_bgarray = color_bgarray
+            self.input_values = input_values
+            for idx in range(0, self.max_height):
+                self.draw_line(idx)
+            self.emit_gotoXY(0, 1)
+
+    def display_menu_name(self, first_field, second_field, menu_structure):
+        # Validate first_field and second_field
+        menu_keys = list(menu_structure.keys())
+        if first_field < 0 or first_field >= len(menu_keys):
+            self.util.output("text: Invalid first_field "+str(first_field), 6, 0)
+            return
+
+        menu_name = menu_keys[first_field]
+        submenu = menu_structure[menu_name]
+
+        second_field = second_field - 1
+
+        if second_field < 0 or second_field >= len(submenu):
+            self.util.output("text: Invalid second_field"+str(second_field), 6, 0)
+            return
+
+        submenu_name = submenu[second_field]
+
+        # Output the menu name and submenu name
+        self.util.output(f"{submenu_name}", 6, 0)
 
 
     def draw_line(self, line_index):

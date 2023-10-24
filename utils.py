@@ -15,7 +15,7 @@ import os
 from menu import *
 
 class Utils:
-    def __init__(self, sio, my_client, mylist1, mylist2, sdata, Sauce, request_id):
+    def __init__(self, sio, my_client, mylist1, mylist2, sdata, Sauce, request_id, menu_structure):
         self.socketio = sio
         self.mongo_client = my_client
         self.sid_data = sdata.get(request_id)
@@ -25,6 +25,7 @@ class Utils:
         self.Sauce = Sauce
         self.passwordRetries = 0
         self.request_id = request_id
+        self.menu_structure = menu_structure
     
     def askinput(self, mylen, callback, accept_keys):
         if self.sid_data.startX + mylen >= self.sid_data.xWidth:
@@ -59,7 +60,7 @@ class Utils:
 
     def askYesNo(self, question, callback):
         self.sid_data.setCurrentAction("wait_for_yes_no")
-        self.emit_current_string(question+" (Y/N)", 6, 0, False, self.sid_data.startX, self.sid_data.startY)
+        self.output_wrap(question+" (Y/N)", 6, 0)
         self.sid_data.setCallback(callback)
 
     def wait(self, callback):
@@ -83,7 +84,11 @@ class Utils:
     def update_status_bar(self):
       
         # Generate the status bar content based on pending_requests
-        status_bar = "Incoming Requests: "+str(len(self.sid_data.incoming_requests))+" - Press F10 for more"
+        status_bar = "Incoming Requests: "+str(len(self.sid_data.incoming_requests))
+        if self.sid_data.xWidth > 50:
+            status_bar += " - Press F10 for more"
+        else:
+            status_bar += " F10"
         status_content = status_bar+" "*(self.sid_data.xWidth-len(status_bar))
 
         # Output the status bar content

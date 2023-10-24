@@ -787,7 +787,12 @@ function writeAsciiToStatusBar(ascii_codes, currentColor, backgroundColor) {
     return new Promise((resolve, reject) => {
         console.log("writeASCIIHTMLPOS");
         let x = 0;
-        let y = VISIBLE_HEIGHT_CHARACTERS-1;
+        let y;
+        if (VISIBLE_WIDTH_CHARACTERS>50) {
+            y = VISIBLE_HEIGHT_CHARACTERS-1;
+        } else {
+            y = VISIBLE_HEIGHT_CHARACTERS+1;
+        }
        
        
         try {
@@ -841,6 +846,8 @@ function writeAsciiToStatusBar(ascii_codes, currentColor, backgroundColor) {
 
 
   function clearScreen() {
+    removedYChars=0;
+    maxReachedY=0;
     var index = getCharIndex(0, 32);
     for (var x = 0; x < TOTAL_WIDTH; x++) {
         for (var y = 0; y < TOTAL_HEIGHT_CHARACTERS; y++) {

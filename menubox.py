@@ -36,18 +36,7 @@ class MenuBox:
 
         # self.sid_data.setMenu(Menu(self.util, self.sid_data.menu_box.values, self.sid_data.menu_box.num_rows, self.simulate_callback_on_exit))
 
-        self.menu_structure = {
-            'Goto & Gosub': ['Goto new menu', 'Gosub new menu', 'Return from gosub'],
-            'Message base': ['Read message', 'Write message', 'Area change'],
-            'File base': ['Download files', 'Upload files', 'List files', 'Select file area'],
-            'User options': ['Change password', 'Change email', 'Change interests/hobbies'],
-            'Login/Logout': ['Logout', 'Show oneliners'],
-            'Multiline options': ['Users online', 'Chat between nodes', 'Add conference', 'Join conference', 'Delete conference'],
-            'Display text': ['Display ANS / ASC', 'Display ANS / ASC and wait'],
-            'BBS List': ['Long list display', 'Short list display', 'Add BBS'],
-            'Administration': ['Setup message areas', 'Setup file base', 'User editor', 'ANSI Editor', 'Menu editor']
-        }
-
+        
     def get_value_for_field_and_row(self, field, row_idx):
         field_idx = self.fields.index(field)
         return self.values[row_idx][field_idx]
@@ -189,7 +178,7 @@ class MenuBox:
             if len(value) == 2 and value.isnumeric():
                 self.current_main_index = int(value[0])
                 self.current_sub_index = int(value[1])-1                
-                self.current_sub_menu = self.menu_structure[list(self.menu_structure.keys())[self.current_main_index]]
+                self.current_sub_menu = self.util.menu_structure[list(self.util.menu_structure.keys())[self.current_main_index]]
                 self.in_sub_menu = True
                 self.draw_main_menu()
                 self.draw_sub_menu()
@@ -207,7 +196,7 @@ class MenuBox:
         self.draw_main_menu()
 
     def main_arrow_down(self):
-        if self.current_main_index < len(self.menu_structure) - 1:
+        if self.current_main_index < len(self.util.menu_structure) - 1:
             self.current_main_index += 1
         self.draw_main_menu()
 
@@ -221,8 +210,8 @@ class MenuBox:
 
     def show_sub_menu(self):
         self.in_sub_menu = True
-        selected_main_menu = list(self.menu_structure.keys())[self.current_main_index]
-        self.current_sub_menu = self.menu_structure[selected_main_menu]
+        selected_main_menu = list(self.util.menu_structure.keys())[self.current_main_index]
+        self.current_sub_menu = self.util.menu_structure[selected_main_menu]
         self.current_sub_index = 0  # Resetting sub menu index
         self.draw_sub_menu()
 
@@ -250,7 +239,7 @@ class MenuBox:
         
     def hide_sub_menu(self):
         self.in_sub_menu = False
-        num_categories = len(self.menu_structure)  # Dynamic number of categories
+        num_categories = len(self.util.menu_structure)  # Dynamic number of categories
         for row_idx in range(min(num_categories, len(self.values))):
             self.draw_row(row_idx)
         self.draw_main_menu()
@@ -260,7 +249,7 @@ class MenuBox:
         # You can implement this by setting spaces (' ') where the text was. 
         # (Or you can implement it your way)
         self.sid_data.setCurrentAction("wait_for_menubox")
-        num_categories = len(self.menu_structure)  # Dynamic number of categories
+        num_categories = len(self.util.menu_structure)  # Dynamic number of categories
         for row_idx in range(min(num_categories, len(self.values))):
             self.draw_row(row_idx)
         pass
@@ -271,7 +260,7 @@ class MenuBox:
         self.sid_data.setStartY(1)
 
         # Iterate over main menu items and display them
-        for idx, item in enumerate(self.menu_structure.keys()):
+        for idx, item in enumerate(self.util.menu_structure.keys()):
             color = 14 if idx == self.current_main_index else 0  # Highlight current row with color 14
             self.output(item.ljust(20), 7, color)  # Using 20 spaces for each menu item
             self.sid_data.setStartX(0) 
@@ -291,7 +280,7 @@ class MenuBox:
 
     def get_selected_main_menu(self):
         # Convert dictionary keys to a list and then return the item at the current index
-        return list(self.menu_structure.keys())[self.current_main_index]
+        return list(self.util.menu_structure.keys())[self.current_main_index]
 
     def new_menu(self):
         for row in self.values:
