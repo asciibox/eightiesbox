@@ -58,6 +58,7 @@ class Menu(BasicANSI):
         if len(key) == 1:  # Check if it's a single character input
             print(key)
             for row_idx in range(self.num_rows):
+                print(self.values[row_idx])
                 if  self.values[row_idx][2].lower()==key:
                     # Mimic switch statement for values "00" and "01"
                     action_code = self.values[row_idx][0]
@@ -216,9 +217,21 @@ class Menu(BasicANSI):
         self.sid_data.input_values = last_state['input_values']
         self.util.clear_screen()
         self.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values, self.values)
+ 
+    def convert_keys_to_int(self, data):
+            for item in data:
+                row_data = item['row_data']
+                new_row_data = {}
+                for key, value in row_data.items():
+                    if isinstance(key, str) and key.isdigit():
+                        new_row_data[int(key)] = value
+                    else:
+                        new_row_data[key] = value
+                item['row_data'] = new_row_data
+            return data
 
     def load_menu(self, filename):
-# Look for the filename in the database
+    # Look for the filename in the database
         db = self.util.mongo_client["bbs"]  # You can replace "mydatabase" with the name of your database
         collection = db["menufiles"]
 
@@ -230,7 +243,8 @@ class Menu(BasicANSI):
             
             # Retrieve the saved MenuBox data
             menu_box_data = file_data.get("menu_box_data", {})
-            
+            converted_values = self.convert_keys_to_int(menu_box_data.get("values", []))
+            menu_box_data["values"] = converted_values       
             # Populate the fields
             #self.sid_data.menu_box.fields = menu_box_data.get("fields", [])
             

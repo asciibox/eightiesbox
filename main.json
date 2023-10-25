@@ -1,0 +1,68 @@
+{
+    "table": [
+        {
+            "Type": "13",
+            "Data": "",
+            "Key": "A",
+            "Sec": "",
+            "Flags": ""
+        },
+        {
+            "Type": "11",
+            "Data": "",
+            "Key": "R",
+            "Sec": "",
+            "Flags": ""
+        },
+        {
+            "Type": "12",
+            "Data": "",
+            "Key": "W",
+            "Sec": "",
+            "Flags": ""
+        },
+        {
+            "Type": "51",
+            "Data": "",
+            "Key": "?",
+            "Sec": "",
+            "Flags": ""
+        },
+        {
+            "Type": "52",
+            "Data": "",
+            "Key": "C",
+            "Sec": "",
+            "Flags": ""
+        },
+        {
+            "Type": "81",
+            "Data": "",
+            "Key": "1",
+            "Sec": "",
+            "Flags": ""
+        },
+        {
+            "Type": "83",
+            "Data": "",
+            "Key": "2",
+            "Sec": "",
+            "Flags": ""
+        },
+        {
+            "Type": "84",
+            "Data": "",
+            "Key": "3",
+            "Sec": "",
+            "Flags": ""
+        },
+        {
+            "Type": "85",
+            "Data": "",
+            "Key": "4",
+            "Sec": "",
+            "Flags": ""
+        }
+    ],
+    "ansi_data": "G1swbRtbMTsySCAbWzE7MzdtG1s0MG0gG1syMjszN20bWzQwbVtBXSBNZXNzYWdlIGJhc2UgYXJlYSBjaGFuZ2UbWzBtG1syOzJIIBtbMjI7MzdtG1s0MG0gW1JdIFJlYWQgbWVzc2FnZXMbWzBtG1szOzJIIBtbMjI7MzdtG1s0MG0gW1ddIFdyaXRlIG1lc3NhZ2VzG1swbRtbNDsySCAbWzIyOzM3bRtbNDBtICAbWzBtG1s1OzJIIBtbMjI7MzdtG1s0MG0gWz9dIFdobyBpcyBvbmxpbmUbWzBtG1s2OzJIIBtbMjI7MzdtG1s0MG0gW0NdIENoYXQgYmV0d2VlbiBsaW5lcxtbMG0bWzg7MkggG1syMjszN20bWzQwbSBbMV0gU2V0dXAgbWVzc2FnZSBhcmVhcxtbMG0bWzk7MkggG1syMjszN20bWzQwbSBbMl0gTWVzc2FnZSBlZGl0b3IbWzBtG1sxMDsySCAbWzIyOzM3bRtbNDBtIFszXSBBTlNJIEVkaXRvchtbMG0bWzExOzJIIBtbMjI7MzdtG1s0MG0gWzRdIE1lbnUgZWRpdA=="
+}

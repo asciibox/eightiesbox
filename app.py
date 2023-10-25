@@ -48,6 +48,52 @@ menu_structure = {
         }
 
 
+def load_json_data():
+    with open("main.json", "r") as f:
+        return json.load(f)
+
+def create_main_menus():
+    global mongo_client
+    num_rows = 50
+    fields = ['Type', 'Data', 'Key', 'Sec', 'Flags']
+    values = [["" for _ in fields] for _ in range(num_rows)]
+
+    json_data = load_json_data()
+
+    collection = mongo_client.bbs.menufiles  # Replace with the actual MongoDB database and collection
+
+    # Check if file already exists
+    existing_file = collection.find_one({"filename": 'MAIN.MNU'})
+    if existing_file:
+        return
+
+    non_empty_values = [
+        {"y": index, "row_data": {str(fields.index(key)): value for key, value in row.items()}}
+        for index, row in enumerate(json_data["table"])
+    ]
+
+    print("NON_EMPTY_VALUES")
+    print(non_empty_values)
+    # Save the new file
+    menu_box_data = {
+        "fields": fields,
+        "values": non_empty_values,
+    }
+
+    new_file_data = {
+        "filename": 'MAIN.MNU',
+        "menu_box_data": menu_box_data,
+        "ansi_code_base64": json_data.get("ansi_data", "")  # Assuming ansi_data is the field in your JSON
+        # Add other file details here
+    }
+
+    collection.insert_one(new_file_data)
+
+
+
+
+create_main_menus()
+
 target_values = [223, 176, 177, 178, 220, 191, 250]
 for i, value in enumerate(list2):
     if value in target_values:
@@ -501,6 +547,9 @@ def handle_keypress(data):
         elif len(key) == 1:
             siddata.util.keydown(key)
             
+
+
+
 
 
 if __name__ == '__main__':

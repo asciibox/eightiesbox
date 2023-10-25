@@ -46,8 +46,6 @@ class MenuBox:
         
         # Check if we need to apply the special formatting logic
         type_field_value = self.get_value_for_field_and_row("Type", self.current_row_index)
-        print(field)
-        print(type_field_value)
         if field == "Data" and (type_field_value == "00" or type_field_value == "01"):
             value = self.util.format_filename(value)
         #prnt("FILENAME:"+value)

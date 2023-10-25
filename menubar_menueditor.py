@@ -166,6 +166,17 @@ class MenuBarMenuEditor(MenuBar):
         self.sid_data.setCurrentAction("wait_for_menubox")
         self.in_sub_menu = False
 
+    def convert_keys_to_int(self, data):
+        for item in data:
+            row_data = item['row_data']
+            new_row_data = {}
+            for key, value in row_data.items():
+                if isinstance(key, str) and key.isdigit():
+                    new_row_data[int(key)] = value
+                else:
+                    new_row_data[key] = value
+            item['row_data'] = new_row_data
+        return data
 
     def load_filename_callback(self, entered_filename):
         if entered_filename=='':
@@ -184,7 +195,11 @@ class MenuBarMenuEditor(MenuBar):
             
             # Retrieve the saved MenuBox data
             menu_box_data = file_data.get("menu_box_data", {})
-            
+
+            # Convert keys in row_data to integers
+            converted_values = self.convert_keys_to_int(menu_box_data.get("values", []))
+            menu_box_data["values"] = converted_values       
+            print(menu_box_data["values"])
             # Populate the fields
             self.sid_data.menu_box.fields = menu_box_data.get("fields", [])
             
