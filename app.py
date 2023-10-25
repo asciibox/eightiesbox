@@ -329,6 +329,9 @@ def handle_keypress(data):
         elif key == 'Delete':
             siddata.menu_box.delete_current_row()
 
+        elif key == 'F1':
+            siddata.menu_box.draw_all_rows_and_output_json()
+
         elif key == 'Escape':
             sub_menus = {
                 'File': ['Load menu', 'Save menu', 'New menu', 'Delete menu'],

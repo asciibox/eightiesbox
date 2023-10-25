@@ -1,4 +1,7 @@
 from menubar_menueditor import MenuBarMenuEditor
+from menutexteditor import MenuTextEditor
+import json
+import base64
 
 class MenuBox:
     def __init__(self, util):
@@ -37,10 +40,7 @@ class MenuBox:
         # self.sid_data.setMenu(Menu(self.util, self.sid_data.menu_box.values, self.sid_data.menu_box.num_rows, self.simulate_callback_on_exit))
 
         
-    def get_value_for_field_and_row(self, field, row_idx):
-        field_idx = self.fields.index(field)
-        return self.values[row_idx][field_idx]
-  
+    
     def update_item(self, field, value):
         """Update a field's value and redraw the row."""
         
@@ -56,13 +56,16 @@ class MenuBox:
         
         self.draw_row(self.current_row_index)
 
-    # draws all menu box menu points, like  key, content, security, flags
-    def draw_all_rows(self):
-        """Draw all rows at once. Useful for the initial rendering."""
-        
+    def get_field_widths(self):
         separator_total_width = 3 * (len(self.fields) - 1)  # " | " is 3 chars wide
         total_field_length = sum(self.fields_length)
         field_widths = [(length / total_field_length) * (self.sid_data.xWidth - separator_total_width) for length in self.fields_length]
+        return field_widths
+
+    # draws all menu box menu points, like key, content, security, flags
+    def draw_all_rows(self):
+        """Draw all rows at once. Useful for the initial rendering."""
+              
 
         # Store startX for each field for use in edit_field
         self.field_startX = []
@@ -71,7 +74,7 @@ class MenuBox:
         self.sid_data.setStartX(0)
         self.sid_data.setStartY(0)
         # Create header using a loop
-        for idx, (field, width) in enumerate(zip(self.fields, field_widths)):
+        for idx, (field, width) in enumerate(zip(self.fields, self.get_field_widths())):
             self.field_startX.append(startX)  # Store this coordinate for use in edit_field
 
             formatted_field = f"{field: <{int(width)}}"
@@ -90,6 +93,11 @@ class MenuBox:
     def delete_current_row(self):
         self.values[self.current_row_index] = [''] * len(self.fields)
         self.draw_row(self.current_row_index)
+
+
+    def get_value_for_field_and_row(self, field, row_idx):
+        field_idx = self.fields.index(field)
+        return self.values[row_idx][field_idx]
 
 
     def draw_row(self, row_idx):
@@ -293,4 +301,49 @@ class MenuBox:
         self.draw_row(self.current_row_index)  # Redraw the updated row
         self.draw_all_rows()
 
+    
+    def draw_all_rows_and_output_json(self):
+        """Draw all rows and output relevant JSON."""
+      
+        # List to store the table data
+        table_data = []
+
+        # Iterate over the rows
+        for row_idx in range(len(self.values)):
             
+            # Dictionary to store the row data
+            row_data = {}
+
+            # Calculate total width consumed by separators
+            separator_total_width = 3 * (len(self.fields) - 1)  # " | " is 3 chars wide
+
+            # Calculate the sum of the field lengths
+            total_field_length = sum(self.fields_length)
+
+            # Calculate individual field widths as a percentage of total width
+            field_widths = [(length / total_field_length) * (self.sid_data.xWidth - separator_total_width) for length in self.fields_length]
+
+            for field_idx, (field, width) in enumerate(zip(self.fields, field_widths)):
+                value = self.get_value_for_field_and_row(field, row_idx)
+                formatted_field = f"{value: <{int(width)}}".strip()  # Stripping whitespace for better JSON format
+
+                # Storing the formatted value in the row_data dictionary
+                row_data[field] = formatted_field
+
+            # Append the row data to the table data only if not all fields are empty
+            if not all(val == "" for val in row_data.values()):
+                table_data.append(row_data)
+
+        self.sid_data.setMenuTextEditor(MenuTextEditor(self.util))
+        ansi_code = self.sid_data.menutexteditor.display_ansi()
+        ansi_code_bytes = ansi_code.encode('utf-8')
+        ansi_code_base64 = base64.b64encode(ansi_code_bytes).decode('ascii')
+
+        # Overall JSON structure including the table data and ansi_data
+        result_data = {
+            "table": table_data,
+            "ansi_data": ansi_code_base64  # Replace with the actual ANSI string or data if needed
+        }
+   
+
+        print (json.dumps(result_data, indent=4))
