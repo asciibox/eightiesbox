@@ -10,9 +10,16 @@ class MultilineChat:
         self.stop_waiting = False
     
     def ask_username(self):
-        self.util.output("User you want to chat with: ", 6, 0)
-        self.util.ask(40, self.to_input_callback)
-        
+        if self.count_online_users()>1:
+            self.util.output("User you want to chat with: ", 6, 0)
+            self.util.ask(40, self.to_input_callback)
+        else:
+            self.util.output("No users onlne, pleaes wait", 1, 0)
+            self.util.goto_next_line()
+            self.util.wait_with_message(self.exit)
+    
+    
+
     def to_input_callback(self, response):
         db = self.util.mongo_client['bbs']
         users_collection = db['users']
@@ -24,6 +31,13 @@ class MultilineChat:
             self.goto_user_picker(response)
         else:
             self.request_chat(response)
+
+    def count_online_users(self):
+        online_count = 0
+        for sid, sid_data in self.util.all_sid_data.items():
+            if sid_data.user_document:  # Checks if the user is logged in
+                online_count += 1
+        return online_count
 
     def request_chat(self, username):
         # Record the chat request in the requester's sid_data
