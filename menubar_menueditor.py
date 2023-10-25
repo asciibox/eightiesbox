@@ -48,12 +48,14 @@ class MenuBarMenuEditor(MenuBar):
         self.sid_data.menu_box.menu_stack = []  # Initialize the menu stack
 
         self.util.clear_screen()
-        self.sid_data.menu.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values)
+        self.sid_data.menu.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values, self.util.sid_data.menu_box.values)
 
     def simulate_callback_on_exit(self):
+        print("SIMULATE CALLBACK ON EXIT")
         self.sid_data.setCurrentAction("wait_for_menubox")
         self.in_sub_menu = False
         self.sid_data.menu_box.draw_all_rows()
+        print("WAIT_FOR_MENUBOX")
         return
 
     def new_menu(self):
@@ -345,7 +347,7 @@ class MenuBarMenuEditor(MenuBar):
             self.sid_data.ansi_editor.max_height = len(self.sid_data.input_values)
             self.sid_data.ansi_editor.clear_screen()
             self.sid_data.ansi_editor.update_first_line()
-            self.sid_data.ansi_editor.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values)
+            self.sid_data.ansi_editor.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values, self.util.sid_data.menu_box.values)
             self.sid_data.ansi_editor.current_line_x=0
             self.sid_data.ansi_editor.current_line_index=0
             
