@@ -6,11 +6,13 @@ class F10ActionHandler:
 
 
     def get_requesting_users(self):
+        print(self.util.sid_data.incoming_requests)
         return [req['from'] for req in self.util.sid_data.incoming_requests if req['status'] == 'received']
         
     def handle_F10(self):
         requesting_users = self.get_requesting_users()
         if not requesting_users:
+           
             self.statusinfo("No pending requests")
             return
 
@@ -40,11 +42,11 @@ class F10ActionHandler:
         if key == 'ArrowLeft':
             if self.current_user_index > 0:
                 self.current_user_index -= 1
-                self.show_status_bar_request()
+                self.show_status_bar_request(requesting_users)
         elif key == 'ArrowRight':
             if self.current_user_index < len(requesting_users):
                 self.current_user_index += 1
-                self.show_status_bar_request()
+                self.show_status_bar_request(requesting_users)
         elif key == 'Enter':
             self.accept_current_request()
         elif key == 'Escape':
@@ -86,4 +88,5 @@ class F10ActionHandler:
                 
     
     def exit_F10_mode(self):
+        self.util.update_status_bar()
         self.util.sid_data.setCurrentAction(self.previous_action)  # Or set it to whatever default state you have

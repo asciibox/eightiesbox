@@ -82,9 +82,7 @@ class MultilineChat:
                 break
 
             # Check for accepted requests
-            print(self.util.sid_data.incoming_requests)
             for request in self.util.sid_data.outgoing_requests:
-                print(request)
                 if request['status'] == 'ACCEPTED':
                     
                     self.accept_request(request['to'])

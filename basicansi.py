@@ -23,7 +23,7 @@ class BasicANSI:
 
     def display_editor(self, color_array, color_bgarray, input_values, menu_values):
 
-        if self.sid_data.xWidth < 50:
+        if self.sid_data.xWidth < 50 and menu_values != None:
             self.util.clear_screen()
             self.util.sid_data.startX  = 0
             self.util.sid_data.startY  = 0

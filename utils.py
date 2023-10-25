@@ -143,10 +143,10 @@ class Utils:
                     username = self.sid_data.user_document["username"]
                     for other_sid, other_sid_data in self.all_sid_data.items():
                         for out_req in other_sid_data.outgoing_requests:
-                            if out_req['to'] == username:
+                            if out_req['to'] == username and out_req['status'] == 'sent':
                                 self.sid_data.incoming_requests.append({
                                     'from': other_sid_data.user_document["username"],
-                                    'status': out_req['status'],
+                                    'status': 'received',
                                     'sid_data': other_sid_data  # Store the sid_data of the request sender
                                 })
 
