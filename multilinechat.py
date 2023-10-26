@@ -43,7 +43,7 @@ class MultilineChat:
         if username == self.util.sid_data.user_name:
             self.util.goto_next_line()
             self.util.output("You cannot chat with yourself", 6, 1)
-             self.util.goto_next_line()
+            self.util.goto_next_line()
             self.util.wait_with_message(self.exit)
             return
 
