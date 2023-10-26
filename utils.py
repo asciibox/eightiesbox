@@ -327,6 +327,7 @@ class Utils:
 
     def menuCallback(self, input):
         if input=='Y' or input=='y':
+            self.sid_data.setMenu(Menu(self, [["" for _ in ['Type', 'Data', 'Key', 'Sec', 'Flags']] for _ in range(50)], 50, None)) 
             self.sid_data.setMenuBox(MenuBox(self))
         else:
             self.sid_data.setANSIEditor(ANSIEditor(self))
