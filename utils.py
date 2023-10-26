@@ -834,7 +834,8 @@ class Utils:
                 current_x = current_x+1
             return []
     
-  
+    def statusinfo(self, message):
+        self.emit_status_bar(message, 11, 4)
 
     def format_filename(self, filename):
         filename = filename.upper()

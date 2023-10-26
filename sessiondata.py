@@ -56,6 +56,7 @@ class SessionData:
         self.chat_partner = None
         self.previous_action = None
         self.copy_action = True
+        self.current_chat_partner = ""
 
     def move_cursor_up(self):
         self.menu_current_index = (self.menu_current_index - 1) % len(self.menu_items)

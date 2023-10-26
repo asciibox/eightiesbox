@@ -11,6 +11,10 @@ class F10ActionHandler:
         
     def handle_F10(self):
         requesting_users = self.get_requesting_users()
+        if self.util.sid_data.current_action == 'in_chat':
+            self.util.statusinfo("You are currently chatting with "+self.util.sid_data.current_chat_partner+" and cannot accept new requests. Press ESC to leave conversation.")
+            return
+            
         if not requesting_users:
            
             self.util.statusinfo("No pending requests")
@@ -28,9 +32,9 @@ class F10ActionHandler:
         self.util.sid_data.previous_action = self.util.sid_data.current_action
         self.util.sid_data.setCurrentAction("wait_for_f10_action")
         # Show the current user in the status bar using yHeight for last line
-        current_user = requesting_users[self.current_user_index % len(requesting_users)]
+        self.util.sid_data.current_chat_partner = requesting_users[self.current_user_index % len(requesting_users)]
         
-        self.util.statusinfo(f"Press ENTER to accept request from: {current_user} - ESC to leave F10 menu")
+        self.util.statusinfo(f"Press ENTER to accept request from: {self.util.sid_data.current_chat_partner} - ESC to leave F10 menu")
 
   
         
@@ -51,7 +55,7 @@ class F10ActionHandler:
             self.exit_F10_mode()
     
     def accept_current_request(self):
-        requesting_users = [req['from'] for req in self.util.sid_data.incoming_requests if req['status'] == 'received']
+        requesting_users = self.get_requesting_users()
         to_remove = None  # Initialize the variable to store the dictionary to be removed
         
         if requesting_users:
