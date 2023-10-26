@@ -1,5 +1,5 @@
 from pymongo import MongoClient
-from userpicker import UserPicker
+from userpickeronline import UserPickerOnline
 import asyncio
 
 
@@ -40,6 +40,13 @@ class MultilineChat:
         return online_count
 
     def request_chat(self, username):
+        if username == self.util.sid_data.user_name:
+            self.util.goto_next_line()
+            self.util.output("You cannot chat with yourself", 6, 1)
+             self.util.goto_next_line()
+            self.util.wait_with_message(self.exit)
+            return
+
         # Record the chat request in the requester's sid_data
         self.util.sid_data.outgoing_requests.append({
             "to": username,
@@ -132,7 +139,7 @@ class MultilineChat:
     def goto_user_picker(self, username):
             # You could initialize a UserPicker instance here, or however you've planned to navigate to UserPicker
             # Assume UserPicker is another class handling user picking functionalities
-            self.util.sid_data.user_picker = UserPicker(self.util, username, self.user_picker_callback)
+            self.util.sid_data.user_picker = UserPickerOnline(self.util, username, self.user_picker_callback)
             self.util.sid_data.user_picker.show_options()
 
     def user_picker_callback(self, username):
