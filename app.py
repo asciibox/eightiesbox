@@ -246,21 +246,33 @@ def handle_keypress(data):
         partner_util = partner_sid_data.util  # Assume util is accessible from sid_data
 
         if key == 'Escape':
-           siddata.current_action = siddata.previous_action
-           siddata.copy_action = False
+            siddata.current_action = siddata.previous_action
+            siddata.copy_action = False
 
-           siddata.util.clear_screen()
-           basicANSI = BasicANSI(siddata.util)
-           basicANSI.display_editor(siddata.copy_color_array, siddata.copy_color_bgarray, siddata.copy_input_values, None) # None: just restore the original ANSI, no matter what menu points
-           siddata.copy_action = True
+            siddata.util.clear_screen()
+            basicANSI = BasicANSI(siddata.util)
+            basicANSI.display_editor(siddata.copy_color_array, siddata.copy_color_bgarray, siddata.copy_input_values, None) # None: just restore the original ANSI, no matter what menu points
+            siddata.copy_action = True
 
-           partner_sid_data.current_action = partner_sid_data.previous_action
-           partner_sid_data.copy_action = False
+            partner_sid_data.current_action = partner_sid_data.previous_action
+            partner_sid_data.copy_action = False
 
-           partner_sid_data.util.clear_screen()
-           basicANSI = BasicANSI(partner_sid_data.util)
-           basicANSI.display_editor(partner_sid_data.copy_color_array, partner_sid_data.copy_color_bgarray, partner_sid_data.copy_input_values, None)
-           partner_sid_data.copy_action = True
+            partner_sid_data.util.clear_screen()
+            basicANSI = BasicANSI(partner_sid_data.util)
+            basicANSI.display_editor(partner_sid_data.copy_color_array, partner_sid_data.copy_color_bgarray, partner_sid_data.copy_input_values, None)
+            partner_sid_data.copy_action = True
+
+            if siddata.chat_callback != None:
+                print("CALLBACK FOR SIDDATA")
+                print(siddata.chat_callback)
+                siddata.chat_callback()
+                siddata.chat_callback = None
+
+            if partner_sid_data.chat_callback != None:
+                print("CALLBACK FOR PARTNER_SIDDATA")
+                print(partner_sid_data.chat_callback)
+                partner_sid_data.chat_callback()
+                partner_sid_data.chat_callback = None
 
 
         if key == 'Enter':

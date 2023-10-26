@@ -119,6 +119,7 @@ class MultilineChat:
                 if request['status'] == 'ACCEPTED':
                     self.util.sid_data.current_chat_partner = request['to']
                     self.accept_request(request['to'])
+                    self.util.sid_data.setChatCallback(self.exit)
                     return
             self.util.sid_data.startX = 0
             self.util.sid_data.cursorX = 0

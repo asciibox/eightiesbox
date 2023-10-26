@@ -57,6 +57,7 @@ class SessionData:
         self.previous_action = None
         self.copy_action = True
         self.current_chat_partner = ""
+        self.chat_callback = None
 
     def move_cursor_up(self):
         self.menu_current_index = (self.menu_current_index - 1) % len(self.menu_items)
@@ -177,3 +178,6 @@ class SessionData:
 
     def setF10ActionHandler(self, value):
         self.f10actionhandler = value
+
+    def setChatCallback(self, value):
+        self.chat_callback = value
