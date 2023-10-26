@@ -57,7 +57,7 @@ class F10ActionHandler:
     def accept_current_request(self):
         requesting_users = self.get_requesting_users()
         to_remove = None  # Initialize the variable to store the dictionary to be removed
-        
+        self.util.sid_data.copy_action = False
         if requesting_users:
             selected_user = requesting_users[self.current_user_index % len(requesting_users)]
             
@@ -82,7 +82,7 @@ class F10ActionHandler:
 
                     # Set current state to in_chat
                     self.util.sid_data.setCurrentAction("in_chat")
-                    self.util.sid_data.copy_action = False
+                    
                     break
 
         # Remove the accepted request

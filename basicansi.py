@@ -22,7 +22,10 @@ class BasicANSI:
         pass
 
     def display_editor(self, color_array, color_bgarray, input_values, menu_values):
-
+        self.color_array = color_array
+        self.color_bgarray = color_bgarray
+        self.input_values = input_values
+        
         if self.sid_data.xWidth < 50 and menu_values != None:
             self.util.clear_screen()
             self.util.sid_data.startX  = 0
@@ -37,9 +40,6 @@ class BasicANSI:
                     self.util.goto_next_line()
 
         else:
-            self.color_array = color_array
-            self.color_bgarray = color_bgarray
-            self.input_values = input_values
             for idx in range(0, self.max_height):
                 self.draw_line(idx)
             self.emit_gotoXY(0, 1)

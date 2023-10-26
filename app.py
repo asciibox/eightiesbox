@@ -18,7 +18,11 @@ import base64
 from f10actionhandler import F10ActionHandler
 
 app = Flask(__name__)
-socketio = SocketIO(app)
+socketio = SocketIO(app, logger=False, engineio_logger=False)
+
+
+
+
 MAX_FILE_SIZE = 1024 * 102  # 1MB in bytes
 server_available = True
 util = None
@@ -125,6 +129,10 @@ def custom_disconnect(data):
     print("custom disconnect")
     on_connection_close()
 
+
+
+    
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -176,6 +184,7 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+
 @app.route('/upload', methods=['POST'])
 def upload_file():
     if server_available:
@@ -225,8 +234,7 @@ def generate_unique_filename(filename):
         counter += 1
 
     return base + ext
-
-
+  
 @socketio.on('input_keypress')
 def handle_keypress(data):
     print("HANDLE")
@@ -246,33 +254,40 @@ def handle_keypress(data):
         partner_util = partner_sid_data.util  # Assume util is accessible from sid_data
 
         if key == 'Escape':
+            print("Debug siddata: ", siddata.__dict__)
+            print("Debug partner_sid_data: ", partner_sid_data.__dict__)
             siddata.current_action = siddata.previous_action
             siddata.copy_action = False
-
+            
             siddata.util.clear_screen()
             basicANSI = BasicANSI(siddata.util)
             basicANSI.display_editor(siddata.copy_color_array, siddata.copy_color_bgarray, siddata.copy_input_values, None) # None: just restore the original ANSI, no matter what menu points
             siddata.copy_action = True
 
+            print("Debug siddata after: ", siddata.__dict__)
+            print("Debug partner_sid_data: ", partner_sid_data.__dict__)
             partner_sid_data.current_action = partner_sid_data.previous_action
+
             partner_sid_data.copy_action = False
 
             partner_sid_data.util.clear_screen()
             basicANSI = BasicANSI(partner_sid_data.util)
-            basicANSI.display_editor(partner_sid_data.copy_color_array, partner_sid_data.copy_color_bgarray, partner_sid_data.copy_input_values, None)
+            basicANSI.display_editor(partner_sid_data.copy_color_array, partner_sid_data.copy_color_bgarray, partner_sid_data.copy_input_values, None) # None: just restore the original ANSI, no matter what menu points
             partner_sid_data.copy_action = True
+            print("Debug partner_sid_data after: ", partner_sid_data.__dict__)
+            #if siddata.chat_callback != None:
+            #    print("CALLBACK FOR SIDDATA")
+            #    print(siddata.chat_callback)
+            #    siddata.chat_callback()
+            #    siddata.chat_callback = None
+#
+            #if partner_sid_data.chat_callback != None:
+            #    print("CALLBACK FOR PARTNER_SIDDATA")
+            #    print(partner_sid_data.chat_callback)
+            #    partner_sid_data.chat_callback()
+            #    partner_sid_data.chat_callback = None
 
-            if siddata.chat_callback != None:
-                print("CALLBACK FOR SIDDATA")
-                print(siddata.chat_callback)
-                siddata.chat_callback()
-                siddata.chat_callback = None
-
-            if partner_sid_data.chat_callback != None:
-                print("CALLBACK FOR PARTNER_SIDDATA")
-                print(partner_sid_data.chat_callback)
-                partner_sid_data.chat_callback()
-                partner_sid_data.chat_callback = None
+            return
 
 
         if key == 'Enter':
