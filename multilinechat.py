@@ -18,7 +18,12 @@ class MultilineChat:
             self.util.goto_next_line()
             self.util.wait_with_message(self.exit)
     
-    
+    def is_user_online(self, username_to_check):
+        for sid, sid_data in self.util.all_sid_data.items():
+            user_doc = sid_data.user_document
+            if user_doc and user_doc['username'] == username_to_check:
+                return True
+        return False
 
     def to_input_callback(self, response):
         db = self.util.mongo_client['bbs']
@@ -43,6 +48,13 @@ class MultilineChat:
         if username == self.util.sid_data.user_name:
             self.util.goto_next_line()
             self.util.output("You cannot chat with yourself", 6, 1)
+            self.util.goto_next_line()
+            self.util.wait_with_message(self.exit)
+            return
+
+        if not self.is_user_online(username):
+            self.util.goto_next_line()
+            self.util.output(username+" is not online", 6, 1)
             self.util.goto_next_line()
             self.util.wait_with_message(self.exit)
             return
@@ -132,9 +144,14 @@ class MultilineChat:
 
         # Notify the user and start chat
         self.util.sid_data.copy_action = False # TODO does not work
+        self.util.goto_next_line()
         self.util.output(f"Request from {from_username} has been ACCEPTED.", 6, 0)
+        self.util.clear_screen()
+        self.util.sid_data.setStartX(0)
+        self.util.sid_data.setStartY(0)
+        self.util.statusinfo(f"You are chatting with {from_username}")
         self.util.sid_data.setCurrentAction("in_chat")
-
+        
 
     def goto_user_picker(self, username):
             # You could initialize a UserPicker instance here, or however you've planned to navigate to UserPicker

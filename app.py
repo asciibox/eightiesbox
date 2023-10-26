@@ -236,6 +236,7 @@ def handle_keypress(data):
     print(siddata.current_action)
 
     key = data['key']
+    print("KEY: *"+key+"*")
     if key == 'F10':
        siddata.setF10ActionHandler(F10ActionHandler(siddata.util))
        siddata.f10actionhandler.handle_F10()
@@ -291,9 +292,9 @@ def handle_keypress(data):
             
         if len(key) == 1:
             # Update partner's screen
-            partner_util.output(key, 3, 1)
+            partner_util.output(key, 14, 0)
             # Update your own screen
-            siddata.util.output(key, 3, 4)
+            siddata.util.output(key, 11, 0)
         return
     elif siddata.current_action == "wait_for_f10_action":
         print("WAIT FOR F10 ACTION")

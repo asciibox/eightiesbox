@@ -13,7 +13,7 @@ class F10ActionHandler:
         requesting_users = self.get_requesting_users()
         if not requesting_users:
            
-            self.statusinfo("No pending requests")
+            self.util.statusinfo("No pending requests")
             return
 
         # Change the current action to wait_for_f10_action
@@ -30,11 +30,9 @@ class F10ActionHandler:
         # Show the current user in the status bar using yHeight for last line
         current_user = requesting_users[self.current_user_index % len(requesting_users)]
         
-        self.statusinfo(f"Press ENTER to accept request from: {current_user} - ESC to leave F10 menu")
+        self.util.statusinfo(f"Press ENTER to accept request from: {current_user} - ESC to leave F10 menu")
 
-    def statusinfo(self, message):
-        
-        self.util.emit_status_bar(message, 11, 4)
+  
         
 
     def handle_key(self, key):
@@ -63,8 +61,11 @@ class F10ActionHandler:
                 if request['from'] == selected_user:
                     request['status'] = 'ACCEPTED'
                     self.util.sid_data.chat_partner = request['sid_data']  # Set the chat_partner
-                    self.statusinfo(f"You have accepted the request from {selected_user}")
-
+                    self.util.clear_screen()
+                    self.util.sid_data.setStartX(0)
+                    self.util.sid_data.setStartY(0)
+                    self.util.statusinfo(f"You are chatting with {selected_user}")
+                    
                     to_remove = request  # Assign the request to be removed
 
                     # Now update the outgoing request for the other user
@@ -78,7 +79,6 @@ class F10ActionHandler:
                     # Set current state to in_chat
                     self.util.sid_data.setCurrentAction("in_chat")
                     self.util.sid_data.copy_action = False
-                    self.statusinfo(f"You have accepted the request from {selected_user}")
                     break
 
         # Remove the accepted request

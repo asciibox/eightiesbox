@@ -723,16 +723,13 @@ function clearLine(y) {
   function writeAsciiHTMLPos(ascii_codes, currentColor, backgroundColor, x, y) {
     
     return new Promise((resolve, reject) => {
-        console.log("writeASCIIHTMLPOS");
+
         if (enableScrolling) {
             if (y < TOTAL_HEIGHT_CHARACTERS) {
                 maxReachedY = y;
             }
-            console.log("y"+y);
-            console.log("maxReached:"+maxReachedY);
             // Scroll until we've made room for the y-coordinate we're trying to reach
             while ((y > maxReachedY) && (y >= TOTAL_HEIGHT_CHARACTERS)) {
-                console.log("SHIFTTILESUP");
 
                 // Shift all lines up by one
                 canvas.shift();
@@ -749,12 +746,10 @@ function clearLine(y) {
                 clearLine(y - removedYChars);
             }
         }
-        console.log("LEN:"+ascii_codes.length);
         if (ascii_codes.length==0) {
             
             currentX = x;
             currentY = y;
-            console.log("Going to "+currentX+"/"+currentY);
             redrawCursor();
             resolve();
             return;
@@ -766,7 +761,6 @@ function clearLine(y) {
 
 
                 draw(index, x + i, y, currentColor);
-                console.log(index);
                 var charIndex = getCharIndex(backgroundColor, 219);
                 drawbg(charIndex, x + i, y, backgroundColor);
             }
@@ -785,8 +779,6 @@ function clearLine(y) {
 function writeAsciiToStatusBar(ascii_codes, currentColor, backgroundColor) {
     
     return new Promise((resolve, reject) => {
-        console.log("writeASCIIHTMLPOS");
-        let x = 0;
         let y;
         if (VISIBLE_WIDTH_CHARACTERS>50) {
             y = VISIBLE_HEIGHT_CHARACTERS-1;
@@ -797,14 +789,17 @@ function writeAsciiToStatusBar(ascii_codes, currentColor, backgroundColor) {
        
         try {
            
+            var charIndex = getCharIndex(backgroundColor, 219);
             for (var i = 0; i < ascii_codes.length; i++) {
                 var index = getCharIndex(currentColor, ascii_codes[i]);
+                draw(index, i, y, currentColor);
+                drawbg(charIndex, i, y, backgroundColor);
+            }
 
-
-                draw(index, x + i, y, currentColor);
-                console.log(index);
-                var charIndex = getCharIndex(backgroundColor, 219);
-                drawbg(charIndex, x + i, y, backgroundColor);
+            for (var i = ascii_codes.length; i < VISIBLE_WIDTH_CHARACTERS; i++) {
+                index = getCharIndex(backgroundColor, 32);
+                draw(index, i, y, currentColor);
+                drawbg(charIndex, i, y, backgroundColor);
             }
            
             resolve();
