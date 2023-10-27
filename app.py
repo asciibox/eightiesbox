@@ -272,20 +272,17 @@ def handle_keypress(data):
 
             partner_sid_data.util.clear_screen()
             basicANSI = BasicANSI(partner_sid_data.util)
+            basicANSI.setYOffsetOnDraw(-1)
             basicANSI.display_editor(partner_sid_data.copy_color_array, partner_sid_data.copy_color_bgarray, partner_sid_data.copy_input_values, None) # None: just restore the original ANSI, no matter what menu points
             partner_sid_data.copy_action = True
             print("Debug partner_sid_data after: ", partner_sid_data.__dict__)
-            #if siddata.chat_callback != None:
-            #    print("CALLBACK FOR SIDDATA")
-            #    print(siddata.chat_callback)
-            #    siddata.chat_callback()
-            #    siddata.chat_callback = None
-#
-            #if partner_sid_data.chat_callback != None:
-            #    print("CALLBACK FOR PARTNER_SIDDATA")
-            #    print(partner_sid_data.chat_callback)
-            #    partner_sid_data.chat_callback()
-            #    partner_sid_data.chat_callback = None
+            if siddata.chat_callback != None:
+                siddata.chat_callback()
+                siddata.chat_callback = None
+
+            if partner_sid_data.chat_callback != None:
+                partner_sid_data.chat_callback()
+                partner_sid_data.chat_callback = None
 
             return
 

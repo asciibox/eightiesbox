@@ -19,6 +19,8 @@ class BasicANSI:
         self.color_bgarray = util.sid_data.color_bgarray
         self.input_values = util.sid_data.input_values
 
+        self.yOffsetOnDraw = 0
+
         pass
 
     def display_editor(self, color_array, color_bgarray, input_values, menu_values):
@@ -71,7 +73,7 @@ class BasicANSI:
         self.sid_data.setMapCharacterSet(True)
         # Display the input value with color 6
         self.sid_data.setStartX(0)
-        self.sid_data.setStartY(line_index+1)
+        self.sid_data.setStartY(line_index+1+self.yOffsetOnDraw)
         if line_index < len(self.input_values):
             self.output_with_color(0, line_index, self.input_values[line_index], None, 0)
         self.sid_data.setMapCharacterSet(False)
@@ -246,3 +248,6 @@ class BasicANSI:
         ansi_code_base64 = base64.b64encode(ansi_code_bytes).decode('ascii')
 
         return ansi_code_base64
+
+    def setYOffsetOnDraw(self, value):
+        self.yOffsetOnDraw = value
