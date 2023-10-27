@@ -144,7 +144,14 @@ class MenuBarMenuEditor(MenuBar):
         collection.delete_one({"filename": entered_filename})
 
         # Create a list containing each row and its y-coordinate
-        non_empty_values = [{"y": y, "row_data": row} for y, row in enumerate(self.sid_data.menu_box.values) if row]
+        # Convert the row into a dictionary format similar to create_main_menus
+        non_empty_values = [
+            {
+                "y": index,
+                "row_data": {str(key): value for key, value in row.items() if isinstance(row, dict)}
+            }
+            for index, row in enumerate(self.sid_data.menu_box.values) if row and isinstance(row, dict)
+        ]
 
         # Save the new file
         menu_box_data = {
