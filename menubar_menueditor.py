@@ -159,10 +159,20 @@ class MenuBarMenuEditor(MenuBar):
             "values": non_empty_values,
         }
 
+
+
+
+        if self.util.sid_data.menutexteditor == None:
+            self.util.sid_data.setMenuTextEditor(MenuTextEditor(self.util))
+    
+        self.sid_data.menutexteditor.color_array = self.sid_data.color_array
+        self.sid_data.menutexteditor.color_bgarray = self.sid_data.color_bgarray
+        self.sid_data.menutexteditor.input_values = self.sid_data.input_values
+        #print(self.sid_data.menutexteditor.input_values)
         new_file_data = {
             "filename": entered_filename,
             "menu_box_data": menu_box_data,
-            "ansi_code_base64": self.sid_data.menutexteditor.get_ansi_code_base64() if self.sid_data.menutexteditor else ""
+            "ansi_code_base64": self.sid_data.menutexteditor.get_ansi_code_base64()
             # Add other file details here
         }
 
@@ -233,8 +243,12 @@ class MenuBarMenuEditor(MenuBar):
                 self.sid_data.setSauceWidth(80)
                 self.sid_data.setSauceHeight(50)
 
+            print("ansi_code")
             ansi_code = ansi_code_bytes.decode('cp1252')
+            print(len(ansi_code))
             self.show_file_content(ansi_code, self.util.emit_current_string_local)
+            print("self.input_values after rendering")
+            print(self.sid_data.input_values)
 
             # Populate the values at their respective y-coordinates
             for row in menu_box_data.get("values", []):

@@ -158,7 +158,7 @@ class ANSIEditor(BasicANSI):
             #self.code()
             #current_str = self.sid_data.input_values[self.current_line_index][self.current_line_x]
             #print(ord(current_str[0]))
-            if self.sid_data.current_action != "wait_for_ansieditor":
+            if self.sid_data.current_action != "wait_for_ansieditor" and self.sid_data.current_action != "wait_for_menutexteditor":
                 return
 
             self.display_ansi()

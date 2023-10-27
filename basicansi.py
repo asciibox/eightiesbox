@@ -23,6 +23,12 @@ class BasicANSI:
 
         pass
 
+    def set_text_values(self, color_array, color_bgarray, input_values, menu_values):
+        self.color_array = color_array
+        self.color_bgarray = color_bgarray
+        self.input_values = input_values
+        
+
     def display_editor(self, color_array, color_bgarray, input_values, menu_values):
         self.color_array = color_array
         self.color_bgarray = color_bgarray
@@ -69,14 +75,12 @@ class BasicANSI:
 
 
     def draw_line(self, line_index):
-        # Display the key on the left with color 6
-        self.sid_data.setMapCharacterSet(True)
-        # Display the input value with color 6
+        # self.sid_data.setMapCharacterSet(True)
         self.sid_data.setStartX(0)
         self.sid_data.setStartY(line_index+1+self.yOffsetOnDraw)
         if line_index < len(self.input_values):
             self.output_with_color(0, line_index, self.input_values[line_index], None, 0)
-        self.sid_data.setMapCharacterSet(False)
+        # self.sid_data.setMapCharacterSet(False)
 
 
     def output_with_color(self, x, y, text, color, bgcolor):
@@ -124,6 +128,8 @@ class BasicANSI:
     
     
     def display_ansi(self):
+        print("self.input_values")
+        print(self.input_values)
         self.ansi_string = ""
         self.current_color = 7
         self.current_bgcolor = 0
@@ -132,7 +138,7 @@ class BasicANSI:
         return self.ansi_string
 
     def draw_ansi_line(self, line_index):
-        print(str(line_index)+"<"+str(len(self.input_values)))
+
         if line_index < len(self.input_values):
             self.output_ansi_with_color(1, line_index, self.input_values[line_index])
 
