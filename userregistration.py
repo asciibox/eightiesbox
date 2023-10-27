@@ -85,7 +85,7 @@ class UserRegistration:
         if input == '':
             self.goto_next_line()
             self.output_wrap("Please repeat your new password: ", 6, 0)
-            self.ask(40, self.password_repetition_callback)
+            self.askPassword(40, self.password_repetition_callback)
             return
         if input != self.password_input:
             self.goto_next_line()

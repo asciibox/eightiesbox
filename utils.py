@@ -426,6 +426,8 @@ class Utils:
         if len(self.sid_data.accept_keys) > 0 and key.upper() not in self.sid_data.accept_keys:
             return 
 
+        print(len(str(self.sid_data.localinput)))
+        print( self.sid_data.maxLength)
         if len(self.sid_data.localinput) >= self.sid_data.maxLength and self.sid_data.maxLength > 1:
             return
 
@@ -447,7 +449,7 @@ class Utils:
         if self.sid_data.currentPos - self.sid_data.view_start == self.sid_data.maxLength:
             self.sid_data.view_start += 1
         # Cut the visible region from the input based on viewStart and maxLength
-        if (self.sid_data.maxLength != 1):
+        if (self.sid_data.maxLength > 2):
             visible_str = self.sid_data.localinput[self.sid_data.view_start:self.sid_data.view_start + self.sid_data.maxLength]
         else:
             visible_str = self.sid_data.localinput
