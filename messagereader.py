@@ -35,6 +35,7 @@ class MessageReader :
 
         if total_messages == 0:
             self.util.output("No messages found", 7, 0)
+            self.util.goto_next_line()
         else:
             self.util.output("F - Read Forward", 6, 0)
             self.util.goto_next_line()
@@ -90,13 +91,14 @@ class MessageReader :
             self.util.output("Invalid choice. Please try again.", 6, 0)
             self.display_menu()
 
-    def read_messages_with_filter_and_direction(self, db_filter, sort_direction, next):
+    def read_messages_with_filter_and_direction(self, db_filter, sort_direction, next, consider_read=True):
         # Get current area and its id
         current_area = self.util.sid_data.current_message_area
         area_id = current_area['_id']
         self.db_filter = db_filter
         self.sort_direction = sort_direction
         self.next = next
+        self.consider_read = consider_read
 
         # Connect to MongoDB
         mongo_client = self.util.mongo_client
@@ -108,11 +110,18 @@ class MessageReader :
         })
 
         read_message_ids = [msg['message_id'] for msg in read_messages]
+    
+        # Build your final filter
+        final_filter = {**db_filter, "area_id": area_id}
+        
+        if consider_read:
+            final_filter['_id'] = {'$nin': read_message_ids}
 
-        # Build your final filter without is_read
-        final_filter = {**db_filter, "area_id": area_id, '_id': {'$nin': read_message_ids}}
         if self.current_message_id is not None:
+            if '_id' not in final_filter:
+                final_filter['_id'] = {}
             final_filter['_id'].update({'$gt': self.current_message_id} if sort_direction == 1 else {'$lt': self.current_message_id})
+    
 
         next_message = db['messages'].find_one(
             final_filter,
@@ -224,23 +233,23 @@ class MessageReader :
 
 
     def read_forward(self):
-        self.read_messages_with_filter_and_direction({}, 1, 'next')
+        self.read_messages_with_filter_and_direction({}, 1, 'next', consider_read=False)
 
     def read_unread_forward(self):
-        self.read_messages_with_filter_and_direction({}, 1, 'next')
+        self.read_messages_with_filter_and_direction({}, 1, 'next', consider_read=True)
 
     def read_backward(self):
-        self.read_messages_with_filter_and_direction({}, -1, 'previous')
+        self.read_messages_with_filter_and_direction({}, -1, 'previous', consider_read=False)
 
     def read_unread_backward(self):
-        self.read_messages_with_filter_and_direction({}, -1, 'previous')
+        self.read_messages_with_filter_and_direction({}, -1, 'previous', consider_read=True)
 
     def handle_input_for_reading(self, user_input):
         if user_input and user_input.lower() == 'x':
             self.exit_to_main_menu()
             self.current_message_id = None  # Reset the current message ID
         else:
-            self.read_messages_with_filter_and_direction(self.db_filter, self.sort_direction, self.next)
+            self.read_messages_with_filter_and_direction(self.db_filter, self.sort_direction, self.next, self.consider_read)
 
     def display_message_content(self):
         yHeight_limit = self.util.sid_data.yHeight - 3  # Define a limit, adjust based on your needs

@@ -46,6 +46,7 @@ class UserRegistration:
             self.ask(40, self.usernameCallback)
 
     def username_callback(self, input):
+        input = input.lower().strip()
         if input == '':
             self.goto_next_line()
             self.output_wrap("Please enter your new username: ", 6, 0)

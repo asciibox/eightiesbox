@@ -10,6 +10,22 @@
     <link rel="stylesheet" href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" type="text/css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='simplekeyboard.css') }}">
+    <style>
+    .spinner {
+        margin: 100px auto;
+        width: 50px;
+        height: 50px;
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #3498db;
+        border-radius: 50%;
+        animation: spin 2s linear infinite;
+      }
+  
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
 </head>
 <body>
     <script src="{{ url_for('static', filename='phaser.js') }}"></script>
@@ -27,7 +43,8 @@
         </form>
     </div>
     <div id="game-container"></div>
-    <div class="simple-keyboard"></div>
+    <div class="spinner" id="spinner"></div>
+    <div class="simple-keyboard" id="simple-keyboard" style="display:none"></div>
     <script>
         const Keyboard = window.SimpleKeyboard.default;
 

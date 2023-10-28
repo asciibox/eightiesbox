@@ -187,7 +187,8 @@ class Utils:
 
 
     def usernameCallback(self, input):
-        input = input.strip()
+        input = input.strip().lower()
+
         if input == '':
             self.goto_next_line()
             self.output_wrap("Please enter your name: ", 3, 0)
@@ -196,18 +197,17 @@ class Utils:
 
         db = self.mongo_client['bbs']
         users_collection = db['users']
-        if (input.lower() == 'sysop'):
-            input = 'SYSOP';
         self.sid_data.setUserName(input)
         user_document = users_collection.find_one({"username": input})
 
         self.goto_next_line()
 
-        if input == 'SYSOP':
+        if input == 'sysop':
             if user_document:
                 # Sysop user exists
                 self.goto_next_line()
                 self.sid_data.setInputType("password")
+                self.passwordRetries = 0
                 self.output_wrap("Please enter your password: ", 3, 0)
                 self.askPassword(40, self.passwordCallback)
             else:
@@ -243,7 +243,7 @@ class Utils:
             db = self.mongo_client['bbs']
             users_collection = db['users']
             hashed_password = bcrypt.hashpw(first_password.encode('utf-8'), bcrypt.gensalt())
-            new_sysop_user = {"username": "SYSOP", "password": hashed_password.decode('utf-8')}
+            new_sysop_user = {"username": "sysop", "password": hashed_password.decode('utf-8')}
             # Insert the document and capture the result
             insert_result = users_collection.insert_one(new_sysop_user)
 
@@ -270,7 +270,7 @@ class Utils:
             return value  # returns the original value if index out of range in list2
 
     def launchMenuCallback(self):
-        if self.sid_data.user_name!='SYSOP':
+        if self.sid_data.user_name!='sysop':
            self.check_for_new_messsages()
         else:
             self.goto_next_line()
