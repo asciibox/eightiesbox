@@ -1,5 +1,5 @@
-const socket = io.connect('http://' + document.domain + ':' + location.port);
-
+const protocol = window.location.protocol;
+const socket = io.connect(protocol + '//' + document.domain + ':' + location.port);
 
 let drawing = false;
 
