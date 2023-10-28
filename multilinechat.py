@@ -14,7 +14,7 @@ class MultilineChat:
             self.util.output("User you want to chat with: ", 6, 0)
             self.util.ask(40, self.to_input_callback)
         else:
-            self.util.output("No users onlne, pleaes wait", 1, 0)
+            self.util.output("No users online, please wait", 1, 0)
             self.util.goto_next_line()
             self.util.wait_with_message(self.exit)
     

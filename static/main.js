@@ -13,6 +13,8 @@ let LIMIT_TO_VISIBLE_WIDTH;
 let baseWidth;
 let baseHeight;
 
+let initCalled = false;
+
   function updateSizes(x, y) {
 
     TOTAL_WIDTH = x;
@@ -540,7 +542,7 @@ function redrawStep() {
     }, this);
  
     
-    document.body.addEventListener('keydown',
+   document.body.addEventListener('keydown',
     function(e)
     {
         var key = e.key;
@@ -888,6 +890,15 @@ function restoreTileset() {
 }
 
   function update(time, delta) {
+
+    if (initCalled == false) {
+
+        document.documentElement.style.height = null;  // for the html tag
+        document.body.style.height = null;  // for the body tag
+
+    initCalled = true;
+
+    }
      
     this.input.on('pointermove', function (pointer) {
         if (isDraggingVertical) {

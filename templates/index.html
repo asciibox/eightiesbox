@@ -9,12 +9,14 @@
     <script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" type="text/css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='simplekeyboard.css') }}">
 </head>
 <body>
     <script src="{{ url_for('static', filename='phaser.js') }}"></script>
     <script src="{{ url_for('static', filename='main.js') }}"></script>
     <script src="{{ url_for('static', filename='client.js') }}"></script>
-    
+    <script src="{{ url_for('static', filename='simplekeyboard.js') }}"></script>
+
     <div id="fileUploadDiv" style="display:none">
         <button id="toggleButton">Close upload area</button>
         <form action="/upload" class="dropzone" id="uploadForm" enctype="multipart/form-data">
@@ -24,10 +26,40 @@
             </div>
         </form>
     </div>
-
-
-
+    <div id="game-container"></div>
+    <div class="simple-keyboard"></div>
     <script>
+        const Keyboard = window.SimpleKeyboard.default;
+
+        const myKeyboard = new Keyboard({
+        onKeyPress: button => onKeyPress(button)
+        });
+
+
+        function onKeyPress(button) {
+            
+            if (button === "{shift}" || button === "{lock}") handleShift();
+            const buttonMap = {
+                "{tab}": "Tab",
+                "{bksp}": "Backspace",
+                "{enter}": "Enter",
+                "{space}": " ",
+                ">" : "ArrowDown",
+                "<" : "ArrowUp",
+            };
+            var readableButton = buttonMap[button] || button;
+            handleKeyCode(readableButton);
+        }
+
+        function handleShift() {
+            const currentLayout = myKeyboard.options.layoutName;
+            const shiftToggle = currentLayout === "default" ? "shift" : "default";
+
+            myKeyboard.setOptions({
+            layoutName: shiftToggle
+            });
+        }
+
         document.addEventListener("DOMContentLoaded", function(){
             const toggleButton = document.getElementById("toggleButton");
             const fileUploadDiv = document.getElementById("fileUploadDiv");
@@ -89,6 +121,5 @@
         uploadDiv.style.display = 'inline';
     });
     </script>
-
 </body>
 </html>
