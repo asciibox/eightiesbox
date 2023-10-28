@@ -60,6 +60,8 @@ The `SessionData` class contains fields for managing session-specific actions. M
 
 - Python 3.x
 
+On Linux Python is pre-installed, on Windows you must make sure to download the correct installer
+
 ### Installation
 
 1. Clone the repository.
@@ -125,27 +127,22 @@ pip install ochre flask pymongo flask_socketio bcrypt
 
 1. **Download MongoDB**
 
+   This are the instructions for Ubuntu 22
+
    - Open Terminal.
-   - Import the MongoDB public key:
-     ```
-     wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add -
-     ```
-   - Create a list file for MongoDB:
-     ```
-     echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/4.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
-     ```
-   - Reload the package database:
-     ```
-     sudo apt-get update
-     ```
+   Run:
+   ```
+   wget https://repo.mongodb.org/apt/ubuntu/dists/jammy/mongodb-org/6.0/multiverse/binary-amd64/mongodb-org-server_6.0.11_amd64.deb
+   ```
 
-2. **Installation**
+2. **Install the deb package**
 
-   - Install MongoDB:
-     ```
-     sudo apt-get install -y mongodb-org
-     ```
-   - **Important:** Do not start the MongoDB service.
+
+   Run:
+   ```
+   sudo dpkg -i mongodb-org_6.0.x_amd64.deb
+   ```
+
 
 3. **Create Data Directory**
 
@@ -153,10 +150,20 @@ pip install ochre flask pymongo flask_socketio bcrypt
      ```
      sudo mkdir -p /data/db
      ```
-
 4. **Run MongoDB**
-   - Navigate to the `bin` folder inside the MongoDB installation directory.
-   - Run `mongod`.
+   - Navigate to the `/usr/bin` folder
+   - Start the application `mongod`
+
+5. **Permissions**
+
+   If it still does not work, make sure the directory has got the correct permissions
+   - Run:
+   ```
+   sudo chown -R mongodb:mongodb /data/db
+   ```
+
+   Replace mongodb:mongodb with your username
+
 
 # Quickstart
 
