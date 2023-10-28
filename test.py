@@ -2,7 +2,7 @@ import codecs
 from stransi import Ansi
 
 # Load the ANSI file with cp437 encoding
-with codecs.open("ansi/welcome-120x80.ANS", "r", encoding="cp437") as f:
+with codecs.open("ansi/welcome-120x70.ANS", "r", encoding="cp437") as f:
     text_content = f.read()
 
     # Filter out the specific ANSI escape code

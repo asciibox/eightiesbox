@@ -896,8 +896,9 @@ function restoreTileset() {
         document.documentElement.style.height = null;  // for the html tag
         document.body.style.height = null;  // for the body tag
         document.getElementById('spinner').style.display='none';
-        document.getElementById('simple-keyboard').style.display='inline';
-        
+        if (window.matchMedia("(max-width: 515px)").matches) {
+            document.getElementById('simple-keyboard').style.display='inline';
+          }       
 
     initCalled = true;
 
