@@ -95,6 +95,21 @@
         }
 
         document.addEventListener("DOMContentLoaded", function(){
+
+            setTimeout(function() {
+            const canvasElements = document.getElementsByTagName('canvas');
+            for (let i = 0; i < canvasElements.length; i++) {
+                canvasElements[i].addEventListener('click', function() {
+                    window.open('https://github.com/asciibox/eightiesbox', '_blank');
+                });
+            canvasElements[i].addEventListener('touchend', function() {
+                    window.open('https://github.com/asciibox/eightiesbox', '_blank');
+                });
+
+            }
+            }, 2000);
+
+
             const toggleButton = document.getElementById("toggleButton");
             const fileUploadDiv = document.getElementById("fileUploadDiv");
 
