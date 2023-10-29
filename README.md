@@ -23,7 +23,7 @@ In the subsequent step, you'll likely be prompted to enter and confirm your pass
 
 ### Oneliners
 
-![Oneliners](./docs/oneliners.jpg)
+![Oneliners](./docs/oneliner.jpg)
 
 Oneliners, though simple in concept, were the heartbeat of many BBS systems. They gave a quick snapshot of the community's vibe and encouraged playful and spontaneous interactions among users. So go ahead, leave your mark, and enjoy the camaraderie of the BBS world!
 
