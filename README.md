@@ -16,7 +16,7 @@ EightiesBox is an ASCII/ANSI-based web platform that mimics the vintage mailbox 
 | ------------ | ------------------ |
 | < 640px      | 40 x 25            |
 | < 1280p      | 80 x 50            |
-| >= 1280px    | 120 x 70           |
+| >= 1280px    | 120 x 60           |
 
 ## Features
 

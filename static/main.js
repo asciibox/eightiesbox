@@ -26,13 +26,12 @@ let initCalled = false;
     baseWidth = VISIBLE_WIDTH_CHARACTERS*8;  // The total width space plus 8px for the scrollbar
     baseHeight = VISIBLE_HEIGHT_CHARACTERS*16; // 16px at the bottom for the scrollbar
 
-    if ( (mode=="html") || (mode=="timeline") ) {
-
+    
         config = {
             title: 'Ascii box',
             type: Phaser.AUTO,
             width: baseWidth, // window.innerWidth,
-            height: baseHeight, // window.innerHeight*4,
+            height: baseHeight,
             pixelArt: true, // Force the game to scale images up crisply
             parent: "game-container",
             scene: {
@@ -45,25 +44,7 @@ let initCalled = false;
             }
           };
         
-        } else {
-        
-        config = {
-            title: 'Ascii box',
-            type: Phaser.AUTO,
-            pixelArt: true, // Force the game to scale images up crisply
-            parent: "game-container",
-            scene: {
-              preload: preload,
-              create: create,
-              update: update
-            }, scale: {
-                mode: Phaser.Scale.ENVELOP, // Fit to window while maintaining the aspect ratio
-                autoCenter: Phaser.Scale.CENTER_BOTH // Center the canvas in both horizontal and vertical
-            }
-          };
-        
-        }
-        
+     
 
 }
 
@@ -125,157 +106,6 @@ keys[13] = [ 131, 132, 133, 160, 248, 134, 142, 143, 145, 146 ];
 keys[14] = [ 136, 137, 138, 130, 144, 140, 139, 141, 161, 158 ];
 keys[15] = [ 147, 148, 149, 224, 167, 150, 129, 151, 163, 154 ];
 
-var currentRedrawStep = 0;
-var steps = [];
-var isRedrawing = false;
-
-var htmlElements = [];
-var htmlCurrentField = 0;
-
-var centerwidth;
-
-var asciitable = {
-    32 : ' ',
-    39 : '"',
-    44 : ',',
-    45 : '=',
-    61 : '-',
-    46 : '.',
-    48 : '0',
-    49 : '1',
-    50 : '2',
-    51 : '3',
-    52 : '4',
-    53 : '5',
-    54 : '6',
-    55 : '7',
-    56 : '8',
-    57 : '9',
-    91 : '[',
-    93 : ']',
-    97 : 'a',
-    98 : 'b',
-    99 : 'c',
-    100 : 'd',
-    101 : 'e',
-    102 : 'f',
-    103 : 'g',
-    104 : 'h',
-    105 : 'i',
-    106 : 'j',
-    107 : 'k',
-    108 : 'l',
-    109 : 'm',
-    110 : 'n',
-    111 : 'o',
-    112 : 'p',
-    113 : 'q',
-    114 : 'r',
-    115 : 's',
-    116 : 't',
-    117 : 'u',
-    118 : 'v',
-    119 : 'w',
-    120 : 'x',
-    121 : 'y',
-    122 : 'z',
-    189: '-',
-    190 : '.',
-}
-
-var asciitable_shift = {
-    32 : ' ',
-    33 : '!',
-    48 : '=',
-    49 : '!',
-    50 : '"',
-    51 : '§',
-    52 : '$',
-    53 : '%',
-    54 : '&',
-    55 : '/',
-    56 : '(',
-    57 : ')',
-    62 : '<',
-    60 : '>',
-    65 : 'A',
-    66 : 'B',
-    67 : 'C',
-    68 : 'D',
-    69 : 'E',
-    70 : 'F',
-    71 : 'G',
-    72 : 'H',
-    73 : 'I',
-    74 : 'J',
-    75 : 'K',
-    76 : 'L',
-    77 : 'M',
-    78 : 'N',
-    79 : 'O',
-    80 : 'P',
-    81 : 'Q',
-    82 : 'R',
-    83 : 'S',
-    84 : 'T',
-    85 : 'U',
-    86 : 'V',
-    87 : 'W',
-    88 : 'X',
-    89 : 'Y',
-    90 : 'Z',
-    126 : '~',
-    64 : '@',
-    36 : '$',
-    37 : '%',
-    94 : '^',
-    38 : '&',
-    42 : '*',
-    40 : '(',
-    41 : ')',
-    95 : '_',
-    43 : '+',
-    39 : '´',
-    123 : '{',
-    125 : '}',
-    124 : '|',
-    
-    189: '_',
-    190 : ':',
-    
-}
-
-var onscreenkeys = [];
-onscreenkeys[0]=[126, 33, 64, 35, 36, 37, 94, 38, 42, 40, 41, 95, 43];
-onscreenkeys[1]=[39, 49, 50, 51, 52, 53, 54, 55, 56, 57, 48, 61, 45, 8, 8];
-onscreenkeys[2]=[9, 9, 81, 87, 69, 82, 84, 89, 86, 73, 79, 80, 123, 125, 124];
-onscreenkeys[3]=[9, 9, 113, 119, 101, 114, 116, 121, 117, 105, 111, 112, 91, 93];
-onscreenkeys[4]=[65,83,68, 70, 71, 72, 74, 75, 76, 13];
-onscreenkeys[5]=[97, 115, 100, 102, 103, 104, 106, 107, 108];
-onscreenkeys[6]=[90, 88, 67, 86, 66, 78, 77, 60, 62, 63];
-onscreenkeys[7]=[90, 88, 67, 86, 66, 78, 109, 44, 46];
-
-var hasShiftPressed = [];
-hasShiftPressed[0]=true;
-hasShiftPressed[1]=false;
-hasShiftPressed[2]=true;
-hasShiftPressed[3]=false;
-hasShiftPressed[4]=true;
-hasShiftPressed[5]=false;
-hasShiftPressed[6]=true;
-hasShiftPressed[7]=false;
-
-var inputfield = {
-    x : 0,
-    y : 0,
-    value : '',
-    width: 80,
-    active : false,
-    filename : false,
-    type : 'text'
-}
-
-var fields = [];
 
   function initPage(dataArray) {
 
@@ -294,7 +124,7 @@ var fields = [];
     displayHeight = game.scale.displaySize.height;
     
     scaleX = displayWidth / baseWidth;
-    scaleY = displayHeight / baseHeight;
+    scaleY = window.innerHeight / baseHeight;
     
     // Calculate the real size of your tiles  
     realTileWidth = 8 * scaleX;
@@ -311,16 +141,6 @@ var fields = [];
 
   }
 
-  function countHTMLElements(type) {
-    var counter = 0;
-    for (var i = 0; i < htmlElements.length; i++) {
-        if (htmlElements[i].type==type) {
-            counter++;
-        }
-    }
-    return counter;
-  }
-  
   function preload() {
      this.load.image("tiles", "static/ansi.png");
      this.load.image("ansibgs", "static/ansi.png");
@@ -369,45 +189,8 @@ function clear() {
         canvasbg[y][x]=0;
         }
     }
-    steps = [];
-
+    
 }
-
-function redraw() {
-    initPosition();
-    isRedrawing = true;
-    insert = DEFAULT_INSERT;
-    clearScreen();
-    currentRedrawStep = 0;
-
-    setTimeout(function() {
-            redrawStep();
-    }, 10);
-}
-
-function redrawStep() {
-    if (currentRedrawStep < steps.length) {
-        var step = steps[currentRedrawStep];
-        currentX = step.x;
-        currentY = step.y;
-        currentColor = step.fgColor;
-        backgroundColor = step.bgColor;
-        specialKeyCharacterSet = step.characterSet;
-        
-        keydown(step.keyCode);
-        redrawCursor();
-
-        setTimeout(function() {
-            currentRedrawStep++;
-            redrawStep();
-        }, 10);
-    } else {
-        isRedrawing = false;
-        isColorPalette = false;
-        shiftPressed = false;
-    }
-}
-
 
     function drawbg(index, x, y, backgroundColor) {
         y = y-removedYChars;
@@ -434,50 +217,7 @@ function redrawStep() {
             canvasColor[y][x]=currentColor;
     }
 
-    function removeCurrentChar() {
-
-        setTimeout(function() {
-            for (var i = currentX; i < TOTAL_WIDTH; i++) {
-            
-                previousColor = 15;
-                if ( (canvas[currentY]) && (canvas[currentY][i+1]) ) nextChar = canvas[currentY][i+1]; else nextChar = 32;
-                if ( ( canvasColor[currentY] ) && (canvasColor[currentY][i+1]) ) nextColor = canvasColor[currentY][i+1]; else nextColor = 15;
-                bglayer.putTileAt(nextChar, i, currentY);
-                if (!canvas[currentY]) canvas[currentY]=[];
-                canvas[currentY][i]=nextChar;
-                if (!canvasColor[currentY]) canvasColor[currentY]=[];
-                canvasColor[currentY][i]=nextColor;
-
-                if ( ( canvasbg[currentY] ) && (canvasbg[currentY][i+1]) ) nextBGColor = canvasbg[currentY][i+1]; else nextBGColor = 0;
-                var index = getCharIndex(nextBGColor, 219);
-                layer.putTileAt(index, i, currentY);
-                if (!canvasbg[currentY]) canvasbg[currentY]=[];
-                canvasbg[currentY][i]=nextBGColor;
-
-            }
-        }, 1);
-    }
-
-    function insertChar() {
-        setTimeout(function() {
-            for (var i = TOTAL_WIDTH; i > currentX+1; i--) {
-                previousColor = 15;
-                if ( (canvas[currentY]) && (canvas[currentY][i-1]) ) previousChar = canvas[currentY][i-1]; else previousChar = 32;
-                if ( ( canvasColor[currentY] ) && (canvasColor[currentY][i-1]) ) previousColor = canvasColor[currentY][i-1]; else previousColor = 15;
-                bglayer.putTileAt(previousChar, i, currentY);
-                canvas[currentY][i]=previousChar;
-                canvasColor[currentY][i]=previousColor;
-
-                if ( ( canvasbg[currentY] ) && (canvasbg[currentY][i-1]) ) previousBGColor = canvasbg[currentY][i-1]; else previousBGColor = 0;
-                var index = getCharIndex(previousBGColor, 219);
-                layer.putTileAt(index, i, currentY);
-                canvasbg[currentY][i]=previousBGColor;
-
-            }
-        }, 1);
-
-    }
-
+    
   function create() {
     // Load a map from a 2D array of tile indices
     // prettier-ignore
@@ -526,21 +266,6 @@ function redrawStep() {
     cam = this.cameras.main;
 
     clicks = 0;
-
-    this.input.on('pointerdown', function (pointer) {
-      
-        clicks++;
-        setTimeout(function() {
-            clicks = 0;
-        }, 200);
-
-        
-           
-
-        
-
-    }, this);
- 
     
    document.body.addEventListener('keydown',
     function(e)
@@ -573,10 +298,6 @@ function redrawStep() {
     },
     false);
 
-   if (mode=="timeline") {
-
-   }
-   
    // Calculate the thumb height based on the percentage of content that is visible
    thumbHeight = (VISIBLE_HEIGHT_CHARACTERS / TOTAL_HEIGHT_CHARACTERS) * baseHeight;
    console.log("THUMBHEIGHT:"+thumbHeight+"/"+baseHeight);
@@ -625,14 +346,6 @@ function redrawStep() {
 
   }
 
-  function getRandomHexColor() {
-    const letters = '0123456789ABCDEF';
-    let color = '0x';
-    for (let i = 0; i < 6; i++) {
-        color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
-}
 
   function updateThumbVertical() {
      // Get the camera
@@ -814,33 +527,6 @@ function writeAsciiToStatusBar(ascii_codes, currentColor, backgroundColor) {
 
 
 
-  function backSpace() {
-    /*'var index = getCharIndex(currentColor, 32);    
-    bglayer.putTileAt(index, currentX-1, currentY);        
-    draw(getCharIndex(backgroundColor, 219), currentX-1, currentY, currentColor);
-    removeCurrentChar();
-    cursorLeft();*/
-    socket.emit('input_keypress', { key: 'Backspace' });
-
-  }
-
-
-  function enterButton() {
-    if (isSelect == true) {
-        var selectedValue = files[filechooserY+filechooserStart];
-        inputfield.value=selectedValue;
-        updateForm();
-        restoreTileset();
-        redrawInputfield();
-        inputfield.active=true;
-        return;
-    } else {
-        loadFile(files[filechooserY+filechooserStart]);
-    }
-  }
-
-
-
 
   function clearScreen() {
     removedYChars=0;
@@ -854,40 +540,6 @@ function writeAsciiToStatusBar(ascii_codes, currentColor, backgroundColor) {
     }
 }
 
-function saveTileset() {
-    console.log("SAVED");
-
-}
-function restoreTileset() {
-   
-    var x = 0;
-    var y = 0;
-
-    for (var ix = 0; ix <= 16*16*256; ix++) {
-   
-        if ( (canvas[y]) && (canvas[y][x]) ) {
-            bglayer.putTileAt(canvas[y][x], x, y);
-        } else {
-            bglayer.putTileAt(32, x, y);
-        }
-        if ( (canvasbg[y]) && (canvasbg[y][x]) ) {
-            var index = getCharIndex(canvasbg[y][x], 219);
-            
-            layer.putTileAt(index, x, y);
-        } else {
-            layer.putTileAt(32, x, y);
-        }
-       
-        if (x < 32*16-1) {
-            x++;
-        } else {
-            x = 0;
-            y++;
-        }
-       
-}
-
-}
 
   function update(time, delta) {
 
@@ -952,30 +604,6 @@ function moveHorizontalThumb(newX) {
 }
 
 
-  function characterSet() {
-
-     x = 0;
-     y = 0;
-     cnt = 0;
-
-    for (var ix = 0; ix <= 16*16*256; ix++) {
-       
-            if (x < 32*16-1) {
-                draw(cnt++, x,y);
-                x++;
-            } else {
-                draw(cnt++, x,y);
-                x = 0;
-                y++;
-            }
-      
-    }
-
-  }
-
-  function cursorLeft() {
-    socket.emit('input_keypress', { key: 'ArrowLeft' });
-  }
 
   function getCharIndex(foreground, asciiCode) {
 
@@ -1012,22 +640,3 @@ function redrawCursor() {
         }, 600);
 }
 
-function storeStep(keyCode) {
-if (keyCode == 27) return;
-
-if ( (!isRedrawing) && (!isColorPalette) ) {
-    steps.push({
-        keyCode : keyCode,
-        x : currentX,
-        y : currentY,
-        fgColor : currentColor,
-        bgColor : backgroundColor,
-        characterSet : specialKeyCharacterSet
-    });
-}
-
-}
-
-function updateContent(state) {
-    console.log(state);
-}

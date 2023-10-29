@@ -147,7 +147,7 @@ def handle_connect():
     socketio.emit('initPage',  [
         {'minWidth': 0, 'x': 40, 'y': 25},
         {'minWidth': 640, 'x': 80, 'y': 50},
-        {'minWidth': 1280, 'x': 120, 'y': 70}
+        {'minWidth': 1280, 'x': 120, 'y': 60}
     ], room=request.sid)
 
 @socketio.on('upload_finished')
