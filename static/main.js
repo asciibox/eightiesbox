@@ -16,35 +16,34 @@ let baseHeight;
 let initCalled = false;
 
   function updateSizes(x, y) {
-
     TOTAL_WIDTH = x;
     VISIBLE_WIDTH_CHARACTERS = x;
     VISIBLE_HEIGHT_CHARACTERS = y;
     TOTAL_HEIGHT_CHARACTERS = y;
     LIMIT_TO_VISIBLE_WIDTH = true;
 
-    baseWidth = VISIBLE_WIDTH_CHARACTERS*8;  // The total width space plus 8px for the scrollbar
-    baseHeight = VISIBLE_HEIGHT_CHARACTERS*16; // 16px at the bottom for the scrollbar
+    baseWidth = VISIBLE_WIDTH_CHARACTERS * 8;  // The total width space plus 8px for the scrollbar
+    baseHeight = VISIBLE_HEIGHT_CHARACTERS * 16; // 16px at the bottom for the scrollbar
 
     
-        config = {
-            title: 'Ascii box',
-            type: Phaser.AUTO,
-            width: baseWidth, // window.innerWidth,
-            height: baseHeight,
-            pixelArt: true, // Force the game to scale images up crisply
-            parent: "game-container",
-            scene: {
-              preload: preload,
-              create: create,
-              update: update
-            }, scale: {
-                mode: Phaser.Scale.FIT, // Fit to window while maintaining the aspect ratio
-                autoCenter: Phaser.Scale.CENTER_BOTH // Center the canvas in both horizontal and vertical
-            }
-          };
-        
-     
+    config = {
+        title: 'Ascii box',
+        type: Phaser.AUTO,
+        width: baseWidth,
+        height: baseHeight,
+        pixelArt: true,
+        parent: "game-container",
+        scene: {
+          preload: preload,
+          create: create,
+          update: update
+        },
+        scale: {
+            mode: Phaser.Scale.NONE, // Use custom scaling
+            autoCenter: Phaser.Scale.CENTER_BOTH // Center the canvas in both horizontal and vertical
+        }
+    };
+
 
 }
 
@@ -82,29 +81,7 @@ var secondCanvas = [];
 var canvasColor = [];
 var secondCanvasColor = [];
 var specialKeyCharacterSet = 0;
-var keys = [];
-var enterFilename = false;
     
-var shiftkeys = [ 33, 34, 21, 36, 37, 38, 47, 40, 41, 61 ];
-
-var onScreenKeyboard = false;
-
-keys[0] = [ 49, 50, 51, 52, 53, 54, 55, 56, 57, 48 ];
-keys[1] = [ 218, 191, 192, 217, 196, 179, 195, 180, 193, 194 ];
-keys[2] = [ 201, 187, 200, 188, 205, 186, 204, 185, 202, 203 ];
-keys[3] = [ 251, 184, 212, 190, 205, 179, 198, 181, 207, 209 ];
-keys[4] = [ 161, 183, 211, 135, 179, 186, 199, 182, 208, 144 ];
-keys[5] = [ 197, 206, 139, 140, 232, 163, 155, 156, 153, 239 ];
-keys[6] = [ 176, 177, 178, 219, 223, 220, 124, 141, 254, 250 ];
-keys[7] = [ 001, 002, 003, 004, 005, 006, 196, 127, 014, 207 ];
-keys[8] = [ 024, 025, 024, 025, 016, 017, 023, 023, 020, 021 ];
-keys[9] = [ 174, 175, 061, 243, 169, 170, 253, 246, 171, 172 ];
-keys[10] = [ 149, 241, 020, 021, 235, 157, 227, 167, 251, 252 ];
-keys[11] = [ 162, 225, 147, 228, 230, 232, 235, 236, 237, 237 ];
-keys[12] = [ 128, 135, 165, 164, 152, 159, 044, 249, 173, 168 ];
-keys[13] = [ 131, 132, 133, 160, 248, 134, 142, 143, 145, 146 ];
-keys[14] = [ 136, 137, 138, 130, 144, 140, 139, 141, 161, 158 ];
-keys[15] = [ 147, 148, 149, 224, 167, 150, 129, 151, 163, 154 ];
 
 
   function initPage(dataArray) {
@@ -126,11 +103,6 @@ keys[15] = [ 147, 148, 149, 224, 167, 150, 129, 151, 163, 154 ];
     scaleX = displayWidth / baseWidth;
     scaleY = window.innerHeight / baseHeight;
     
-    // Calculate the real size of your tiles  
-    realTileWidth = 8 * scaleX;
-    realTileHeight = 16 * scaleY;
-  
-    console.log("realTileHeight:"+realTileHeight);
     DEFAULT_INSERT = false;
     VISIBLE_HEIGHT = Math.floor(baseHeight/16);
     console.log("VISIBLE_HEIGHT:"+VISIBLE_HEIGHT);
@@ -545,13 +517,23 @@ function writeAsciiToStatusBar(ascii_codes, currentColor, backgroundColor) {
 
     if (initCalled == false) {
 
+        // Update the canvas style to fit the window height
+        // Calculate the scale factor for vertical scaling
+
+        if (window.matchMedia("(max-width: 515px)").matches) {
+            document.getElementById('simple-keyboard').style.display='inline';
+        } else {
+
+
+        var verticalScale = window.innerHeight / baseHeight;
+        if (verticalScale > 1) verticalScale = 1;
+        var canvasElement = document.querySelector("#game-container canvas");
+        canvasElement.style.height = (baseHeight * verticalScale) + "px";
+        }
         document.documentElement.style.height = null;  // for the html tag
         document.body.style.height = null;  // for the body tag
         document.getElementById('spinner').style.display='none';
-        if (window.matchMedia("(max-width: 515px)").matches) {
-            document.getElementById('simple-keyboard').style.display='inline';
-          }       
-
+     
     initCalled = true;
 
     }
