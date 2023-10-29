@@ -6,9 +6,81 @@
 
 EightiesBox is an ASCII/ANSI-based web platform that mimics the vintage mailbox BBSes from the 1980s. Utilizing a JavaScript frontend powered by Phaser, a 2D game engine that employs WebGL for speedy performance, EightiesBox offers a nostalgic interface for modern web browsers.
 
+## Usage
+
+The login screen, reminiscent of classic Bulletin Board Systems (BBS), embodies the nostalgia and simplicity of early computing days. BBS systems often had minimalistic design interfaces, largely due to the technical constraints of the era. ASCII art, colored text, and blocky characters were the aesthetics of the day, and this interface has captured that essence well.
+
+In original BBS systems, the input field served as a primary method of user interaction. It was crucial because it was typically the user's gateway to the system. The text-based interface relied heavily on a user's typed commands, often requiring specific syntax or commands to navigate or perform actions. This starkly contrasts with the graphical user interfaces of today's web, where mouse movements and clickable icons dominate.
+
+### To log into this BBS:
+
+![Login screen](./docs/login_screen.jpg)
+
+Navigate to the "Please enter your name:" prompt.
+Type in your desired username or handle.
+Press the ENTER key to confirm.
+In the subsequent step, you'll likely be prompted to enter and confirm your password. Ensure you remember it, as it will be your secure access key to this system
+
+### Oneliners
+
+![Oneliners](./docs/oneliners.jpg)
+
+Oneliners, though simple in concept, were the heartbeat of many BBS systems. They gave a quick snapshot of the community's vibe and encouraged playful and spontaneous interactions among users. So go ahead, leave your mark, and enjoy the camaraderie of the BBS world!
+
+To add an oneliner to this BBS:
+
+At the prompt "Do you want to add a new oneliner? (Y/N)", type 'Y' for Yes.
+Press the ENTER key.
+You'll likely be presented with a new prompt or a blank line awaiting your input.
+Type in your oneliner - remember to keep it concise!
+Press the ENTER key to post your oneliner to the board.
+
+## BBS Menu Options
+
+![Main menu](./docs/main_menu.jpg)
+
+### 1. **Message base area change** `[A]`
+
+- Switch between different message boards or forums within the BBS.
+- Each "area" can focus on a specific topic, from general discussions to specialized subjects.
+
+### 2. **Read messages** `[R]`
+
+- Browse and read posts left by other users in the current message area.
+- Engage with the content and participate in discussions.
+
+### 3. **Write messages** `[W]`
+
+- Contribute to a conversation or start a new thread.
+- An editor will likely be presented for users to type and post their message.
+
+### 4. **Who is online** `[?]`
+
+- View a real-time list of users currently logged into the BBS.
+- See who else is active, their username, current activity, and online duration.
+
+### 5. **Chat between lines** `[C]`
+
+- Real-time chat feature.
+- Engage in direct conversations with others online, either in public chat rooms or through private messages.
+
+### 6. **Setup message areas** `[1]`
+
+- Administrative function to configure, add, or remove message areas.
+- Ensure discussions remain categorized and are easy to navigate.
+
+### 7. **ANSI editor** `[3]`
+
+- A specialized text editor for creating or editing messages with ANSI art and formatting.
+- Produce colorful and graphical renditions in text mode, adding creativity to posts or designing vibrant BBS screens.
+
+## BBS System Overview & Technical Features
+
 - **Technologies Used**: Socket.io, MongoDB, Phaser
 - **ANSI Parser**: Modified version of `stransi`
 - **Responsive Canvas**: Different canvas sizes based on screen width
+
+When composing a new message or initiating a chat, if you enter an incorrect username, a list of users will be displayed. You can navigate through this list using the cursor keys or the > and < buttons on the onscreen keyboard. Occasionally, pressing ESC may be necessary to access the menu bar for navigation, especially when writing a new message or working within the ANSI editor.
 
 ## Canvas Sizing
 
@@ -130,19 +202,19 @@ pip install ochre flask pymongo flask_socketio bcrypt
    This are the instructions for Ubuntu 22
 
    - Open Terminal.
-   Run:
+     Run:
+
    ```
    wget https://repo.mongodb.org/apt/ubuntu/dists/jammy/mongodb-org/6.0/multiverse/binary-amd64/mongodb-org-server_6.0.11_amd64.deb
    ```
 
 2. **Install the deb package**
 
-
    Run:
+
    ```
    sudo dpkg -i mongodb-org_6.0.x_amd64.deb
    ```
-
 
 3. **Create Data Directory**
 
@@ -150,20 +222,23 @@ pip install ochre flask pymongo flask_socketio bcrypt
      ```
      sudo mkdir -p /data/db
      ```
+
 4. **Run MongoDB**
+
    - Navigate to the `/usr/bin` folder
    - Start the application `mongod`
 
 5. **Permissions**
 
    If it still does not work, make sure the directory has got the correct permissions
+
    - Run:
+
    ```
    sudo chown -R mongodb:mongodb /data/db
    ```
 
    Replace mongodb:mongodb with your username
-
 
 # Quickstart
 
