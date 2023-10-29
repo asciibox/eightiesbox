@@ -74,13 +74,13 @@ Press the ENTER key to post your oneliner to the board.
 - A specialized text editor for creating or editing messages with ANSI art and formatting.
 - Produce colorful and graphical renditions in text mode, adding creativity to posts or designing vibrant BBS screens.
 
+When composing a new message or initiating a chat, if you enter an incorrect username, a list of users will be displayed. You can navigate through this list using the cursor keys or the > and < buttons on the onscreen keyboard. Occasionally, pressing ESC may be necessary to access the menu bar for navigation, especially when writing a new message or working within the ANSI editor.
+
 ## BBS System Overview & Technical Features
 
 - **Technologies Used**: Socket.io, MongoDB, Phaser
 - **ANSI Parser**: Modified version of `stransi`
 - **Responsive Canvas**: Different canvas sizes based on screen width
-
-When composing a new message or initiating a chat, if you enter an incorrect username, a list of users will be displayed. You can navigate through this list using the cursor keys or the > and < buttons on the onscreen keyboard. Occasionally, pressing ESC may be necessary to access the menu bar for navigation, especially when writing a new message or working within the ANSI editor.
 
 ## Canvas Sizing
 
