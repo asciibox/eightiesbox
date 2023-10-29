@@ -26,7 +26,7 @@ class MenuBox:
         self.emit_gotoXY = util.emit_gotoXY
         self.clear_line = util.clear_line
 
-        self.num_rows = 50
+        self.num_rows = 42
 
         # Initialize a 2D array to hold values for each field and each row.
         self.values = [["" for _ in self.fields] for _ in range(self.num_rows)]

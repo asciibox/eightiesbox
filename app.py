@@ -16,10 +16,10 @@ from sauce import Sauce
 import time
 import base64
 from f10actionhandler import F10ActionHandler
-
+import asyncio
+from threading import Timer
 app = Flask(__name__)
 socketio = SocketIO(app, logger=False, engineio_logger=False)
-
 
 
 
@@ -58,7 +58,7 @@ def load_json_data():
 
 def create_main_menus():
     global mongo_client
-    num_rows = 50
+    num_rows = 42
     fields = ['Type', 'Data', 'Key', 'Sec', 'Flags']
     values = [["" for _ in fields] for _ in range(num_rows)]
 
@@ -113,6 +113,7 @@ def on_new_connection():
     sid_data[request_sid] = SessionData()
     global util
     sid_data[request_sid].util = Utils(socketio, mongo_client, list1, list2, sid_data, Sauce, request_sid, menu_structure)
+    
 
 # When a connection closes
 def on_connection_close():
@@ -141,7 +142,8 @@ def index():
 def handle_connect():
     
     on_new_connection()
-    
+    request_sid = request.sid
+    Timer(1, sid_data[request_sid].util.update_status_bar_periodically).start()
     socketio.emit('initPage',  [
         {'minWidth': 0, 'x': 40, 'y': 25},
         {'minWidth': 640, 'x': 80, 'y': 50},

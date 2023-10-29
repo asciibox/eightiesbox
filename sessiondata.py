@@ -58,6 +58,9 @@ class SessionData:
         self.copy_action = True
         self.current_chat_partner = ""
         self.chat_callback = None
+        self.remaining_time = 180*60  # 3 hours in minutes
+        self.stored_time = 0  # Stored time in minutes
+        self.last_activity_timestamp = None
 
     def move_cursor_up(self):
         self.menu_current_index = (self.menu_current_index - 1) % len(self.menu_items)

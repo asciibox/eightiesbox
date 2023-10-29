@@ -13,7 +13,10 @@ from sauce import Sauce
 import bcrypt
 import os
 from menu import *
-
+import asyncio
+import time
+from time import sleep
+from threading import Timer
 class Utils:
     def __init__(self, sio, my_client, mylist1, mylist2, sdata, Sauce, request_id, menu_structure):
         self.socketio = sio
@@ -50,6 +53,25 @@ class Utils:
         self.sid_data.setCurrentAction("wait_for_any_button")
 
     def ask(self, mylen, callback, accept_keys = []):
+
+        current_timestamp = time.time()  # Current time in seconds since the epoch
+        
+        if self.sid_data.last_activity_timestamp is not None:
+            # Calculate elapsed time in minutes
+            elapsed_time = (current_timestamp - self.sid_data.last_activity_timestamp)
+            
+            # Reduce the remaining time by the elapsed minutes
+            self.sid_data.remaining_time -= int(elapsed_time)
+            print("REMAINING TIME")
+            print(self.sid_data.remaining_time)
+            # Check if the remaining time is up
+            if self.sid_data.remaining_time <= 0:
+                self.output_wrap("Your time limit has been reached", 1, 0)                
+                return  # Exit the function early since the user is logged out
+        
+        # Update the last activity timestamp
+        self.sid_data.last_activity_timestamp = current_timestamp
+
         self.sid_data.setInputType("text")
         self.askinput(mylen, callback, accept_keys)
         
@@ -81,19 +103,54 @@ class Utils:
         self.sid_data.setCursorY(self.sid_data.startY)
         self.update_status_bar()
 
-    def update_status_bar(self):
-      
+    def get_remaining_time(self):
+        current_timestamp = time.time()  # Current time in seconds since the epoch
+        
+
+        if self.sid_data.last_activity_timestamp is not None:
+            elapsed_time = (current_timestamp - self.sid_data.last_activity_timestamp)
+                
+            # Reduce the remaining time by the elapsed minutes
+            self.sid_data.remaining_time -= int(elapsed_time)
+            # Update the last activity timestamp
+            self.sid_data.last_activity_timestamp = current_timestamp
+            if self.sid_data.remaining_time > 0:
+                return self.sid_data.remaining_time
+            else:
+                return 0
+        else:
+            self.sid_data.last_activity_timestamp = current_timestamp
+            return 180*60       
+
+    def format_seconds_to_hh_mm_ss(self, seconds):
+        hours = seconds // 3600  # 3600 seconds in an hour
+        remaining_seconds = seconds % 3600
+        minutes = remaining_seconds // 60  # 60 seconds in a minute
+        remaining_seconds %= 60
+        return f"{hours}:{minutes:02d}:{remaining_seconds:02d}"
+        
+    def get_status_content(self):
         # Generate the status bar content based on pending_requests
         status_bar = "Incoming Requests: "+str(len(self.sid_data.incoming_requests))
         if self.sid_data.xWidth > 50:
             status_bar += " - Press F10 for more"
         else:
             status_bar += " F10"
+
+        status_bar+="   Remaining time: "+self.format_seconds_to_hh_mm_ss(self.get_remaining_time())
+        
+
         status_content = status_bar+" "*(self.sid_data.xWidth-len(status_bar))
+        return status_content
+
+    def update_status_bar(self):
+      
+        status_content = self.get_status_content()
 
         # Output the status bar content
         self.emit_status_bar(status_content, 6, 4)
 
+    
     def output_wrap(self, currentString, currentColor, backgroundColor):
         words = currentString.split(' ')  # Split the string by space to get individual words
         line = ""
@@ -121,6 +178,31 @@ class Utils:
         self.sid_data.setCursorX(self.sid_data.startX)
         self.sid_data.setCursorY(self.sid_data.startY)
 
+    def update_status_bar_periodically(self):
+        
+        currentString = self.get_status_content()
+        currentColor = 6
+        backgroundColor = 4
+
+        sid = self.request_id  # Get the Session ID
+        if currentString:
+            ascii_codes = [ord(char) for char in currentString]
+
+            if self.sid_data.map_character_set == True:
+                mapped_ascii_codes = [self.map_value(code, self.list2, self.list1) for code in ascii_codes]
+              
+                self.socketio.emit('draw_to_status_bar', {
+                    'ascii_codes': mapped_ascii_codes,
+                    'currentColor': currentColor,
+                    'backgroundColor': backgroundColor
+                }, room=sid)
+            else:
+                self.socketio.emit('draw_to_status_bar', {
+                    'ascii_codes': ascii_codes,
+                    'currentColor': currentColor,
+                    'backgroundColor': backgroundColor
+                }, room=sid)
+        Timer(1, self.update_status_bar_periodically).start()
 
     def passwordCallback(self, input):
         db = self.mongo_client['bbs']
