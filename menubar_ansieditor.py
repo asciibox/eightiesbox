@@ -1,3 +1,4 @@
+import binascii
 from pymongo import MongoClient
 from menubar import MenuBar
 import bson.binary
@@ -177,7 +178,15 @@ class MenuBarANSIEditor(MenuBar):
         self.file_data = file_data
         if file_data:
             # Decode the Base64-encoded string into bytes
-            ansi_code_bytes = base64.b64decode(file_data['ansi_code'])
+            try:
+                # Attempt to encode to bytes, if it's a string, then decode from base64
+                if isinstance(file_data['ansi_code'], str):
+                    ansi_code_bytes = base64.b64decode(file_data['ansi_code'].encode('utf-8'))
+                else:
+                    ansi_code_bytes = base64.b64decode(file_data['ansi_code'])
+            except (TypeError, KeyError, binascii.Error, ValueError, UnicodeEncodeError) as e:
+                print(f"An error occurred: {e}")
+                ansi_code_bytes = b""
             print("Last 128 bytes after BASE64 decoding:", ansi_code_bytes[-128:])
             # Convert the bytes to a string using cp1252 encoding
            

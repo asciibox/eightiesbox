@@ -497,7 +497,7 @@ class ANSIEditor(BasicANSI):
             self.emit_gotoXY(self.current_line_x, self.current_line_index + 1)  # Go to next line
             
     def arrow_down_pressed(self):
-        if self.current_line_index < self.max_height - 1:
+        if self.current_line_index < self.max_height - 2:
             self.current_line_index += 1
             self.emit_gotoXY(self.current_line_x, self.current_line_index+1)
         
