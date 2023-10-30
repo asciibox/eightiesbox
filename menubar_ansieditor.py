@@ -343,7 +343,11 @@ class MenuBarANSIEditor(MenuBar):
         # Look for the filename in the database
         file_data = collection.find_one({"filename": entered_filename})
 
-        file_data = base64.b64decode(file_data['file_data'])
+        try:
+            file_data = base64.b64decode(file_data['file_data'])
+        except (TypeError, KeyError, binascii.Error) as e:
+            print(f"An error occurred while decoding: {e}")
+            file_data = b""  # Initialize as empty bytes
         if file_data:
 
             sauce = self.get_sauce(file_data)
@@ -366,7 +370,6 @@ class MenuBarANSIEditor(MenuBar):
             self.current_line_index=0
             self.sid_data.color_array = []
             self.sid_data.color_bgarray = []
-
             
             #str_text = file_data['file_data'].decode('cp437', 'replace')
             #with open("ansi_import.ans", "w", encoding='cp437') as f:

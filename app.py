@@ -251,6 +251,9 @@ def handle_keypress(data):
        siddata.setF10ActionHandler(F10ActionHandler(siddata.util))
        siddata.f10actionhandler.handle_F10()
        return
+    if key == 'F12':
+        siddata.util.emit_toggle_keyboard()
+        return
     elif siddata.current_action == "in_chat" and siddata.chat_partner:
         partner_sid_data = siddata.chat_partner
         partner_util = partner_sid_data.util  # Assume util is accessible from sid_data

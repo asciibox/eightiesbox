@@ -137,7 +137,7 @@ class Utils:
         else:
             status_bar += " F10"
 
-        status_bar+="   Remaining time: "+self.format_seconds_to_hh_mm_ss(self.get_remaining_time())
+        status_bar+="   Remaining time: "+self.format_seconds_to_hh_mm_ss(self.get_remaining_time())+" F12 keyboard F1 help"
         
 
         status_content = status_bar+" "*(self.sid_data.xWidth-len(status_bar))
@@ -438,6 +438,10 @@ class Utils:
     def clear_line(self, y):
         sid = self.request_id  # Get the Session ID
         self.socketio.emit('clearline', {'y': y}, room=sid)
+ 
+    def emit_toggle_keyboard(self):
+        sid = self.request_id  # Get the Session ID
+        self.socketio.emit('toggle_keyboard', {}, room=sid)
 
     def emit_upload(self):
         sid = self.request_id  # Get the Session ID
@@ -858,6 +862,8 @@ class Utils:
 
 
     def emit_current_string_local(self, currentString, currentColor, backgroundColor, blink, current_x, current_y):
+        if (current_y > self.sid_data.yHeight-4):
+            return []
         if (current_x < 0):
             current_x = 0
         if (current_y < 0):
