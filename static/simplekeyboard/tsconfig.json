@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+      "module": "ESNext",
+      "esModuleInterop": true,
+      "outDir": "./dist",
+      "allowJs": true,
+      "sourceMap": true,
+      "declaration": true,
+      "suppressImplicitAnyIndexErrors": true,
+      "ignoreDeprecations": "5.0",
+      "lib": ["es2020", "dom"],
+      "moduleResolution": "node",
+      "downlevelIteration": true,
+      "strict": true
+    },
+    "include": ["src/lib"],
+    "exclude": ["src/lib/**/tests"],
+    "files": ["src/lib/index.ts"]
+}
