@@ -369,26 +369,27 @@ function writeAsciiHTML(string, currentColor, backgroundColor) {
 }
 
 function shiftTilesUp(layer) {
-  for (let y = 1; y < TOTAL_HEIGHT_CHARACTERS; y++) {
-    // Start from the second row
+  // Start shifting from the second row to the second-last row
+  for (let y = 1; y < TOTAL_HEIGHT_CHARACTERS - 1; y++) {
     for (let x = 0; x < TOTAL_WIDTH; x++) {
       const tile = layer.getTileAt(x, y);
       if (tile) {
-        layer.putTileAt(tile.index, x, y - 1); // Move the tile up by one row
+        layer.putTileAt(tile.index, x, y - 1);
       }
     }
   }
-  // Clear the last row (optional)
+  // Clear the second-last row
   for (let x = 0; x < TOTAL_WIDTH; x++) {
-    layer.removeTileAt(x, TOTAL_HEIGHT_CHARACTERS - 1);
+    layer.removeTileAt(x, TOTAL_HEIGHT_CHARACTERS - 2);
   }
 }
-
 function clearLine(y) {
   const defaultChar = 32; // ASCII code for space
   const defaultColor = 15; // Default foreground color
   const defaultBGColor = 0; // Default background color (black)
-
+  if (y === TOTAL_HEIGHT_CHARACTERS - 1) {
+    y = TOTAL_HEIGHT_CHARACTERS - 2;
+  }
   for (let x = 0; x < TOTAL_WIDTH; x++) {
     // Clear the character layer
     const charIndex = getCharIndex(defaultColor, defaultChar);
@@ -409,11 +410,11 @@ function clearLine(y) {
 function writeAsciiHTMLPos(ascii_codes, currentColor, backgroundColor, x, y) {
   return new Promise((resolve, reject) => {
     if (enableScrolling) {
-      if (y < TOTAL_HEIGHT_CHARACTERS) {
-        maxReachedY = y;
+      if (y < TOTAL_HEIGHT_CHARACTERS - 1) {
+        maxReachedY = y - 1;
       }
       // Scroll until we've made room for the y-coordinate we're trying to reach
-      while (y > maxReachedY && y >= TOTAL_HEIGHT_CHARACTERS) {
+      while (y > maxReachedY + 1 && y >= TOTAL_HEIGHT_CHARACTERS - 1) {
         // Shift all lines up by one
         canvas.shift();
         canvasbg.shift();
@@ -459,9 +460,9 @@ function writeAsciiToStatusBar(ascii_codes, currentColor, backgroundColor) {
   return new Promise((resolve, reject) => {
     let y;
     if (VISIBLE_WIDTH_CHARACTERS > 50) {
-      y = VISIBLE_HEIGHT_CHARACTERS - 1;
+      y = VISIBLE_HEIGHT_CHARACTERS - 1 + removedYChars;
     } else {
-      y = VISIBLE_HEIGHT_CHARACTERS + 1;
+      y = VISIBLE_HEIGHT_CHARACTERS + 1 + removedYChars;
     }
 
     try {
@@ -583,6 +584,8 @@ function handleKeyCode(keyCode) {
 }
 
 function redrawCursor() {
+  if (currentY > VISIBLE_HEIGHT_CHARACTERS - 3)
+    currentY = VISIBLE_HEIGHT_CHARACTERS - 2;
   sprite.x = currentX * 8 + 4;
   sprite.y = currentY * 16 + 4;
   sprite.visible = true;
