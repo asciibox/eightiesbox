@@ -50,10 +50,22 @@ class MenuBox:
             value = self.util.format_filename(value)
         #prnt("FILENAME:"+value)
 
-        self.values[self.current_row_index][self.fields.index(field)] = value
-        
+        key_to_insert = self.fields.index(field)
+
+        # Convert to dictionary if it's not
+        if not isinstance(self.values[self.current_row_index], dict):
+            existing_list = self.values[self.current_row_index]
+            new_dict = {i: val for i, val in enumerate(existing_list)}
+            self.values[self.current_row_index] = new_dict
+
+        # Update the value
+        self.values[self.current_row_index][key_to_insert] = value
+
+        # Draw the row
         self.draw_row(self.current_row_index)
 
+
+        
     def get_field_widths(self):
         separator_total_width = 3 * (len(self.fields) - 1)  # " | " is 3 chars wide
         total_field_length = sum(self.fields_length)
