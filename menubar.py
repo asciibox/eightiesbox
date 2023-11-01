@@ -29,7 +29,7 @@ class MenuBar:
         self.main_menu_positions = {}
 
         self.show_file_content = util.show_file_content
-        self.emit_upload = util.emit_upload
+        self.emit_uploadANSI = util.emit_uploadANSI
         self.get_sauce = util.get_sauce
         self.append_sauce_to_string = util.append_sauce_to_string
         

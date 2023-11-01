@@ -443,9 +443,13 @@ class Utils:
         sid = self.request_id  # Get the Session ID
         self.socketio.emit('toggle_keyboard', {}, room=sid)
 
-    def emit_upload(self):
+    def emit_uploadANSI(self):
         sid = self.request_id  # Get the Session ID
-        self.socketio.emit('upload', {}, room=sid)
+        self.socketio.emit('uploadANSI', {}, room=sid)
+
+    def emit_uploadFile(self):
+        sid = self.request_id  # Get the Session ID
+        self.socketio.emit('uploadFile', {}, room=sid)
 
     def emit_current_string(self, currentString, currentColor, backgroundColor, blink, x, y):
         #  input("Press Enter to continue...")

@@ -74,7 +74,7 @@ class MenuBarANSIEditor(MenuBar):
         self.sid_data.setCurrentAction("wait_for_ansieditor")
 
     def upload_ansi(self):
-        self.emit_upload()
+        self.emit_uploadANSI()
 
     def load_ansi(self):
         collection = self.mongo_client.bbs.ansifiles  # Replace with actual MongoDB database and collection

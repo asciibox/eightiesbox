@@ -52,7 +52,7 @@ socket.on("toggle_keyboard", () => {
   canvasElement.style.height = baseHeight * verticalScale + "px";
 });
 
-socket.on("upload", (data) => {
+socket.on("uploadFile", (data) => {
   // Hide all canvas elements
   const canvasElements = document.getElementsByTagName("canvas");
   for (let i = 0; i < canvasElements.length; i++) {
@@ -61,6 +61,18 @@ socket.on("upload", (data) => {
 
   // Display the fileUploadDiv
   const uploadDiv = document.getElementById("fileUploadDiv");
+  uploadDiv.style.display = "inline";
+});
+
+socket.on("uploadANSI", (data) => {
+  // Hide all canvas elements
+  const canvasElements = document.getElementsByTagName("canvas");
+  for (let i = 0; i < canvasElements.length; i++) {
+    canvasElements[i].style.display = "none";
+  }
+
+  // Display the fileUploadDiv
+  const uploadDiv = document.getElementById("ANSIUploadDiv");
   uploadDiv.style.display = "inline";
 });
 

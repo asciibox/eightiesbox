@@ -40,7 +40,7 @@ class ANSIEditor(BasicANSI):
 
 
         self.show_file_content = util.show_file_content
-        self.emit_upload = util.emit_upload
+        self.emit_uploadFile = util.emit_uploadFile
         self.startX = 0
         self.characterSet = 0
         self.pressedF9 = False

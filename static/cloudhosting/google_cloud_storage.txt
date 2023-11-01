@@ -1,0 +1,55 @@
+List all directories (blobs) in the "processed" bucket.
+Check if there's a directory for the current day.
+If found, use the existing UUID from the directory name. If not, create a new directory with today's timestamp and a new UUID.
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+import os
+from google.cloud import storage
+import uuid
+from datetime import datetime
+
+def processUploadedFile(data, context):
+    """Triggered by a change to a Cloud Storage object in the 'incoming' bucket.
+    Args:
+         data (dict): Event payload.
+         context (google.cloud.functions.Context): Metadata for the event.
+    """
+    file_name = data['name']
+    incoming_bucket_name = data['bucket']
+
+    # Initialize the Google Cloud Storage client
+    storage_client = storage.Client()
+    incoming_bucket = storage_client.bucket(incoming_bucket_name)
+    blob = incoming_bucket.blob(file_name)
+
+    # Define the "processed" bucket
+    processed_bucket_name = "YOUR_PROCESSED_BUCKET_NAME_HERE"
+    processed_bucket = storage_client.bucket(processed_bucket_name)
+
+    # Get today's date in the format DD-MM-YYYY
+    today = datetime.today().strftime('%d-%m-%Y')
+
+    # Check if there's a directory for the current day in the "processed" bucket
+    daily_directory = None
+    blobs = processed_bucket.list_blobs(prefix=today)
+    for b in blobs:
+        if today in b.name:
+            daily_directory = os.path.dirname(b.name)
+            break
+
+    # If no directory for today was found, create one with a new UUID
+    if not daily_directory:
+        daily_uuid = str(uuid.uuid4())
+        daily_directory = f"{today}_{daily_uuid}"
+
+    # Construct the new file path within the daily directory while preserving the original filename
+    new_file_path = os.path.join(daily_directory, file_name)
+
+    # Copy the file to the "processed" bucket within the daily directory
+    new_blob = incoming_bucket.copy_blob(blob, processed_bucket, new_file_path)
+    
+    # Delete the original file from the "incoming" bucket
+    blob.delete()
+
+    print(f"File {file_name} processed and moved to {new_file_path} in the 'processed' bucket.")

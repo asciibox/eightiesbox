@@ -140,7 +140,7 @@ On Linux Python is pre-installed, on Windows you must make sure to download the 
 2. Install the required Python packages:
 
 ```bash
-pip install ochre flask pymongo flask_socketio bcrypt
+pip install ochre flask pymongo flask_socketio bcrypt google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client
 ```
 
 (Install any other missing packages as needed.)

@@ -20,7 +20,12 @@ import asyncio
 from threading import Timer
 app = Flask(__name__)
 socketio = SocketIO(app, logger=False, engineio_logger=False)
-
+from flask import jsonify, request
+from google.cloud import storage, pubsub_v1
+from google.oauth2 import service_account
+import google.auth.iam
+from google.auth.transport.requests import Request
+import uuid
 
 
 MAX_FILE_SIZE = 1024 * 102  # 1MB in bytes
@@ -578,6 +583,81 @@ def handle_keypress(data):
             siddata.util.keydown(key)
             
 
+
+
+# Initialize Google Cloud
+storage_client = storage.Client()
+bucket = storage_client.get_bucket('eightiesbox')
+
+# Initialize Pub/Sub client
+subscriber = pubsub_v1.SubscriberClient()
+subscription_path = subscriber.subscription_path('animated-moon-403620', 'projects/animated-moon-403620/subscriptions/bbs-file-upload-notification')
+
+def callback(message):
+    print(f"Received message: {message}")
+    message.ack()
+    
+    # Update MongoDB
+    file_name = message.attributes.get('objectId')
+    collection.insert_one({"file_name": file_name})
+
+@app.route('/getSignedUrl', methods=['GET'])
+
+def get_signed_url():
+    bucket_name = "eightiesbox"
+     # Split the filename into name and extension
+    object_name = request.args.get('filename')
+    file_name, file_extension = os.path.splitext(object_name)
+
+    # Append the UUID before the extension
+    new_object_name = f"{file_name}_{uuid.uuid4()}{file_extension}"
+    file_size = request.args.get('filesize')
+    
+    # Load the service account credentials
+    credentials = service_account.Credentials.from_service_account_file(
+    "animated-moon-403620-fed766c722e2.json",
+    scopes=["https://www.googleapis.com/auth/iam", "https://www.googleapis.com/auth/cloud-platform"]
+)
+    googleAccessId = credentials.service_account_email
+    
+    # The URL will be valid for 10 minutes
+    expiration = int(time.time()) + 600
+    if int(file_size) > 1000000:
+        file_size = 1000000
+    # Create the policy document
+    policy_document = {
+        "expiration": time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime(expiration)),
+        "conditions": [
+            {"bucket": bucket_name},
+            {"key": new_object_name},
+            ["content-length-range", 1, 10000]
+        ]
+    }
+    
+    # Encode the policy document to base64
+    policy = base64.b64encode(json.dumps(policy_document).encode('utf-8')).decode('utf-8')
+    
+    # Create a signing key for the policy document
+    signer = google.auth.iam.Signer(
+        Request(),
+        credentials,
+        googleAccessId
+    )    
+    # Generate the signature
+    signature_bytes = signer.sign(policy.encode('utf-8'))
+    signature = base64.b64encode(signature_bytes).decode('utf-8')
+    
+    # Return the generated values
+    return jsonify({
+        "policy": policy,
+        "signature": signature,
+        "GoogleAccessId": googleAccessId,
+        "bucket": bucket_name,
+        "key": new_object_name,
+        "contentType": "image/png",
+        "Access-Control-Allow-Origin": "*",
+        "content-length-range": "1,100000"
+    })
 
 
 

@@ -1,17 +1,29 @@
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
     <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title>Eighties box</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" media="screen" href="{{ url_for('static', filename='main.css') }}" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      media="screen"
+      href="{{ url_for('static', filename='main.css') }}"
+    />
     <script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" type="text/css" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css"
+      type="text/css"
+    />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='simplekeyboard.css') }}">
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='simplekeyboard.css') }}"
+    />
     <style>
-    .spinner {
+      .spinner {
         margin: 100px auto;
         width: 50px;
         height: 50px;
@@ -20,183 +32,325 @@
         border-radius: 50%;
         animation: spin 2s linear infinite;
       }
-  
+
       @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
       }
 
-        /* For screen sizes less than 320px */
-        @media (max-width: 515px) {
-            #game-container {
-                max-width: 320px;
-                text-align: center;
-                margin: auto;
-            }
+      /* For screen sizes less than 320px */
+      @media (max-width: 515px) {
+        #game-container {
+          max-width: 320px;
+          text-align: center;
+          margin: auto;
         }
+      }
 
-        /* For screen sizes between 321px and 1280px */
-        @media (min-width: 321px) and (max-width: 1280px) {
-            #game-container {
-                max-width: 640px;
-                text-align: center;
-                margin: auto;
-            }
+      /* For screen sizes between 321px and 1280px */
+      @media (min-width: 321px) and (max-width: 1280px) {
+        #game-container {
+          max-width: 640px;
+          text-align: center;
+          margin: auto;
         }
+      }
 
-        /* For screen sizes greater than 1280px */
-        @media (min-width: 1281px) {
-            #game-container {
-                max-width: 960px;
-                text-align: center;
-                margin: auto;
-            }
+      /* For screen sizes greater than 1280px */
+      @media (min-width: 1281px) {
+        #game-container {
+          max-width: 960px;
+          text-align: center;
+          margin: auto;
         }
-
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <script src="{{ url_for('static', filename='phaser.js') }}"></script>
     <script src="{{ url_for('static', filename='main.js') }}"></script>
     <script src="{{ url_for('static', filename='client.js') }}"></script>
     <script src="{{ url_for('static', filename='simplekeyboard.js') }}"></script>
 
-    <div id="fileUploadDiv" style="display:none">
-        <button id="toggleButton">Close upload area</button>
-        <form action="/upload" class="dropzone" id="uploadForm" enctype="multipart/form-data">
-            <div class="fallback">
-                <input name="file" type="file">
-                <button type="submit">Upload</button>
-            </div>
-        </form>
+    <div id="fileUploadDiv" style="display: none">
+      <button id="toggleButtonFile">Close upload area</button>
+      <div id="uploadStatusFile"></div>
+      <form
+        action="/upload"
+        class="dropzone"
+        id="uploadFormFile"
+        enctype="multipart/form-data"
+      >
+        <div class="fallback">
+          <input name="file" type="file" />
+          <button type="submit">Upload</button>
+        </div>
+      </form>
+    </div>
+    <div id="ANSIUploadDiv" style="display: none">
+      <button id="toggleButtonANSI">Close ANSI Upload</button>
+      <div id="uploadStatusANSI"></div>
+      <form
+        action="/upload"
+        class="dropzone"
+        id="uploadFormANSI"
+        enctype="multipart/form-data"
+      >
+        <div class="fallback">
+          <input name="file" type="file" />
+          <button type="submit">Upload</button>
+        </div>
+      </form>
     </div>
     <div id="game-container"></div>
     <div class="spinner" id="spinner"></div>
-    <div class="simple-keyboard" id="simple-keyboard" style="display:none"></div>
+    <div
+      class="simple-keyboard"
+      id="simple-keyboard"
+      style="display: none"
+    ></div>
     <script>
-        const Keyboard = window.SimpleKeyboard.default;
+      const Keyboard = window.SimpleKeyboard.default;
 
-        const myKeyboard = new Keyboard({
-            layout: {
-        default: [
-          "^ 1 2 3 4 5 6 7 8 9 0 - = {bksp}",
-          "{tab} q w e r t y u i o p ] [ \\",
-          "{lock} a s d f g h j k l : ' {enter}",
-          "{shift} z x c v b n m , . / {shift}",
-          "{escape} @ {space}"
-        ],
-        shift: [
-          "~ ! @ # $ % ^ & * ( ) _ + {bksp}",
-          "{tab} Q W E R T Y U I O P { } |",
-          '{lock} A S D F G H J K L : " {enter}',
-          "{shift} Z X C V B N M < > ? {shift}",
-          "{escape} @ {space}"
-        ]
-      },
-        onKeyPress: button => onKeyPress(button)
-        });
+      const myKeyboard = new Keyboard({
+        layout: {
+          default: [
+            "^ 1 2 3 4 5 6 7 8 9 0 - = {bksp}",
+            "{tab} q w e r t y u i o p ] [ \\",
+            "{lock} a s d f g h j k l : ' {enter}",
+            "{shift} z x c v b n m , . / {shift}",
+            "{escape} @ {space}",
+          ],
+          shift: [
+            "~ ! @ # $ % ^ & * ( ) _ + {bksp}",
+            "{tab} Q W E R T Y U I O P { } |",
+            '{lock} A S D F G H J K L : " {enter}',
+            "{shift} Z X C V B N M < > ? {shift}",
+            "{escape} @ {space}",
+          ],
+        },
+        onKeyPress: (button) => onKeyPress(button),
+      });
 
+      function onKeyPress(button) {
+        if (button === "{shift}" || button === "{lock}") handleShift();
 
-        function onKeyPress(button) {
-            if (button === "{shift}" || button === "{lock}") handleShift();
-
-            const buttonMap = {
-                "{tab}": "Tab",
-                "{bksp}": "Backspace",
-                "{enter}": "Enter",
-                "{space}": " ",
-                "{escape}": "Escape",
-                ">" : "ArrowDown",
-                "<" : "ArrowUp",
-            };
-            var readableButton = buttonMap[button] || button;
-            handleKeyCode(readableButton);
-        }
-
-        function handleShift() {
-            const currentLayout = myKeyboard.options.layoutName;
-            const shiftToggle = currentLayout === "default" ? "shift" : "default";
-
-            myKeyboard.setOptions({
-            layoutName: shiftToggle
-            });
-        }
-
-        document.addEventListener("DOMContentLoaded", function(){
-
-            setTimeout(function() {
-            const canvasElements = document.getElementsByTagName('canvas');
-            for (let i = 0; i < canvasElements.length; i++) {
-                canvasElements[i].addEventListener('click', function() {
-                    window.open('https://github.com/asciibox/eightiesbox', '_blank');
-                });
-            canvasElements[i].addEventListener('touchend', function() {
-                    window.open('https://github.com/asciibox/eightiesbox', '_blank');
-                });
-
-            }
-            }, 2000);
-
-
-            const toggleButton = document.getElementById("toggleButton");
-            const fileUploadDiv = document.getElementById("fileUploadDiv");
-
-            toggleButton.addEventListener("click", function(){
-                    fileUploadDiv.style.display = "none";
-                    const canvasElements = document.getElementsByTagName('canvas');
-                    for (let i = 0; i < canvasElements.length; i++) {
-                        canvasElements[i].style.display = 'inline';
-                    }
-                    socket.emit('upload_finished');
-            });
-        });
-        Dropzone.options.uploadForm = {
-            maxFilesize: 1, // MB
-            acceptedFiles: ".ans",
-            init: function() {
-                this.on("addedfile", function(file) {
-                    // Create a FileReader object
-                    var reader = new FileReader();
-                    
-                    // You can access the filename here
-                    var filename = file.name;
-                    
-                    // Read the file as Data URL (Base64)
-                    reader.readAsDataURL(file);
-                    
-                    // Event handler when the reading is complete
-                    reader.onload = function(event) {
-                        // Get the Base64 string, remove the Data URL prefix
-                        var base64String = event.target.result.split(",")[1];
-
-                        var xhr = new XMLHttpRequest();
-                        xhr.open('POST', '/upload', true);
-                        xhr.setRequestHeader('Content-Type', 'application/json');
-                        xhr.onreadystatechange = function() {
-                            if (xhr.readyState == 4 && xhr.status == 200) {
-                                alert('File successfully uploaded');
-                            }
-                        };
-                        // Include the filename in the JSON payload
-                        xhr.send(JSON.stringify({
-                            file_data: base64String,
-                            filename: filename  // Add filename here
-                        }));
-                    };
-                });
-            }
+        const buttonMap = {
+          "{tab}": "Tab",
+          "{bksp}": "Backspace",
+          "{enter}": "Enter",
+          "{space}": " ",
+          "{escape}": "Escape",
+          ">": "ArrowDown",
+          "<": "ArrowUp",
         };
+        var readableButton = buttonMap[button] || button;
+        handleKeyCode(readableButton);
+      }
 
+      function handleShift() {
+        const currentLayout = myKeyboard.options.layoutName;
+        const shiftToggle = currentLayout === "default" ? "shift" : "default";
 
-    socket.on('upload', (data) => {
-        const canvasElements = document.getElementsByTagName('canvas');
+        myKeyboard.setOptions({
+          layoutName: shiftToggle,
+        });
+      }
+
+      function addClickListeners() {
+        const toggleButtonFile = document.getElementById("toggleButtonFile");
+        const fileUploadDiv = document.getElementById("fileUploadDiv");
+
+        toggleButtonFile.addEventListener("click", function () {
+          fileUploadDiv.style.display = "none";
+          const canvasElements = document.getElementsByTagName("canvas");
+          for (let i = 0; i < canvasElements.length; i++) {
+            canvasElements[i].style.display = "inline";
+          }
+        });
+        const toggleButtonANSI = document.getElementById("toggleButtonANSI");
+        const ANSIUploadDiv = document.getElementById("ANSIUploadDiv");
+
+        toggleButtonANSI.addEventListener("click", function () {
+          ANSIUploadDiv.style.display = "none";
+          const canvasElements = document.getElementsByTagName("canvas");
+          for (let i = 0; i < canvasElements.length; i++) {
+            canvasElements[i].style.display = "inline";
+          }
+        });
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        setTimeout(function () {
+          const canvasElements = document.getElementsByTagName("canvas");
+          for (let i = 0; i < canvasElements.length; i++) {
+            canvasElements[i].addEventListener("click", function () {
+              window.open("https://github.com/asciibox/eightiesbox", "_blank");
+            });
+            canvasElements[i].addEventListener("touchend", function () {
+              window.open("https://github.com/asciibox/eightiesbox", "_blank");
+            });
+          }
+        }, 2000);
+
+        addClickListeners();
+      });
+      var useGoogleCloudStorage = true; // Set this to false to use the Flask '/upload' endpoint
+
+      Dropzone.options.uploadFormFile = {
+        maxFiles: 1,
+        url: "https://storage.googleapis.com", // Default URL
+        method: "POST",
+        processData: false, // Don't process data
+        init: function () {
+          var myDropzone = this;
+
+          // Function to add hidden input to form
+          function addHiddenInput(name, value) {
+            var input = document.createElement("input");
+            input.setAttribute("type", "hidden");
+            input.setAttribute("name", name);
+            input.setAttribute("value", value);
+            myDropzone.element.appendChild(input);
+          }
+
+          // Function to remove all hidden inputs
+          function removeAllHiddenInputs() {
+            var hiddenInputs =
+              myDropzone.element.querySelectorAll("input[type=hidden]");
+            hiddenInputs.forEach(function (input) {
+              input.remove();
+            });
+          }
+
+          this.on("processing", (file) => {
+            myDropzone.options.headers = {
+              "Content-Type": file.type,
+            };
+            myDropzone.options.url = `https://storage.googleapis.com/upload/storage/v1/b/eightiesbox/o?uploadType=media&name=${file.name}`;
+          });
+
+          this.on("addedfile", function (file) {
+            if (this.files.length > 1) {
+              this.removeFile(this.files[0]); // Remove the earlier file
+            }
+            // Fetch the signed URL and other parameters
+            fetch(
+              "/getSignedUrl?filename=" + file.name + "&filesize=" + file.size,
+              {
+                method: "GET",
+              }
+            )
+              .then((response) => response.json())
+              .then((data) => {
+                addHiddenInput("policy", data.policy);
+                addHiddenInput("signature", data.signature);
+                addHiddenInput("GoogleAccessId", data.GoogleAccessId);
+                addHiddenInput("bucket", data.bucket);
+                addHiddenInput("key", data.key);
+                myDropzone.processQueue();
+              });
+          });
+
+          this.on("sending", function (file, xhr) {
+            var _send = xhr.send;
+            xhr.send = function () {
+              _send.call(xhr, file);
+            };
+          });
+
+          this.on("success", function (file, response) {
+            document.getElementById(
+              "uploadStatusFile"
+            ).innerHTML += `<div>File ${file.name} uploaded successfully</div>`;
+          });
+
+          this.on("error", function (file, response) {
+            document.getElementById(
+              "uploadStatusFile"
+            ).innerHTML += `<div>Failed to upload ${file.name}</div>`;
+          });
+        },
+      };
+
+      Dropzone.options.uploadFormANSI = {
+        //maxFilesize: 1, // MB
+        //acceptedFiles: "",
+        autoProcessQueue: useGoogleCloudStorage ? false : true,
+        init: function () {
+          this.on("addedfile", function (file) {
+            // Create a FileReader object
+            var reader = new FileReader();
+
+            // You can access the filename here
+            var filename = file.name;
+
+            // Read the file as Data URL (Base64)
+            reader.readAsDataURL(file);
+
+            // Event handler when the reading is complete
+            reader.onload = function (event) {
+              // Get the Base64 string, remove the Data URL prefix
+              var base64String = event.target.result.split(",")[1];
+
+              var xhr = new XMLHttpRequest();
+              xhr.open("POST", "/upload", true);
+              xhr.setRequestHeader("Content-Type", "application/json");
+
+              xhr.onreadystatechange = function () {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                  document.getElementById(
+                    "uploadStatusANSI"
+                  ).innerHTML += `<div>File ${filename} uploaded successfully</div>`;
+                }
+              };
+
+              // Include the filename in the JSON payload
+              xhr.send(
+                JSON.stringify({
+                  file_data: base64String,
+                  filename: filename, // Add filename here
+                })
+              );
+            };
+          });
+
+          this.on("success", function (file, response) {
+            document.getElementById(
+              "uploadStatusANSI"
+            ).innerHTML += `<div>File ${file.name} uploaded successfully</div>`;
+          });
+
+          this.on("error", function (file, response) {
+            document.getElementById(
+              "uploadStatusANSI"
+            ).innerHTML += `<div>Failed to upload ${file.name}</div>`;
+          });
+        },
+      };
+
+      socket.on("uploadFile", (data) => {
+        const canvasElements = document.getElementsByTagName("canvas");
         for (let i = 0; i < canvasElements.length; i++) {
-            canvasElements[i].style.display = 'none';
+          canvasElements[i].style.display = "none";
         }
-        
-        const uploadDiv = document.getElementById('fileUploadDiv');
-        uploadDiv.style.display = 'inline';
-    });
+
+        const uploadDiv = document.getElementById("fileUploadDiv");
+        uploadDiv.style.display = "inline";
+      });
+      socket.on("uploadANSI", (data) => {
+        const canvasElements = document.getElementsByTagName("canvas");
+        for (let i = 0; i < canvasElements.length; i++) {
+          canvasElements[i].style.display = "none";
+        }
+
+        const ANSIUploadDiv = document.getElementById("ANSIUploadDiv");
+        ANSIUploadDiv.style.display = "inline";
+      });
     </script>
-</body>
+  </body>
 </html>
