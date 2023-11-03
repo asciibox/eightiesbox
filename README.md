@@ -140,7 +140,7 @@ On Linux Python is pre-installed, on Windows you must make sure to download the 
 2. Install the required Python packages:
 
 ```bash
-pip install ochre flask pymongo flask_socketio bcrypt google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client
+pip install ochre flask pymongo flask_socketio bcrypt google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client google-cloud-storage google-cloud-pubsub
 ```
 
 (Install any other missing packages as needed.)
@@ -247,6 +247,74 @@ Call
 python app.py
 
 Open the page using http://localhost:5000
+
+Make sure to have downloaded the json file from Google Clous Storage with an account:
+
+1. Go to the Google Cloud Console:
+
+Navigate to the Google Cloud Console.
+
+2. Select your project:
+
+From the project drop-down, select your project that the service account belongs to.
+
+3. Navigate to IAM & Admin:
+
+On the navigation menu, click on "IAM & Admin", then select "Service accounts".
+
+4. Find your service account:
+
+Locate the service account for which you want to download the key, and click on the email address associated with it.
+
+5. Create new key:
+
+Click on the "Keys" tab, then click on "Add Key" and select "JSON" to create a new key.
+
+6. Download the key:
+
+The key will be generated and downloaded to your machine automatically.
+
+Set the GOOGLE_APPLICATION_CREDENTIALS in your environment variables.
+
+Windows:
+
+Right-click on 'This PC' or 'My Computer' on your desktop or in File Explorer, and select 'Properties.'
+Click on 'Advanced system settings.'
+Click on the 'Environment Variables' button.
+In the 'System variables' section, click 'New' and enter GOOGLE_APPLICATION_CREDENTIALS for the name and the path to the key file for the value.
+
+Linux:
+
+To make this environment variable available in all future terminal sessions, you can add the export command to your shell’s profile or configuration file.
+For bash, you can add it to ~/.bashrc or ~/.bash_profile.
+For zsh, you can add it to ~/.zshrc.
+Open the file in a text editor and add the following line:
+
+```
+export GOOGLE_APPLICATION_CREDENTIALS=/path/to/your/keyfile.json
+```
+Save the file and source it to apply the changes:
+```
+source ~/.bashrc  # or the name of the file you edited
+```
+
+Make sure to replace path\to\your\keyfile.json or /path/to/your/keyfile.json with the actual path to your key file.
+
+# Disabling Google Cloud Storage
+
+Alternatively, if you don't want to sign up at Google for a Google Cloud Storage key, comment out these lines in app.py:
+
+```
+# Initialize Google Cloud
+storage_client = storage.Client()
+bucket = storage_client.get_bucket('eightiesbox')
+
+# Initialize Pub/Sub client
+subscriber = pubsub_v1.SubscriberClient()
+subscription_path = subscriber.subscription_path('animated-moon-403620', 'projects/animated-moon-403620/subscriptions/bbs-file-upload-notification')
+```
+
+This will make it possible to run the application without a file base.
 
 # BBS Sysop Guide
 
