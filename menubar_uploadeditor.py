@@ -1,6 +1,7 @@
 from pymongo import MongoClient
 from menutexteditor import *
 from menubar import MenuBar
+from bson.objectid import ObjectId
 
 ''' When editing a menu '''
 class MenuBarUploadEditor(MenuBar):
@@ -24,9 +25,10 @@ class MenuBarUploadEditor(MenuBar):
                 self.leave_menu_bar()
             elif selected_option == "Save and proceed":
                 # Assuming 'files container' is a collection in your database
-                # and you have a method to get the database client, e.g., self.util.get_db_client()
-                db_client = self.util.get_db_client()
-                files_collection = db_client['files_container']
+                mongo_client = self.util.mongo_client
+                db = mongo_client['bbs']
+                
+                files_collection = db['files']
                 
                 # Update the document with the _id of self.file_id with the description from self.util.sid_data.input_values
                 update_result = files_collection.update_one(
@@ -36,13 +38,32 @@ class MenuBarUploadEditor(MenuBar):
                 
                 # Check if the update was successful and act accordingly
                 if update_result.modified_count == 1:
+
+                    to_be_edited_collection = db['to_be_edited']
+    
+                    try:
+                        file_id_obj = ObjectId(self.file_id)
+                        # Attempt to delete the document with the given file_id
+                        delete_result = to_be_edited_collection.delete_one({'file_id': file_id_obj})
+                        
+                        # Check if the document was deleted
+                        if delete_result.deleted_count == 1:
+                            pass
+                        else:
+                            print(f"No entry found with file_id: {self.file_id}")
+
+                    except Exception as e:
+                            # Handle any exceptions that occur during the delete operation
+                            print(f"An error occurred while attempting to remove the entry: {e}")
+                            return False
+                
                     self.output("File description updated successfully.", 6,0)
-                    self.wait_with_message(self.leave_menu_bar)
+                    self.util.wait_with_message(self.proceed_callback)
                     # Add any additional steps here if needed after a successful update
                 else:
                     self.output("Failed to update file description.", 6, 0)
-                    self.wait_with_message(self.leave_menu_bar)
-
+                    self.util.wait_with_message(self.proceed_callback)
+                    
                 # After save functionality, proceed with other tasks or redraw the menu
                 # self.draw_sub_menu()  # For example, to redraw the sub-menu
 
@@ -59,7 +80,9 @@ class MenuBarUploadEditor(MenuBar):
             self.draw_sub_menu()  # This function is assumed to draw the sub-menu
 
 
-   
+    def proceed_callback(self):
+        self.sid_data.setCurrentAction("wait_for_uploadeditor")
+        self.sid_data.upload_editor.start()
 
     def leave_menu_bar(self):
         self.sid_data.upload_editor.clear_screen()
