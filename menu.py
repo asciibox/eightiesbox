@@ -13,6 +13,7 @@ from whoisonline import WhoIsOnline
 from multilinechat import MultilineChat
 from fileareachange import FileAreaChange
 from uploadeditor import UploadEditor
+from filelist import Filelist
 
 class Menu(BasicANSI):
     def __init__(self, util, values, num_rows, callback_on_exit):
@@ -96,6 +97,11 @@ class Menu(BasicANSI):
                             self.sid_data.file_area_change.show_file_areas()
                             return
                         self.util.emit_uploadFile()
+                        return
+                    elif action_code == "23":
+                        self.append_gosub()
+                        self.sid_data.setFilelist(Filelist(self.util))
+                        self.sid_data.filelist.show_file_listing()
                         return
                     elif action_code == "24":
                         self.append_gosub()

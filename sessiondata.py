@@ -201,3 +201,6 @@ class SessionData:
     
     def setUploadEditor(self, value):
         self.upload_editor = value
+
+    def setFilelist(self, value):
+        self.filelist = value
