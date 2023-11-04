@@ -91,6 +91,10 @@ class Menu(BasicANSI):
                         return
                     elif action_code == "22":
                         self.append_gosub()
+                        if (self.sid_data.current_file_area == None):
+                            self.sid_data.setFileAreaChange(FileAreaChange(self.util, self.on_file_area_selected_22))
+                            self.sid_data.file_area_change.show_file_areas()
+                            return
                         self.util.emit_uploadFile()
                         return
                     elif action_code == "24":
@@ -100,8 +104,8 @@ class Menu(BasicANSI):
                         return
                     elif action_code == "25":
                         self.append_gosub()
-                        self.sid_data.setUploadEditor(UploadEditor(self.util))
                         self.sid_data.setCurrentAction("wait_for_uploadeditor")
+                        self.sid_data.setUploadEditor(UploadEditor(self.util))
                         return
                     elif action_code == "51":
                         
@@ -184,6 +188,14 @@ class Menu(BasicANSI):
     def on_message_area_selected_12(self):
             self.execute_action_12()
 
+
+    def on_file_area_selected_22(self):
+        print("ON_FILE_AREA_SELECTED")
+        self.util.emit_uploadFile()
+        return
+
+
+
     def on_message_area_selected_11(self):
         if self.sid_data.current_message_area is not None:
             # Proceed with reading messages
@@ -194,6 +206,19 @@ class Menu(BasicANSI):
             self.sid_data.setCurrentAction("wait_for_menu")
             
     def execute_action_12(self):
+        self.sid_data.sauceWidth = self.sid_data.xWidth
+        self.sid_data.sauceHeight = self.sid_data.yHeight
+        self.sid_data.input_values = []
+        
+        # Clear the color array
+        self.sid_data.color_array = []
+
+        # Clear the background color array
+        self.sid_data.color_bgarray = []
+
+        self.sid_data.setMessageEditor(MessageEditor(self.util, self.message_editor_callback_on_exit))
+
+    def execute_action_22(self):
         self.sid_data.sauceWidth = self.sid_data.xWidth
         self.sid_data.sauceHeight = self.sid_data.yHeight
         self.sid_data.input_values = []

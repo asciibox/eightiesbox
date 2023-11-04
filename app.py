@@ -85,8 +85,6 @@ def create_main_menus():
         for index, row in enumerate(json_data["table"])
     ]
 
-    print("NON_EMPTY_VALUES")
-    print(non_empty_values)
     # Save the new file
     menu_box_data = {
         "fields": fields,
@@ -136,17 +134,15 @@ startFile = 'welcome'
 
 @socketio.on('custom_disconnect')
 def custom_disconnect(data):
-    print("custom disconnect")
     on_connection_close()
 
 
 @socketio.on('upload_finished')
 def upload_finished(data):
-    print("UPLOAD FINISHED")
     siddata = sid_data[request.sid]
+    siddata.current_action = 'wait_for_uploadeditor'
     siddata.setUploadEditor(UploadEditor(siddata.util)) 
 
-    siddata.current_action = 'wait_for_uploadeditor'
 
     
 
@@ -174,7 +170,6 @@ def onload(data):
     sid_data[request.sid].setYHeight(y)
     if server_available == False:
         sid_data[request.sid].util.output_wrap("* Database connection could not get established *", 1,0)
-        print(server_available)
         time.sleep(3)
     
     data2 = { 'filename' : startFile+'-'+str(x)+'x'+str(y), 'x' : x, 'y': y}
@@ -251,14 +246,10 @@ def generate_unique_filename(filename):
   
 @socketio.on('input_keypress')
 def handle_keypress(data):
-    print("HANDLE")
-    print(request.sid)
     global sid_data
     siddata = sid_data[request.sid]
-    print(siddata.current_action)
 
     key = data['key']
-    print("KEY: *"+key+"*")
     if key == 'F10':
        siddata.setF10ActionHandler(F10ActionHandler(siddata.util))
        siddata.f10actionhandler.handle_F10()
@@ -271,8 +262,6 @@ def handle_keypress(data):
         partner_util = partner_sid_data.util  # Assume util is accessible from sid_data
 
         if key == 'Escape':
-            print("Debug siddata: ", siddata.__dict__)
-            print("Debug partner_sid_data: ", partner_sid_data.__dict__)
             siddata.current_action = siddata.previous_action
             siddata.copy_action = False
             
@@ -281,8 +270,6 @@ def handle_keypress(data):
             basicANSI.display_editor(siddata.copy_color_array, siddata.copy_color_bgarray, siddata.copy_input_values, None) # None: just restore the original ANSI, no matter what menu points
             siddata.copy_action = True
 
-            print("Debug siddata after: ", siddata.__dict__)
-            print("Debug partner_sid_data: ", partner_sid_data.__dict__)
             partner_sid_data.current_action = partner_sid_data.previous_action
 
             partner_sid_data.copy_action = False
@@ -292,7 +279,6 @@ def handle_keypress(data):
             basicANSI.setYOffsetOnDraw(-1)
             basicANSI.display_editor(partner_sid_data.copy_color_array, partner_sid_data.copy_color_bgarray, partner_sid_data.copy_input_values, None) # None: just restore the original ANSI, no matter what menu points
             partner_sid_data.copy_action = True
-            print("Debug partner_sid_data after: ", partner_sid_data.__dict__)
             if siddata.chat_callback != None:
                 siddata.chat_callback()
                 siddata.chat_callback = None
@@ -338,7 +324,6 @@ def handle_keypress(data):
             siddata.util.output(key, 11, 0)
         return
     elif siddata.current_action == "wait_for_f10_action":
-        print("WAIT FOR F10 ACTION")
         key = data['key']
         siddata.f10actionhandler.handle_key(key)
         return
@@ -455,7 +440,6 @@ def handle_keypress(data):
             return
         
         return
-
     if (siddata.current_action == "wait_for_yes_no"):
         key = data['key']
         if key=='Y' or key == 'y' or key == 'n' or key == 'N':

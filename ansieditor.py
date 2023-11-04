@@ -5,6 +5,7 @@ from menubar_messageeditor import *
 import datetime
 from basicansi import *
 import random
+from menubar_uploadeditor import *
 
 class ANSIEditor(BasicANSI):
     def __init__(self, util):
@@ -145,6 +146,9 @@ class ANSIEditor(BasicANSI):
                 self.sid_data.setMenuBar(MenuBarANSIEditor(sub_menus, self.util))
 
                 self.sid_data.setCurrentAction("wait_for_menubar_ansieditor")
+                return
+            elif self.sid_data.current_action == "wait_for_uploadeditor":
+                self.escape2MenuUploadEditor()
                 return
 
         elif key == 'Alt':
@@ -522,9 +526,6 @@ class ANSIEditor(BasicANSI):
     
     def insert_into_string(self, current_str, current_x, key):
         # Make sure adding a character doesn't exceed the xWidth limit
-        print("LEN")
-        print(str(len(current_str)))
-        print("xWidth:"+str(self.sid_data.xWidth))
         if len(current_str) < self.sid_data.sauceWidth:
             new_str = current_str[:current_x] + key + current_str[current_x:]
             self.shift_color_attributes_right_from(current_x, self.current_line_index)

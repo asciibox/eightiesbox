@@ -46,13 +46,12 @@ class Utils:
         self.sid_data.setViewStart(0)
         mystr = " "*(mylen)
         self.emit_current_string(mystr, 14, 4, False, self.sid_data.startX, self.sid_data.startY)
-        print("INIT GOING TO GOTOXY:"+str(self.sid_data.startX)+"/"+str(self.sid_data.startY))
         self.emit_gotoXY(self.sid_data.startX, self.sid_data.startY)
 
     def wait_with_message(self, callback):
         self.output_wrap("Press any key to continue", 6 ,0)
-        self.sid_data.setCallback(callback)
         self.sid_data.setCurrentAction("wait_for_any_button")
+        self.sid_data.setCallback(callback)
 
     def ask(self, mylen, callback, accept_keys = []):
 
@@ -64,8 +63,6 @@ class Utils:
             
             # Reduce the remaining time by the elapsed minutes
             self.sid_data.remaining_time -= int(elapsed_time)
-            print("REMAINING TIME")
-            print(self.sid_data.remaining_time)
             # Check if the remaining time is up
             if self.sid_data.remaining_time <= 0:
                 self.output_wrap("Your time limit has been reached", 1, 0)                
@@ -219,7 +216,6 @@ class Utils:
 
             # Check if the password matches
             hashed_password_from_db = user_document.get('password').encode('utf-8')
-            print(f"Hash from DB: {hashed_password_from_db}")
             try:
                 if bcrypt.checkpw(input.encode('utf-8'), hashed_password_from_db):
                     self.goto_next_line()
@@ -476,7 +472,6 @@ class Utils:
     def emit_uploadFile(self):
         sid = self.request_id  # Get the Session ID
          # Connect to MongoDB
-        print(self.sid_data.current_file_area)
         formatted_name = self.sid_data.current_file_area['name'].replace(" ", "_")
         formatted_name = formatted_name[:20].ljust(20, '_')
         self.socketio.emit('uploadFile', { 'uploadToken': self.sid_data.upload_token, 'current_file_area' : str(self.sid_data.current_file_area['_id'])+"-"+formatted_name }, room=sid)
@@ -546,8 +541,6 @@ class Utils:
         if len(self.sid_data.accept_keys) > 0 and key.upper() not in self.sid_data.accept_keys:
             return 
 
-        print(len(str(self.sid_data.localinput)))
-        print( self.sid_data.maxLength)
         if len(self.sid_data.localinput) >= self.sid_data.maxLength and self.sid_data.maxLength > 1:
             return
 
@@ -802,10 +795,8 @@ class Utils:
                     filesize = len(bytes) - 128
                     if number_of_comments:
                         filesize -= number_of_comments * 64 + 5
-                print(columns, rows, title, author, group, date, filesize, ice_colors, use_9px_font, font_name, comments)
                 return Sauce(columns, rows, title, author, group, date, filesize, ice_colors, use_9px_font, font_name, comments)
         sauce = Sauce()
-        print("EMPTY!")
         sauce.filesize = len(bytes)
         sauce.columns = 80
         sauce.rows = 50

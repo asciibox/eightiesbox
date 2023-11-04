@@ -111,6 +111,7 @@ class SessionData:
         self.maxLength = length
 
     def setCurrentAction(self, action):
+        print("action set to "+action)
         self.current_action = action
 
     def setInsert(self, insert):

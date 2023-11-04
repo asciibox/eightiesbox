@@ -79,7 +79,6 @@ class FileAreaChange(AreaChange):
         self.sid_data.setCurrentAction("wait_for_menu")
 
     def get_total_files(self, selected_area):
-        print(selected_area)
         mongo_client = self.util.mongo_client
         db = mongo_client['bbs']
         count = db['files'].count_documents({"area_id": selected_area['_id']})

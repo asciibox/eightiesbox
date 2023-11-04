@@ -6,6 +6,7 @@ class UploadEditor(ANSIEditor):
         self.util.sid_data.color_array=[]
         self.util.sid_data.color_bgarray=[]
         self.util.sid_data.input_values=[]
+        self.first_document = None
         self.start()
 
     def update_first_line(self):
@@ -17,22 +18,25 @@ class UploadEditor(ANSIEditor):
         # Output a 5-character block with the current foreground color as background color
         to_be_edited_collection = db['to_be_edited']
 
-        # Retrieve the first document from the collection
-        first_document = to_be_edited_collection.find_one()
+       # Retrieve the first document uploaded by the user
+        user_id = self.sid_data.user_document['_id']
+        self.first_document = to_be_edited_collection.find_one({'uploaded_by_user_id': str(user_id)})
 
         # Check if a document was found
-        if first_document:
-            print(first_document)
-            self.util.output("File description: "+first_document['filename']+" ("+str(first_document['file_size'])+")", 6, 0)
-            print("First document in 'to_be_edited' collection:", first_document)
+        if self.first_document:
+            print(self.first_document)
+            self.util.output("File description: "+self.first_document['filename']+" ("+str(self.first_document['file_size'])+")", 6, 0)
+            print("First document in 'to_be_edited' collection:", self.first_document)
         else:
-            print("No documents found in 'to_be_edited' collection.")
+            print("No documents found in 'to_be_edited' collection. User ID:"+str(user_id))
             self.util.output("No documents found which need a description", 1, 0)
             self.util.goto_next_line()
             self.util.wait_with_message(self.exit)
+            return
 
 
     def exit(self):
+        print("EXITING")
         self.sid_data.menu.return_from_gosub()
         self.util.sid_data.setCurrentAction("wait_for_menu")
 
@@ -65,6 +69,7 @@ class UploadEditor(ANSIEditor):
 
     def insert_into_string(self, current_str, current_x, key):
         # Make sure adding a character doesn't exceed the xWidth limit
+        print("LEN")
         print(str(len(current_str)))
         if len(current_str) < 40:
             new_str = current_str[:current_x] + key + current_str[current_x:]
@@ -73,3 +78,12 @@ class UploadEditor(ANSIEditor):
             return new_str
         # If it exceeds, you might want to handle this case, e.g., by not allowing the insert or beeping
         return current_str
+
+    def escape2MenuUploadEditor(self):
+        sub_menus = {
+            'File': ['Save and proceeed', 'Save and exit', 'Exit without saving'],
+            'Edit': ['Clear description', 'Leave menu bar'],
+        }
+        self.sid_data.setMenuBar(MenuBarUploadEditor(sub_menus, self.util, self.first_document['file_id']))
+
+        self.sid_data.setCurrentAction("wait_for_menubar_ansieditor")
