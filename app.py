@@ -51,7 +51,7 @@ list2 = [0,1,2,3,4,5,6,7,8,9,13,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,
 menu_structure = {
             'Goto & Gosub': ['Goto new menu', 'Gosub new menu', 'Return from gosub'],
             'Message base': ['Read message', 'Write message', 'Area change'],
-            'File base': ['Download files', 'Upload files', 'List files', 'Select file area'],
+            'File base': ['Download files', 'Upload files', 'List files', 'Select file area', 'Comment uploaded files'],
             'User options': ['Change password', 'Change email', 'Change interests/hobbies'],
             'Login/Logout': ['Logout', 'Show oneliners'],
             'Multiline options': ['Users online', 'Chat between nodes', 'Add conference', 'Join conference', 'Delete conference'],
@@ -813,6 +813,8 @@ def check_upload_and_process():
             file_document = {
                 "filename": clean_filename,
                 "file_size": file_size,
+                "area_id": specific_document['area_id'],
+                "uploaded_by_user_id" : specific_document['user_id'],
                 "description": "",
                 "path": new_file_path
             }
@@ -822,6 +824,10 @@ def check_upload_and_process():
             # Insert into 'to_be_edited' collection
             edit_document = {
                 "file_id": file_result.inserted_id,
+                "filename": clean_filename,
+                "file_size" : file_size,
+                "area_id": specific_document['area_id'],
+                "uploaded_by_user_id" : specific_document['user_id'],
                 "description_empty": True
             }
             edit_result = to_be_edited_collection.insert_one(edit_document)

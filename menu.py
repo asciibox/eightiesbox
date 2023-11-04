@@ -12,6 +12,7 @@ from messagereader import MessageReader
 from whoisonline import WhoIsOnline
 from multilinechat import MultilineChat
 from fileareachange import FileAreaChange
+from uploadeditor import UploadEditor
 
 class Menu(BasicANSI):
     def __init__(self, util, values, num_rows, callback_on_exit):
@@ -96,6 +97,11 @@ class Menu(BasicANSI):
                         self.append_gosub()
                         self.sid_data.setFileAreaChange(FileAreaChange(self.util))
                         self.sid_data.file_area_change.show_file_areas()
+                        return
+                    elif action_code == "25":
+                        self.append_gosub()
+                        self.sid_data.setUploadEditor(UploadEditor(self.util))
+                        self.sid_data.setCurrentAction("wait_for_uploadeditor")
                         return
                     elif action_code == "51":
                         

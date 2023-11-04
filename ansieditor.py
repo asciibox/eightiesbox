@@ -20,7 +20,7 @@ class ANSIEditor(BasicANSI):
             6: [176, 177, 178, 219, 223, 220, 124, 141, 254, 250],
             7: [1, 2, 3, 4, 5, 6, 196, 127, 14, 207],
             8: [24, 25, 24, 25, 16, 17, 23, 23, 20, 21],
-            9: [174, 175, 61, 243, 169, 170, 253, 246, 171, 172],
+            9: [174, 175, 61, 243, 169, 170 , 253, 246, 171, 172],
             10: [149, 241, 20, 21, 235, 157, 227, 167, 251, 252],
             11: [162, 225, 147, 228, 230, 232, 235, 236, 237, 237],
             12: [128, 135, 165, 164, 152, 159, 44, 249, 173, 168],
@@ -95,17 +95,10 @@ class ANSIEditor(BasicANSI):
             self.arrow_up_pressed()
 
         elif key == 'ArrowRight':
-            if self.current_line_x < self.sid_data.sauceWidth - 1:
-                self.current_line_x += 1
-                self.emit_gotoXY(self.current_line_x, self.current_line_index+1)
-            return
+            self.arrow_right_pressed()
 
         elif key == 'ArrowLeft':
-            if self.current_line_x > self.startX:
-                self.current_line_x -= 1
-
-                self.emit_gotoXY(self.current_line_x, self.current_line_index+1)
-            return
+            self.arrow_left_pressed()
         
         elif key == 'Insert':
             self.sid_data.setInsert(not self.sid_data.insert)
@@ -317,10 +310,11 @@ class ANSIEditor(BasicANSI):
             self.sid_data.input_values[self.current_line_index] = current_str
             #print("current_str:"+current_str)
             if self.sid_data.insert:
-                new_str = current_str[:current_x] + key + current_str[current_x:]
-                self.shift_color_attributes_right_from(current_x, self.current_line_index)
-                self.current_line_x += 1  # Move the cursor to the right
+                print("insert_into_string")
+                new_str = self.insert_into_string(current_str, current_x, key)
             else:
+                # Overwrite mode doesn't change the length of the string
+                print("overwrite mode")
                 new_str = current_str[:current_x] + key + current_str[current_x + 1:]
 
             self.sid_data.input_values[self.current_line_index] = new_str
@@ -337,11 +331,7 @@ class ANSIEditor(BasicANSI):
                 
     # Additional logic for cursor movement could go here...
 
-            if self.current_line_x + 1 < self.sid_data.sauceWidth:
-                if not self.sid_data.insert:
-                    self.current_line_x += 1
-            else:
-                self.emit_gotoXY(self.sid_data.sauceWidth-1, self.current_line_index+1)
+            self.go_to_the_right_horizontally()
 
 
 
@@ -511,3 +501,34 @@ class ANSIEditor(BasicANSI):
             self.current_line_index -= 1
             self.emit_gotoXY(self.current_line_x, self.current_line_index+1)
         
+    def arrow_right_pressed(self):
+        if self.current_line_x < self.sid_data.sauceWidth - 1:
+            self.current_line_x += 1
+            self.emit_gotoXY(self.current_line_x, self.current_line_index+1)
+        return
+    
+    def arrow_left_pressed(self):
+        if self.current_line_x > self.startX:
+            self.current_line_x -= 1
+            self.emit_gotoXY(self.current_line_x, self.current_line_index+1)
+        return
+    
+    def go_to_the_right_horizontally(self):
+        if self.current_line_x + 1 < self.sid_data.sauceWidth:
+            if not self.sid_data.insert:
+                self.current_line_x += 1
+        else:
+            self.emit_gotoXY(self.sid_data.sauceWidth-1, self.current_line_index+1)
+    
+    def insert_into_string(self, current_str, current_x, key):
+        # Make sure adding a character doesn't exceed the xWidth limit
+        print("LEN")
+        print(str(len(current_str)))
+        print("xWidth:"+str(self.sid_data.xWidth))
+        if len(current_str) < self.sid_data.sauceWidth:
+            new_str = current_str[:current_x] + key + current_str[current_x:]
+            self.shift_color_attributes_right_from(current_x, self.current_line_index)
+            self.current_line_x += 1  # Move the cursor to the right
+            return new_str
+        # If it exceeds, you might want to handle this case, e.g., by not allowing the insert or beeping
+        return current_str
