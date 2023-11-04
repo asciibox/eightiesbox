@@ -202,6 +202,7 @@
       });
       var useGoogleCloudStorage = true; // Set this to false to use the Flask '/upload' endpoint
       var uploadToken = "";
+      var current_file_area = "";
 
       Dropzone.options.uploadFormFile = {
         maxFiles: 1,
@@ -244,7 +245,7 @@
             }
             // Fetch the signed URL and other parameters
             fetch(
-              "/getSignedUrl?filename=" + file.name + "&filesize=" + file.size + "&uploadToken="+uploadToken,
+              "/getSignedUrl?filename=" + file.name + "&filesize=" + file.size + "&uploadToken="+uploadToken+"&current_file_area="+current_file_area,
               {
                 method: "GET",
               }
