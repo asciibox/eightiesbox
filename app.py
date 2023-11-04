@@ -26,6 +26,7 @@ from google.oauth2 import service_account
 import google.auth.iam
 from google.auth.transport.requests import Request
 import uuid
+from uploadeditor import UploadEditor
 
 
 MAX_FILE_SIZE = 1024 * 102  # 1MB in bytes
@@ -136,6 +137,12 @@ def custom_disconnect(data):
     on_connection_close()
 
 
+@socketio.on('upload_finished')
+def upload_finished(data):
+    print("UPLOAD FINISHED")
+    siddata = sid_data[request.sid]
+    siddata.setUploadEditor(UploadEditor(siddata.util))      
+    siddata.current_action = 'wait_for_uploadeditor'
 
     
 
@@ -155,10 +162,6 @@ def handle_connect():
         {'minWidth': 1280, 'x': 120, 'y': 60}
     ], room=request.sid)
 
-@socketio.on('upload_finished')
-def upload_finished():
-    print("UPLOAD FINISHED")  
-    
 @socketio.on('onload')
 def onload(data):
     x = data.get('x')
@@ -463,6 +466,9 @@ def handle_keypress(data):
     elif (siddata.current_action == "wait_for_ansieditor"):
         siddata.ansi_editor.handle_key(data['key'])
         return
+    elif (siddata.current_action == "wait_for_uploadeditor"):
+        siddata.upload_editor.handle_key(data['key'])
+        return
     elif (siddata.current_action == "wait_for_messageeditor"):
         siddata.message_editor.handle_key(data['key'])
         return
@@ -604,14 +610,33 @@ def callback(message):
 @app.route('/getSignedUrl', methods=['GET'])
 
 def get_signed_url():
+    global mongo_client
     bucket_name = "eightiesbox"
      # Split the filename into name and extension
     object_name = request.args.get('filename')
     file_name, file_extension = os.path.splitext(object_name)
 
+    db = mongo_client['bbs']
+    upload_token_collection = db['upload_token']
+
     upload_token = request.args.get('uploadToken')
+
+    # Query the 'upload_token_collection' for the document with the matching 'token'
+    token_document = upload_token_collection.find_one({"token": upload_token})
+
+    # Initialize an empty string for user_id
+    user_id_str = "nouserid"
+
+    # Check if the document was found
+    if token_document:
+        # Extract the 'user_id' from the document and convert it to a string
+        user_id_str = str(token_document.get('user_id', ''))
+
     # Append the UUID before the extension
-    new_object_name = f"{file_name}_{uuid.uuid4()}_{upload_token}{file_extension}"
+    current_time_millis = time.time_ns() // 1_000_000
+    
+    new_object_name = f"{user_id_str}/{file_name}_{current_time_millis}{file_extension}"
+    print(new_object_name)
     file_size = request.args.get('filesize')
     
     # Load the service account credentials
@@ -623,8 +648,7 @@ def get_signed_url():
     
     # The URL will be valid for 10 minutes
     expiration = int(time.time()) + 600
-    if int(file_size) > 1000000:
-        file_size = 1000000
+
     # Create the policy document
     policy_document = {
         "expiration": time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime(expiration)),

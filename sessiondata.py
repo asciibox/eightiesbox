@@ -62,6 +62,7 @@ class SessionData:
         self.stored_time = 0  # Stored time in minutes
         self.last_activity_timestamp = None
         self.upload_token = ''
+        self.upload_editor = None
         
 
     def move_cursor_up(self):
@@ -189,3 +190,6 @@ class SessionData:
 
     def setUploadToken(self, value):
         self.upload_token = value
+    
+    def setUploadEditor(self, value):
+        self.upload_editor = value

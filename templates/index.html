@@ -166,6 +166,7 @@
         const fileUploadDiv = document.getElementById("fileUploadDiv");
 
         toggleButtonFile.addEventListener("click", function () {
+          socket.emit("upload_finished", {});
           fileUploadDiv.style.display = "none";
           const canvasElements = document.getElementsByTagName("canvas");
           for (let i = 0; i < canvasElements.length; i++) {
@@ -206,7 +207,7 @@
         maxFiles: 1,
         url: "https://storage.googleapis.com", // Default URL
         method: "POST",
-        createImageThumbnails : false,
+        createImageThumbnails : true,
         processData: false, // Don't process data
         init: function () {
           var myDropzone = this;

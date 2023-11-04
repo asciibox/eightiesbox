@@ -3,28 +3,29 @@ Check if there's a directory for the current day.
 If found, use the existing UUID from the directory name. If not, create a new directory with today's timestamp and a new UUID.
 
 -------------------------------------------------------------------------------------------------------------------------------
-
-import os
 from google.cloud import storage
+import os
 import uuid
 from datetime import datetime
+import re
 
 def processUploadedFile(data, context):
-    """Triggered by a change to a Cloud Storage object in the 'incoming' bucket.
+    """
+    Triggered by a change to a Cloud Storage object in the 'incoming' bucket.
     Args:
          data (dict): Event payload.
          context (google.cloud.functions.Context): Metadata for the event.
     """
-    file_name = data['name']
+    file_path = data['name']  # Full path including directories and file
     incoming_bucket_name = data['bucket']
 
     # Initialize the Google Cloud Storage client
     storage_client = storage.Client()
     incoming_bucket = storage_client.bucket(incoming_bucket_name)
-    blob = incoming_bucket.blob(file_name)
+    blob = incoming_bucket.blob(file_path)
 
     # Define the "processed" bucket
-    processed_bucket_name = "YOUR_PROCESSED_BUCKET_NAME_HERE"
+    processed_bucket_name = "eightiesbox_uploaded"
     processed_bucket = storage_client.bucket(processed_bucket_name)
 
     # Get today's date in the format DD-MM-YYYY
@@ -34,8 +35,8 @@ def processUploadedFile(data, context):
     daily_directory = None
     blobs = processed_bucket.list_blobs(prefix=today)
     for b in blobs:
-        if today in b.name:
-            daily_directory = os.path.dirname(b.name)
+        if b.name.startswith(today) and '/' in b.name:
+            daily_directory = b.name.split('/')[0]
             break
 
     # If no directory for today was found, create one with a new UUID
@@ -43,13 +44,40 @@ def processUploadedFile(data, context):
         daily_uuid = str(uuid.uuid4())
         daily_directory = f"{today}_{daily_uuid}"
 
-    # Construct the new file path within the daily directory while preserving the original filename
-    new_file_path = os.path.join(daily_directory, file_name)
+    # Define the pattern for the timestamp in the filename
+    timestamp_pattern = re.compile(r'_(\d{13})(?=\.)') 
+
+    # Extract the base directory name and the original filename
+    base_directory_name = os.path.dirname(file_path).split('/')[-1]
+    original_filename = os.path.basename(file_path)
+
+    # Search for the timestamp in the original filename
+    timestamp_match = timestamp_pattern.search(original_filename)
+    if timestamp_match:
+        # Extract the timestamp
+        timestamp = timestamp_match.group(0)
+        timestamp = timestamp[1:]
+        # Remove the timestamp from the original filename
+        clean_filename = timestamp_pattern.sub('', original_filename)
+
+        # Extract the file extension
+        file_extension = os.path.splitext(clean_filename)[1]  # This will give you '.png' from your example
+
+        # Ensure we only get the first 20 characters of the filename without the extension
+        filename_prefix = os.path.splitext(clean_filename[:20])[0]
+
+        # Construct the new file path
+        new_file_path = f"{daily_directory}/{base_directory_name}/{timestamp}_{filename_prefix}{file_extension}/{clean_filename}"
+
+    else:
+        # If no timestamp is found, we keep the original structure
+        new_file_path = f"{daily_directory}/{base_directory_name}/{original_filename}"
+
 
     # Copy the file to the "processed" bucket within the daily directory
-    new_blob = incoming_bucket.copy_blob(blob, processed_bucket, new_file_path)
-    
+    new_blob = processed_bucket.copy_blob(blob, processed_bucket, new_file_path)
+
     # Delete the original file from the "incoming" bucket
     blob.delete()
 
-    print(f"File {file_name} processed and moved to {new_file_path} in the 'processed' bucket.")
+    print(f"File {file_path} processed and moved to {new_file_path} in the 'processed' bucket.")

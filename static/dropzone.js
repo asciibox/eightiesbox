@@ -7098,7 +7098,7 @@ var defaultOptions = {
   /**
    * Whether thumbnails for images should be generated
    */
-  createImageThumbnails: false,
+  createImageThumbnails: true,
 
   /**
    * In MB. When the filename exceeds this limit, the thumbnail will not be generated.

@@ -234,7 +234,30 @@ class Utils:
                                     'status': 'received',
                                     'sid_data': other_sid_data  # Store the sid_data of the request sender
                                 })
-                    self.sid_data.setUploadToken(str(uuid.uuid4()))
+                    my_upload_token = str(uuid.uuid4())
+                    self.sid_data.setUploadToken(my_upload_token)
+
+                    upload_token_collection = db['upload_token']
+
+                    # Assume 'user_document' is a document you've retrieved from the 'users' collection
+                    user_id = user_document['_id']
+
+                    # Now, create the document to insert
+                    token_document = {
+                        "token": my_upload_token,
+                        "user_id": user_id,
+                        "timestamp" : int(time.time())
+                    }
+
+                    # Insert the document into the collection
+                    result = upload_token_collection.insert_one(token_document)
+
+                    # 'result' will contain information about the insertion
+                    if result.acknowledged:
+                        print("Upload token inserted successfully. Document ID:", result.inserted_id)
+                    else:
+                        print("Failed to insert upload token.")
+
                     # Now proceed to initialize OnelinerBBS
                     bbs = OnelinerBBS(self)
                     bbs.show_oneliners()
