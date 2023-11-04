@@ -26,6 +26,9 @@ from google.oauth2 import service_account
 import google.auth.iam
 from google.auth.transport.requests import Request
 import uuid
+from datetime import date
+import re
+
 from uploadeditor import UploadEditor
 
 
@@ -187,7 +190,7 @@ def disconnect():
     on_connection_close()
 
 db = mongo_client["bbs"]  # You can replace "mydatabase" with the name of your database
-uploads_collection = db["uploads"]
+uploads_collection = db["uploads_ansi"]
 
 ALLOWED_EXTENSIONS = {'ans'}
 
@@ -675,6 +678,28 @@ def get_signed_url():
     signature_bytes = signer.sign(policy.encode('utf-8'))
     signature = base64.b64encode(signature_bytes).decode('utf-8')
     
+    uploads_collection = db['upload_requests']
+
+    # Now, create the document to insert
+    upload_document = {
+        "area_id" : current_file_area.split("-")[0],
+        "user_id": user_id_str.split("_")[0],
+        "filename": file_name+file_extension,
+        "current_time_millis" : current_time_millis,
+        "timestamp" : int(time.time()),
+        "uploadID": request.args.get('uploadID'),
+        "new_object_name" : new_object_name
+    }
+
+    # Insert the document into the collection
+    result = uploads_collection.insert_one(upload_document)
+
+    # 'result' will contain information about the insertion
+    if result.acknowledged:
+        print("Upload inserted successfully.")
+    else:
+        print("Failed to insert upload.")
+
     # Return the generated values
     return jsonify({
         "policy": policy,
@@ -686,6 +711,128 @@ def get_signed_url():
         "Access-Control-Allow-Origin": "*",
         "content-length-range": "1,100000"
     })
+
+@app.route('/checkUpload', methods=['GET'])
+
+def check_upload_and_process():
+    global mongo_client
+    upload_id = request.args.get('uploadID')
+    db = mongo_client['bbs']
+    uploads_collection = db['upload_requests']
+    status = False
+
+    # Retrieve the specific document
+    specific_document = uploads_collection.find_one({"uploadID": upload_id})
+
+    if specific_document:
+        print("Document found:", specific_document)
+        file_path = specific_document['new_object_name']
+
+        storage_client = storage.Client()
+
+        # Define the "processed" bucket
+        processed_bucket_name = "eightiesbox_uploaded"
+        processed_bucket = storage_client.bucket(processed_bucket_name)
+
+        # Get today's date in the format DD-MM-YYYY
+        today = date.today().strftime('%d-%m-%Y')
+
+        # Check if there's a directory for the current day in the "processed" bucket
+        daily_directory = None
+        blobs = processed_bucket.list_blobs(prefix=today)
+        for b in blobs:
+            if b.name.startswith(today) and '/' in b.name:
+                daily_directory = b.name.split('/')[0]
+                break
+
+        # If no directory for today was found, create one with a new UUID
+        if not daily_directory:
+            daily_uuid = str(uuid.uuid4())
+            daily_directory = f"{today}_{daily_uuid}"
+
+        # Define the pattern for the timestamp in the filename
+        timestamp_pattern = re.compile(r'_(\d{13})(?=\.)') 
+
+        # Extract the base directory name and the original filename
+        base_directory_name = os.path.dirname(file_path).split('/')[-1]
+        original_filename = os.path.basename(file_path)
+
+        # Search for the timestamp in the original filename
+        timestamp_match = timestamp_pattern.search(original_filename)
+        if timestamp_match:
+            # Extract the timestamp
+            timestamp = timestamp_match.group(0)
+            timestamp = timestamp[1:]
+            # Remove the timestamp from the original filename
+            clean_filename = timestamp_pattern.sub('', original_filename)
+
+            # New regex pattern to extract the category string
+            category_pattern = re.compile(r'^[a-fA-F0-9]{24}-(.{20})')
+            category_match = category_pattern.search(clean_filename)
+
+            # Initialize an empty category string
+            category_string = 'default_no_category'
+
+            if category_match:
+                # Extract the category string
+                category_string = category_match.group(1)
+                # Remove the category string from the clean_filename
+                clean_filename = category_pattern.sub('', clean_filename)
+                clean_filename = clean_filename[1:]
+            else:
+                print(f"Category not found in {clean_filename}")
+
+            # Extract the file extension
+            file_extension = os.path.splitext(clean_filename)[1]  # This will give you '.png' from your example
+
+            # Ensure we only get the first 20 characters of the filename without the extension
+            filename_prefix = os.path.splitext(clean_filename[:20])[0]
+
+            # Construct the new file path
+            new_file_path = f"{daily_directory}/{category_string}/{base_directory_name}/{timestamp}_{filename_prefix}{file_extension}/{clean_filename}"
+
+        else:
+            # If no timestamp is found, we keep the original structure
+            new_file_path = f"{daily_directory}/{base_directory_name}/{original_filename}"
+
+        incoming_bucket = storage_client.bucket(processed_bucket_name)
+        blob = incoming_bucket.blob(new_file_path)
+
+        # Check if the file exists in the incoming bucket
+        if blob.exists():
+            status = True
+            print(f"File {new_file_path} exists in the bucket.")
+            # Get the file size
+            blob.reload()  # Reload the blob properties
+            file_size = blob.size
+
+            files_collection = db['files']
+            to_be_edited_collection = db['to_be_edited']
+
+            # Insert into 'files' collection
+            file_document = {
+                "filename": clean_filename,
+                "file_size": file_size,
+                "description": "",
+                "path": new_file_path
+            }
+            file_result = files_collection.insert_one(file_document)
+            print("File document inserted:", file_result.inserted_id)
+            
+            # Insert into 'to_be_edited' collection
+            edit_document = {
+                "file_id": file_result.inserted_id,
+                "description_empty": True
+            }
+            edit_result = to_be_edited_collection.insert_one(edit_document)
+            print("To be edited document inserted:", edit_result.inserted_id)
+            
+        else:
+            print(f"File {new_file_path} does not exist in the bucket.")
+    else:
+        print("No document found with the provided uploadID")
+    return jsonify({'success': status})
+
 
 if __name__ == '__main__':
    socketio.run(app, host='0.0.0.0', port=5000, debug=True)

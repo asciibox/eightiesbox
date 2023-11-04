@@ -68,6 +68,19 @@
           margin: auto;
         }
       }
+
+      .spinner-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000; /* Make sure this is above everything else */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
     </style>
   </head>
   <body>
@@ -76,6 +89,10 @@
     <script src="{{ url_for('static', filename='client.js') }}"></script>
     <script src="{{ url_for('static', filename='simplekeyboard.js') }}"></script>
 
+    <div id="loadingSpinner" class="spinner-overlay" style="display:none;">
+      <div class="spinner">
+      </div>
+    </div>
     <div id="fileUploadDiv" style="display: none">
       <button id="toggleButtonFile">Close upload area</button>
       <div id="uploadStatusFile"></div>
@@ -115,6 +132,9 @@
     ></div>
     <script>
       const Keyboard = window.SimpleKeyboard.default;
+      var uploadToken = "";
+      var uploadID = "";
+      var current_file_area = "";
 
       const myKeyboard = new Keyboard({
         layout: {
@@ -161,6 +181,12 @@
         });
       }
 
+      function generateUUID() {
+        return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+          (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+        );
+      }
+
       function addClickListeners() {
         const toggleButtonFile = document.getElementById("toggleButtonFile");
         const fileUploadDiv = document.getElementById("fileUploadDiv");
@@ -200,11 +226,9 @@
 
         addClickListeners();
       });
-      var useGoogleCloudStorage = true; // Set this to false to use the Flask '/upload' endpoint
-      var uploadToken = "";
-      var current_file_area = "";
 
       Dropzone.options.uploadFormFile = {
+        maxFilesize: 1000, // MB
         maxFiles: 1,
         url: "https://storage.googleapis.com", // Default URL
         method: "POST",
@@ -244,8 +268,9 @@
               this.removeFile(this.files[0]); // Remove the earlier file
             }
             // Fetch the signed URL and other parameters
+            uploadID = generateUUID();
             fetch(
-              "/getSignedUrl?filename=" + file.name + "&filesize=" + file.size + "&uploadToken="+uploadToken+"&current_file_area="+current_file_area,
+              "/getSignedUrl?filename=" + file.name + "&filesize=" + file.size + "&uploadToken="+uploadToken+"&current_file_area="+current_file_area+"&uploadID="+uploadID,
               {
                 method: "GET",
               }
@@ -257,7 +282,7 @@
                 addHiddenInput("GoogleAccessId", data.GoogleAccessId);
                 addHiddenInput("bucket", data.bucket);
                 addHiddenInput("key", data.key);
-                 uploadUrl = `https://storage.googleapis.com/upload/storage/v1/b/eightiesbox/o?uploadType=media&name=${data.key}`;
+                uploadUrl = `https://storage.googleapis.com/upload/storage/v1/b/eightiesbox/o?uploadType=media&name=${data.key}`;
                 myDropzone.processFile(file);
               });
           });
@@ -273,6 +298,10 @@
             document.getElementById(
               "uploadStatusFile"
             ).innerHTML += `<div>File ${file.name} uploaded successfully</div>`;
+
+            document.getElementById("loadingSpinner").style.display = "inline"; // Hide spinner
+            checkUploadStatus(uploadID);
+
           });
 
           this.on("error", function (file, response) {
@@ -283,10 +312,36 @@
         },
       };
 
+      async function checkUploadStatus(uploadID, attempts = 1) {
+        try {
+          const response = await fetch("/checkUpload?uploadID=" + uploadID, {
+            method: "GET",
+          });
+          const data = await response.json();
+
+          if (data.success === true || attempts >= 10) {
+            // If success is true or attempts are 10 or more, handle the success case
+            console.log("Success or maximum attempts reached:", data);
+            document.getElementById("loadingSpinner").style.display = "none"; // Hide spinner
+            return data; // You might want to do something with this data
+          } else {
+            // If success is not true and attempts are less than 10, retry after a delay
+            console.log("Attempt number " + attempts + " unsuccessful, retrying...");
+            setTimeout(() => checkUploadStatus(uploadID, attempts + 1), 2000); // wait for 2 seconds before retrying
+          }
+        } catch (error) {
+          console.error("Error occurred:", error);
+          if (attempts < 10) {
+            setTimeout(() => checkUploadStatus(uploadID, attempts + 1), 2000);
+          } else {
+            console.error("Maximum attempts reached. Stopping retries.");
+          }
+        }
+      }
+
       Dropzone.options.uploadFormANSI = {
-        //maxFilesize: 1, // MB
-        //acceptedFiles: "",
-        autoProcessQueue: useGoogleCloudStorage ? false : true,
+        maxFilesize: 1, // MB
+        autoProcessQueue: true, // TODO: Check
         init: function () {
           this.on("addedfile", function (file) {
             // Create a FileReader object
