@@ -475,7 +475,11 @@ class Utils:
 
     def emit_uploadFile(self):
         sid = self.request_id  # Get the Session ID
-        self.socketio.emit('uploadFile', { 'uploadToken': self.sid_data.upload_token }, room=sid)
+         # Connect to MongoDB
+        print(self.sid_data.current_file_area)
+        formatted_name = self.sid_data.current_file_area['name'].replace(" ", "_")
+        formatted_name = formatted_name[:20].ljust(20, '_')
+        self.socketio.emit('uploadFile', { 'uploadToken': self.sid_data.upload_token, 'current_file_area' : str(self.sid_data.current_file_area['_id'])+"-"+formatted_name }, room=sid)
 
     def emit_current_string(self, currentString, currentColor, backgroundColor, blink, x, y):
         #  input("Press Enter to continue...")

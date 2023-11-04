@@ -141,7 +141,8 @@ def custom_disconnect(data):
 def upload_finished(data):
     print("UPLOAD FINISHED")
     siddata = sid_data[request.sid]
-    siddata.setUploadEditor(UploadEditor(siddata.util))      
+    siddata.setUploadEditor(UploadEditor(siddata.util)) 
+
     siddata.current_action = 'wait_for_uploadeditor'
 
     
@@ -616,6 +617,8 @@ def get_signed_url():
     object_name = request.args.get('filename')
     file_name, file_extension = os.path.splitext(object_name)
 
+    current_file_area = request.args.get('current_file_area')
+
     db = mongo_client['bbs']
     upload_token_collection = db['upload_token']
 
@@ -635,7 +638,7 @@ def get_signed_url():
     # Append the UUID before the extension
     current_time_millis = time.time_ns() // 1_000_000
     
-    new_object_name = f"{user_id_str}/{file_name}_{current_time_millis}{file_extension}"
+    new_object_name = f"{user_id_str}/{current_file_area}_{file_name}_{current_time_millis}{file_extension}"
     print(new_object_name)
     file_size = request.args.get('filesize')
     

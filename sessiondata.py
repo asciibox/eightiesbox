@@ -10,6 +10,8 @@ class SessionData:
         self.color_bgarray = []  # Initialize an empty 2D array
         self.copy_color_array = []  # Initialize an empty 2D array
         self.copy_color_bgarray = []  # Initialize an empty 2D array
+        self.current_file_area = None
+        self.current_message_area = None
         self.currentPos = 0
         self.current_action = None
         self.cursorX = 0
@@ -20,8 +22,17 @@ class SessionData:
         self.maxLength = 0
         self.inputType = ''
         self.input_values = []
+        self.chat_partner = None
+        self.contacted_users = []
         self.copy_input_values = []
+        self.copy_action = True
+        self.current_chat_partner = ""
+        self.chat_callback = None
+        self.f10actionhandler = None
+        self.incoming_requests = []
+        self.last_activity_timestamp = None
         self.map_character_set = False
+        self.multi_line_chat = None
         self.menu = None
         self.menu_bar = None
         self.menu_box = None
@@ -29,40 +40,30 @@ class SessionData:
         self.menu_items = []  # To hold the menu items
         self.menutexteditor = None
         self.message_area_menu = None
+        self.message_editor = None
+        self.message_area_change = None
+        self.message_data = {}  # A local variable to save all input fields
+        self.message_reader = None
+        self.outgoing_requests = []
+        self.previous_action = None
+        self.remaining_time = 180*60  # 3 hours in minutes
+        self.stored_time = 0  # Stored time in minutes
         self.sauceWidth = 80 # The loaded number of characters on the screen horizontally (effective editing width)
         self.sauceHeight = 25 # The loaded number of characters vertically in the sauce record (effective editing height)
         self.startX = 0
         self.startY = 0
+        self.user_level = 1 # TODO
+        self.user_document = None # Holds all user data, id, name and security level
         self.user_editor = None
         self.user_name = ""
-        self.view_start = 0
-        self.xWidth = 0 # The total characters on the screen horizontally
-        self.yHeight = 0 # Those vertically
-        self.message_editor = None
-        self.message_area_change = None
-        self.current_message_area = None
-        self.message_data = {}  # A local variable to save all input fields
-        self.user_level = 1 # TODO
-        self.message_reader = None
-        self.user_document = None # Holds all user data, id, name and security level
-        self.who_is_online = None
-        self.util = None
         self.user_picker = None
-        self.incoming_requests = []
-        self.outgoing_requests = []
-        self.multi_line_chat = None
-        self.contacted_users = []
-        self.f10actionhandler = None
-        self.chat_partner = None
-        self.previous_action = None
-        self.copy_action = True
-        self.current_chat_partner = ""
-        self.chat_callback = None
-        self.remaining_time = 180*60  # 3 hours in minutes
-        self.stored_time = 0  # Stored time in minutes
-        self.last_activity_timestamp = None
         self.upload_token = ''
         self.upload_editor = None
+        self.util = None
+        self.view_start = 0
+        self.who_is_online = None
+        self.xWidth = 0 # The total characters on the screen horizontally
+        self.yHeight = 0 # Those vertically
         
 
     def move_cursor_up(self):
@@ -167,8 +168,14 @@ class SessionData:
     def setMessageAreaChange(self, value):
         self.message_area_change = value
 
+    def setFileAreaChange(self, value):
+        self.file_area_change = value
+
     def setCurrentMessageArea(self, value):
         self.current_message_area = value
+
+    def setCurrentFileArea(self, value):
+        self.current_file_area = value
 
     def SetMessageData(self, value):
         self.message_data = value

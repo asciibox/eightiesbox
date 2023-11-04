@@ -63,6 +63,7 @@ socket.on("uploadFile", (data) => {
   const uploadDiv = document.getElementById("fileUploadDiv");
   uploadDiv.style.display = "inline";
   uploadToken = data.uploadToken;
+  current_file_area = data.current_file_area;
 });
 
 socket.on("uploadANSI", (data) => {

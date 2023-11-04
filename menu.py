@@ -11,6 +11,7 @@ from messageareachange import MessageAreaChange
 from messagereader import MessageReader
 from whoisonline import WhoIsOnline
 from multilinechat import MultilineChat
+from fileareachange import FileAreaChange
 
 class Menu(BasicANSI):
     def __init__(self, util, values, num_rows, callback_on_exit):
@@ -90,6 +91,11 @@ class Menu(BasicANSI):
                     elif action_code == "22":
                         self.append_gosub()
                         self.util.emit_uploadFile()
+                        return
+                    elif action_code == "24":
+                        self.append_gosub()
+                        self.sid_data.setFileAreaChange(FileAreaChange(self.util))
+                        self.sid_data.file_area_change.show_file_areas()
                         return
                     elif action_code == "51":
                         
