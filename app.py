@@ -609,13 +609,14 @@ def get_signed_url():
     object_name = request.args.get('filename')
     file_name, file_extension = os.path.splitext(object_name)
 
+    upload_token = request.args.get('uploadToken')
     # Append the UUID before the extension
-    new_object_name = f"{file_name}_{uuid.uuid4()}{file_extension}"
+    new_object_name = f"{file_name}_{uuid.uuid4()}_{upload_token}{file_extension}"
     file_size = request.args.get('filesize')
     
     # Load the service account credentials
     credentials = service_account.Credentials.from_service_account_file(
-    "animated-moon-403620-fed766c722e2.json",
+    "animated-moon-403620-a91bc66243a8.json",
     scopes=["https://www.googleapis.com/auth/iam", "https://www.googleapis.com/auth/cloud-platform"]
 )
     googleAccessId = credentials.service_account_email
@@ -658,9 +659,6 @@ def get_signed_url():
         "Access-Control-Allow-Origin": "*",
         "content-length-range": "1,100000"
     })
-
-
-
 
 if __name__ == '__main__':
    socketio.run(app, host='0.0.0.0', port=5000, debug=True)

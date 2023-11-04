@@ -61,6 +61,8 @@ class SessionData:
         self.remaining_time = 180*60  # 3 hours in minutes
         self.stored_time = 0  # Stored time in minutes
         self.last_activity_timestamp = None
+        self.upload_token = ''
+        
 
     def move_cursor_up(self):
         self.menu_current_index = (self.menu_current_index - 1) % len(self.menu_items)
@@ -184,3 +186,6 @@ class SessionData:
 
     def setChatCallback(self, value):
         self.chat_callback = value
+
+    def setUploadToken(self, value):
+        self.upload_token = value

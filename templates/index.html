@@ -11,7 +11,7 @@
       media="screen"
       href="{{ url_for('static', filename='main.css') }}"
     />
-    <script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
+    <script src="{{ url_for('static', filename='dropzone.js') }}"></script>
     <link
       rel="stylesheet"
       href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css"
@@ -200,14 +200,17 @@
         addClickListeners();
       });
       var useGoogleCloudStorage = true; // Set this to false to use the Flask '/upload' endpoint
+      var uploadToken = "";
 
       Dropzone.options.uploadFormFile = {
         maxFiles: 1,
         url: "https://storage.googleapis.com", // Default URL
         method: "POST",
+        createImageThumbnails : false,
         processData: false, // Don't process data
         init: function () {
           var myDropzone = this;
+          var uploadUrl;  // Variable to hold the upload URL
 
           // Function to add hidden input to form
           function addHiddenInput(name, value) {
@@ -231,7 +234,7 @@
             myDropzone.options.headers = {
               "Content-Type": file.type,
             };
-            myDropzone.options.url = `https://storage.googleapis.com/upload/storage/v1/b/eightiesbox/o?uploadType=media&name=${file.name}`;
+            myDropzone.options.url = uploadUrl;
           });
 
           this.on("addedfile", function (file) {
@@ -240,7 +243,7 @@
             }
             // Fetch the signed URL and other parameters
             fetch(
-              "/getSignedUrl?filename=" + file.name + "&filesize=" + file.size,
+              "/getSignedUrl?filename=" + file.name + "&filesize=" + file.size + "&uploadToken="+uploadToken,
               {
                 method: "GET",
               }
@@ -252,7 +255,8 @@
                 addHiddenInput("GoogleAccessId", data.GoogleAccessId);
                 addHiddenInput("bucket", data.bucket);
                 addHiddenInput("key", data.key);
-                myDropzone.processQueue();
+                 uploadUrl = `https://storage.googleapis.com/upload/storage/v1/b/eightiesbox/o?uploadType=media&name=${data.key}`;
+                myDropzone.processFile(file);
               });
           });
 

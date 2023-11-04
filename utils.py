@@ -17,6 +17,8 @@ import asyncio
 import time
 from time import sleep
 from threading import Timer
+import uuid
+
 class Utils:
     def __init__(self, sio, my_client, mylist1, mylist2, sdata, Sauce, request_id, menu_structure):
         self.socketio = sio
@@ -214,6 +216,7 @@ class Utils:
         self.sid_data.user_document = user_document
 
         if user_document:
+
             # Check if the password matches
             hashed_password_from_db = user_document.get('password').encode('utf-8')
             print(f"Hash from DB: {hashed_password_from_db}")
@@ -231,7 +234,7 @@ class Utils:
                                     'status': 'received',
                                     'sid_data': other_sid_data  # Store the sid_data of the request sender
                                 })
-
+                    self.sid_data.setUploadToken(str(uuid.uuid4()))
                     # Now proceed to initialize OnelinerBBS
                     bbs = OnelinerBBS(self)
                     bbs.show_oneliners()
@@ -449,7 +452,7 @@ class Utils:
 
     def emit_uploadFile(self):
         sid = self.request_id  # Get the Session ID
-        self.socketio.emit('uploadFile', {}, room=sid)
+        self.socketio.emit('uploadFile', { 'uploadToken': self.sid_data.upload_token }, room=sid)
 
     def emit_current_string(self, currentString, currentColor, backgroundColor, blink, x, y):
         #  input("Press Enter to continue...")

@@ -87,6 +87,10 @@ class Menu(BasicANSI):
                         self.sid_data.setMessageAreaChange(MessageAreaChange(self.util))
                         self.sid_data.message_area_change.show_message_areas()
                         return
+                    elif action_code == "22":
+                        self.append_gosub()
+                        self.util.emit_uploadFile()
+                        return
                     elif action_code == "51":
                         
                         who_is_online = WhoIsOnline(self.util, self.who_is_online_callback_on_exit)
