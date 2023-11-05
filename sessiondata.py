@@ -64,6 +64,7 @@ class SessionData:
         self.who_is_online = None
         self.xWidth = 0 # The total characters on the screen horizontally
         self.yHeight = 0 # Those vertically
+        self.download = None
         
 
     def move_cursor_up(self):
@@ -204,3 +205,7 @@ class SessionData:
 
     def setFilelist(self, value):
         self.filelist = value
+
+    def setDownload(self, value):
+        self.download = value
+

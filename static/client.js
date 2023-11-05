@@ -81,3 +81,41 @@ socket.on("uploadANSI", (data) => {
 window.addEventListener("beforeunload", function (event) {
   socket.emit("custom_disconnect", {});
 });
+
+socket.on('download_ready', function(data) {    
+
+  const canvasElements = document.getElementsByTagName("canvas");
+  for (let i = 0; i < canvasElements.length; i++) {
+    canvasElements[i].style.display = "none";
+  }
+    // Function to download all files received in the data parameter
+    const downloadAll = () => {
+      console.log(data.files);
+      // Ensure that there are files to download
+      if (data.files && data.files.length) {
+        data.files.forEach((fileInfo, index) => {
+        
+          console.log("fileInfo:"+fileInfo);
+          // Use a closure to capture the current fileInfo and index
+          setTimeout(() => { // Add a timeout to space out downloads
+            const link = document.createElement('a');
+            link.href = fileInfo;
+            // Extract filename from fileInfo.path and set it as the download attribute
+            link.download = fileInfo.split('/').pop().split('?')[0];
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          }, index * 300); // Increase the timeout for each file to download
+        });
+      } else {
+        console.log('No files to download.');
+      }
+    };
+  
+    // Create and append the download button to the page
+    const downloadButton = document.createElement('button');
+    downloadButton.innerText = 'Download Files';
+    downloadButton.onclick = downloadAll;
+    document.body.appendChild(downloadButton);
+  });

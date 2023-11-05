@@ -14,6 +14,7 @@ from multilinechat import MultilineChat
 from fileareachange import FileAreaChange
 from uploadeditor import UploadEditor
 from filelist import Filelist
+from download import Download
 
 class Menu(BasicANSI):
     def __init__(self, util, values, num_rows, callback_on_exit):
@@ -89,6 +90,11 @@ class Menu(BasicANSI):
                         self.append_gosub()
                         self.sid_data.setMessageAreaChange(MessageAreaChange(self.util))
                         self.sid_data.message_area_change.show_message_areas()
+                        return
+                    elif action_code == "21":
+                        self.append_gosub()
+                        self.sid_data.setDownload(Download(self.util))
+                        self.sid_data.download.query_file_by_id()
                         return
                     elif action_code == "22":
                         self.append_gosub()
