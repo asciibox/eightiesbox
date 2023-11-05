@@ -244,6 +244,15 @@ def generate_unique_filename(filename):
 
     return base + ext
   
+@socketio.on('download_close')
+def download_close(data):
+    global sid_data
+    print("DOWNLOAD_CLOSE")
+    siddata = sid_data[request.sid]
+    siddata.menu.return_from_gosub()
+    siddata.setCurrentAction("wait_for_menu")
+
+
 @socketio.on('input_keypress')
 def handle_keypress(data):
     global sid_data
@@ -825,4 +834,4 @@ def check_upload_and_process():
 
 
 if __name__ == '__main__':
-   socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+   socketio.run(app, host='0.0.0.0', port=5000, debug=True, use_reloader=True)

@@ -41,13 +41,17 @@ class Download:
                 self.emit_download_event()  # Emit download event if queue is not empty
             else:
                 self.util.output("Download queue is empty. Returning to menu.", 7, 0)
+                self.util.sid_data.menu.return_from_gosub()
+                self.util.sid_data.setCurrentAction("wait_for_menu")
             return  # Exit the function to avoid further processing
 
         # Proceed with the rest of the function for non-empty file_id
         try:
             file_id_num = int(file_id)
         except ValueError:
+            self.util.goto_next_line()
             self.util.output("Invalid ID format.", 7, 0)
+            self.query_file_by_id()
             return
         
         # Iterate over the files to find the one with the matching counter
@@ -67,5 +71,7 @@ class Download:
         if self.download_queue:
             # Emit an event to the client with the download queue
             print(self.download_queue)
-            self.util.socketio.emit('download_ready', {'files': self.download_queue})
+            sid = self.util.request_id  # Get the Session ID
+ 
+            self.util.socketio.emit('download_ready', {'files': self.download_queue}, room=sid)
             self.download_queue = []  # Clear the queue after emitting

@@ -108,14 +108,42 @@ socket.on('download_ready', function(data) {
             document.body.removeChild(link);
           }, index * 300); // Increase the timeout for each file to download
         });
+        setTimeout(() => { // Add a timeout to space out downloads
+          hideButtons();
+          console.log("ENMITTED CLOSE");        
+          socket.emit("download_close", {});
+          console.log("ENMITTED CLOSE");        
+        }, (data.files.length+1)*300);
       } else {
         console.log('No files to download.');
       }
     };
+    
+    const hideButtons = () => {
+      document.getElementById('download_files').parentNode.removeChild(document.getElementById('download_files'));
+      document.getElementById('exit').parentNode.removeChild(document.getElementById('exit'));
+      const canvasElements = document.getElementsByTagName("canvas");
+      for (let i = 0; i < canvasElements.length; i++) {
+        canvasElements[i].style.display = "inline";
+      }
+    }
+
+    const exit = () => {
+      hideButtons();
+      socket.emit("download_close", {});
+    }
   
     // Create and append the download button to the page
     const downloadButton = document.createElement('button');
     downloadButton.innerText = 'Download Files';
+    downloadButton.id = 'download_files';
     downloadButton.onclick = downloadAll;
     document.body.appendChild(downloadButton);
+
+    const exitButton = document.createElement('button');
+    exitButton.innerText = 'Exit without downloading';
+    exitButton.id = 'exit';
+    exitButton.onclick = exit;
+    document.body.appendChild(exitButton);
+
   });
