@@ -11,23 +11,6 @@ class FileAreaMenu(AreaMenu):
         self.areas.sort(key=lambda x: x.get('order', 0))
         self.start()
         
-    def edit_origin(self, selected_area):
-        """Edit the Origin line for the selected file area."""
-        
-        self.util.sid_data.setStartX(0)
-        self.util.sid_data.setStartY(10)
-        self.util.output_wrap(f"Editing Origin for {selected_area['name']}:")
-        self.util.ask(40, self.save_origin)
-        
-    def save_origin(self, new_origin):
-        """Save the new Origin line."""
-        
-        # Your logic to save the new Origin goes here. For now, it will just
-        # print a confirmation file and go back to the menu.
-        
-        self.util.output_wrap(f"Origin saved as: {new_origin}")
-        self.display_menu()
-
     def create_new_file_area(self):
         """Prompt for the new name of the file area."""
         self.util.goto_next_line()

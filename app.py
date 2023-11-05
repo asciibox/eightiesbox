@@ -640,7 +640,7 @@ def get_signed_url():
     
     # Load the service account credentials
     credentials = service_account.Credentials.from_service_account_file(
-    "animated-moon-403620-a91bc66243a8.json",
+    "animated-moon-403620-fed766c722e2.json",
     scopes=["https://www.googleapis.com/auth/iam", "https://www.googleapis.com/auth/cloud-platform"]
 )
     googleAccessId = credentials.service_account_email

@@ -101,6 +101,36 @@ function initPage(dataArray) {
   console.log("VISIBLE_HEIGHT:" + VISIBLE_HEIGHT);
 
   VISIBLE_WIDTH = Math.floor(baseWidth / 8);
+
+  setupKeypressListeners();
+}
+
+function keyDownHandler(e) {
+  var key = e.key;
+  handleKeyCode(key);
+  e.preventDefault();
+}
+
+function keyUpHandler(e) {
+  var keyCode = e.which;
+  if (keyCode == 18) {
+    altgrPressed = false;
+  } else if (keyCode == 16) {
+    e.preventDefault();
+    shiftPressed = false;
+  } else if (keyCode == 17) {
+    ctrlKey = false;
+  }
+}
+
+function setupKeypressListeners() {
+  // Remove existing event listeners if they are already set
+  document.body.removeEventListener("keydown", keyDownHandler);
+  document.body.removeEventListener("keyup", keyUpHandler);
+
+  // Add new event listeners
+  document.body.addEventListener("keydown", keyDownHandler, false);
+  document.body.addEventListener("keyup", keyUpHandler, false);
 }
 
 function preload() {
@@ -229,32 +259,6 @@ function create() {
   cam = this.cameras.main;
 
   clicks = 0;
-
-  document.body.addEventListener(
-    "keydown",
-    function (e) {
-      var key = e.key;
-      handleKeyCode(key);
-      e.preventDefault();
-    },
-    false
-  );
-
-  document.body.addEventListener(
-    "keyup",
-    function (e) {
-      var keyCode = e.which;
-      if (keyCode == 18) {
-        altgrPressed = false;
-      } else if (keyCode == 16) {
-        e.preventDefault();
-        shiftPressed = false;
-      } else if (keyCode == 17) {
-        ctrlKey = false;
-      }
-    },
-    false
-  );
 
   // Calculate the thumb height based on the percentage of content that is visible
   thumbHeight =
@@ -579,7 +583,6 @@ function getCharIndex(foreground, asciiCode) {
 }
 
 function handleKeyCode(keyCode) {
-  console.log(keyCode);
   socket.emit("input_keypress", { key: keyCode });
 }
 

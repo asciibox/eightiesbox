@@ -17,7 +17,7 @@
       href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css"
       type="text/css"
     />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="{{ url_for('static', filename='socket.io.min.js') }}"></script>
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='simplekeyboard.css') }}"
@@ -89,9 +89,8 @@
     <script src="{{ url_for('static', filename='client.js') }}"></script>
     <script src="{{ url_for('static', filename='simplekeyboard.js') }}"></script>
 
-    <div id="loadingSpinner" class="spinner-overlay" style="display:none;">
-      <div class="spinner">
-      </div>
+    <div id="loadingSpinner" class="spinner-overlay" style="display: none">
+      <div class="spinner"></div>
     </div>
     <div id="fileUploadDiv" style="display: none">
       <button id="toggleButtonFile">Close upload area</button>
@@ -182,8 +181,11 @@
       }
 
       function generateUUID() {
-        return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
-          (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+        return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c) =>
+          (
+            c ^
+            (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))
+          ).toString(16)
         );
       }
 
@@ -232,11 +234,11 @@
         maxFiles: 1,
         url: "https://storage.googleapis.com", // Default URL
         method: "POST",
-        createImageThumbnails : true,
+        createImageThumbnails: true,
         processData: false, // Don't process data
         init: function () {
           var myDropzone = this;
-          var uploadUrl;  // Variable to hold the upload URL
+          var uploadUrl; // Variable to hold the upload URL
 
           // Function to add hidden input to form
           function addHiddenInput(name, value) {
@@ -270,7 +272,16 @@
             // Fetch the signed URL and other parameters
             uploadID = generateUUID();
             fetch(
-              "/getSignedUrl?filename=" + file.name + "&filesize=" + file.size + "&uploadToken="+uploadToken+"&current_file_area="+current_file_area+"&uploadID="+uploadID,
+              "/getSignedUrl?filename=" +
+                file.name +
+                "&filesize=" +
+                file.size +
+                "&uploadToken=" +
+                uploadToken +
+                "&current_file_area=" +
+                current_file_area +
+                "&uploadID=" +
+                uploadID,
               {
                 method: "GET",
               }
@@ -300,8 +311,9 @@
             ).innerHTML += `<div>File ${file.name} uploaded successfully</div>`;
 
             document.getElementById("loadingSpinner").style.display = "inline"; // Hide spinner
-            setTimeout(function() { checkUploadStatus(uploadID); }, 750);
-
+            setTimeout(function () {
+              checkUploadStatus(uploadID);
+            }, 750);
           });
 
           this.on("error", function (file, response) {
@@ -326,8 +338,13 @@
             return data; // You might want to do something with this data
           } else {
             // If success is not true and attempts are less than 10, retry after a delay
-            console.log("Attempt number " + attempts + " unsuccessful, retrying...");
-            setTimeout(() => checkUploadStatus(uploadID, attempts + 1), attempts < 4 ? 750 : 2000); // wait for 2 seconds before retrying
+            console.log(
+              "Attempt number " + attempts + " unsuccessful, retrying..."
+            );
+            setTimeout(
+              () => checkUploadStatus(uploadID, attempts + 1),
+              attempts < 4 ? 750 : 2000
+            ); // wait for 2 seconds before retrying
           }
         } catch (error) {
           console.error("Error occurred:", error);
