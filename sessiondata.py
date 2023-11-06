@@ -52,8 +52,7 @@ class SessionData:
         self.sauceHeight = 25 # The loaded number of characters vertically in the sauce record (effective editing height)
         self.startX = 0
         self.startY = 0
-        self.user_level = 1 # TODO
-        self.user_document = None # Holds all user data, id, name and security level
+        self.user_document = None # Holds all user data, id, name and security level (user_level)
         self.user_editor = None
         self.user_name = ""
         self.user_picker = None
@@ -65,6 +64,7 @@ class SessionData:
         self.xWidth = 0 # The total characters on the screen horizontally
         self.yHeight = 0 # Those vertically
         self.download = None
+        self.edit_file = None
         
 
     def move_cursor_up(self):
@@ -208,4 +208,7 @@ class SessionData:
 
     def setDownload(self, value):
         self.download = value
+
+    def setEditFile(self, value):
+        self.edit_file = value
 

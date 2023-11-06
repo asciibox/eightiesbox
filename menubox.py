@@ -37,9 +37,6 @@ class MenuBox:
         self.sid_data.color_array = []
         self.sid_data.color_bgarray = []
 
-        # self.sid_data.setMenu(Menu(self.util, self.sid_data.menu_box.values, self.sid_data.menu_box.num_rows, self.simulate_callback_on_exit))
-
-        
     
     def update_item(self, field, value):
         """Update a field's value and redraw the row."""

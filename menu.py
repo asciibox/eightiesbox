@@ -15,6 +15,7 @@ from fileareachange import FileAreaChange
 from uploadeditor import UploadEditor
 from filelist import Filelist
 from download import Download
+from editfile import EditFile
 
 class Menu(BasicANSI):
     def __init__(self, util, values, num_rows, callback_on_exit):
@@ -118,6 +119,7 @@ class Menu(BasicANSI):
                         self.append_gosub()
                         self.sid_data.setCurrentAction("wait_for_uploadeditor")
                         self.sid_data.setUploadEditor(UploadEditor(self.util))
+                        self.sid_data.upload_editor.start()
                         return
                     elif action_code == "51":
                         
@@ -163,6 +165,13 @@ class Menu(BasicANSI):
                             self.sid_data.color_bgarray = []
                             self.sid_data.ansi_editor.start()
                         return
+                    elif action_code == "02":
+                        # Gosub menu
+                        # Save current state to stack
+                        self.append_gosub()
+                        filename = self.values[row_idx][1]
+                        self.load_menu(filename)
+                        return
                     elif action_code == "85":        
                         # Example usage:
                         if self.sid_data.xWidth < 50:
@@ -178,14 +187,13 @@ class Menu(BasicANSI):
                         return
 
                     # Gosub menu
-                    elif action_code == "02":
-                        # Gosub menu
-                        # Save current state to stack
+                    elif action_code == "86":
+                        
                         self.append_gosub()
-                        filename = self.values[row_idx][1]
-                        self.load_menu(filename)
-                        return
+                        self.sid_data.setEditFile(EditFile(self.util))
+                        self.sid_data.edit_file.query_file_by_id()
 
+                        return
                     elif action_code == "03":
                         # Return from Gosub
                         if self.menu_stack:

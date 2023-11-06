@@ -150,6 +150,9 @@ class ANSIEditor(BasicANSI):
             elif self.sid_data.current_action == "wait_for_uploadeditor":
                 self.escape2MenuUploadEditor()
                 return
+            elif self.sid_data.current_action == "wait_for_editfile":
+                self.escape2FileEditEditor()
+                return
 
         elif key == 'Alt':
             #self.code()

@@ -2,7 +2,24 @@ from pymongo import MongoClient
 import random
 import string
 
+mongo_client = MongoClient("mongodb://localhost:27017/")
+db = mongo_client['bbs']
+users_collection = db['users']
+
+def clear_collections():
+    global db
+
+    # Collections to clear
+    collections_to_clear = [
+        'users'
+    ]
+    for collection_name in collections_to_clear:
+        collection = db[collection_name]
+        collection.delete_many({})  # Deletes all documents in the collection
+        print(f"Cleared collection: {collection_name}")
+
 def create_random_users():
+    global db, users_collection
     warning_message = (
         "Warning: This application will populate the 'bbs' database with random user data."
         "\nDo you wish to proceed? (yes/no): "
@@ -13,9 +30,7 @@ def create_random_users():
         print("Operation cancelled by the user.")
         return
 
-    mongo_client = MongoClient("mongodb://localhost:27017/")
-    db = mongo_client['bbs']
-    users_collection = db['users']
+    clear_collections()
 
     names = ['Alice', 'Bob', 'Charlie', 'Dave', 'Eve']
     sexes = ['M', 'F']
@@ -36,6 +51,7 @@ def create_random_users():
             "sex": sex,
             "hobbies": hobby,
             "password": password,
+            "user_level" : 0
         }
 
         existing_user = users_collection.find_one({"username": userdata["username"]})
@@ -52,4 +68,5 @@ def create_random_users():
     print("Random users have been successfully created.")
 
 # Call the function to create random users
+
 create_random_users()

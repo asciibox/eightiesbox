@@ -12,7 +12,7 @@ class FileAreaChange(AreaChange):
         self.util.clear_screen()
         mongo_client = self.util.mongo_client
         db = mongo_client['bbs']
-        user_level = self.sid_data.user_level
+        user_level = self.sid_data.user_document['user_level']
 
         file_areas = list(db['fileareas'].find().sort('order'))
 

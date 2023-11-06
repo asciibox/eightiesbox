@@ -5,7 +5,6 @@ class UploadEditor(ANSIEditor):
         super().__init__(util)
         
         self.first_document = None
-        self.start()
 
     def start(self):
         self.clear_screen()

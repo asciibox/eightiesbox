@@ -9,7 +9,7 @@ class AreaMenu(BasicANSI):
         # Connect to MongoDB and read areas
         
         
-        self.user_level = self.sid_data.user_level
+        self.user_level = self.sid_data.user_document['user_level']
         self.user_name = self.sid_data.user_name
         self.callback_on_exit = callback_on_exit
         

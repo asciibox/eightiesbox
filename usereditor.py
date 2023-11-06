@@ -9,7 +9,7 @@ class UserEditor(BasicANSI):
 
         # Retrieve user data from the session
         self.user_name = util.sid_data.user_name
-        self.user_level = util.sid_data.user_level
+        self.user_level = self.sid_data.user_document['user_level']
 
           # Retrieve the users collection from BBS
         mongo_client = util.mongo_client  # Assuming util has a MongoDB client attribute
@@ -87,12 +87,6 @@ class UserEditor(BasicANSI):
             self.display_menu(False)
             return
 
-    def change_username(self):
-        """Ask for existing username before changing."""
-        self.util.goto_next_line()
-        self.util.output_wrap("Enter existing username:", 6, 0)
-        self.util.ask(40, self.ask_new_username)
-
     def save_username(self, new_username):
         """Save the new username."""
         # Check if the new username is unique
@@ -129,6 +123,11 @@ class UserEditor(BasicANSI):
         # Clear the old username now that the operation is complete
         self.old_username = None
 
+    def change_username(self):
+        """Ask for existing username before changing."""
+        self.util.goto_next_line()
+        self.util.output_wrap("Enter existing username:", 6, 0)
+        self.util.ask(40, self.ask_new_username)
 
     def ask_new_username(self, existing_username):
         """Ask for new username."""
@@ -166,14 +165,47 @@ class UserEditor(BasicANSI):
     def save_user_level(self, new_level):
         """Save the new user level."""
         # Logic to save new user level
-        # Update users collection and session data
+        if self.old_username is None:
+            self.util.output_wrap("No username specified for user level update.", 6, 0)
+            self.display_menu()
+            return
+
         try:
-            self.user_level = int(new_level)
-            self.util.sid_data.user_level = self.user_level
-            self.display_menu()
+            # Attempt to convert the new level to an integer
+            user_level_int = int(new_level)
+
+            # Update the users collection using the username
+            mongo_client = self.util.mongo_client
+            db = mongo_client['bbs']
+            update_result = db['users'].update_one(
+                {'username': self.old_username},
+                {'$set': {'user_level': user_level_int}}
+            )
+
+            # Check if the update was successful
+            if update_result.matched_count > 0:
+                if update_result.modified_count > 0:
+                    self.util.output_wrap("User level updated successfully.", 6, 0)
+                else:
+                    self.util.output_wrap("User level was already set to this value.", 6, 0)
+
+                # Update the local user cache if necessary
+                for user in self.users:
+                    if user['username'] == self.old_username:
+                        user['user_level'] = user_level_int
+                        break
+                if self.old_username == self.userdata['username']:
+                    self.userdata['user_level'] = user_level_int
+                self.display_menu()
+
+            else:
+                self.util.output_wrap("No matching user found for user level update.", 6, 0)
+                self.display_menu()
+
         except ValueError:
-            self.util.output_wrap("Invalid user level. Please enter a number.", 6,0)
+            self.util.output_wrap("Invalid user level. Please enter a number.", 6, 0)
             self.display_menu()
+
 
     def delete_user(self):
         """Delete a user."""

@@ -57,7 +57,7 @@ menu_structure = {
             'Multiline options': ['Users online', 'Chat between nodes', 'Add conference', 'Join conference', 'Delete conference'],
             'Display text': ['Display ANS / ASC', 'Display ANS / ASC and wait'],
             'BBS List': ['Long list display', 'Short list display', 'Add BBS'],
-            'Administration': ['Setup message areas', 'Setup file base', 'User editor', 'ANSI Editor', 'Menu editor']
+            'Administration': ['Setup message areas', 'Setup file base', 'User editor', 'ANSI Editor', 'Menu editor', 'Edit uploaded files']
         }
 
 
@@ -142,6 +142,7 @@ def upload_finished(data):
     siddata = sid_data[request.sid]
     siddata.current_action = 'wait_for_uploadeditor'
     siddata.setUploadEditor(UploadEditor(siddata.util)) 
+    siddata.upload_editor.start()
 
 
     
@@ -465,6 +466,9 @@ def handle_keypress(data):
         return
     elif (siddata.current_action == "wait_for_uploadeditor"):
         siddata.upload_editor.handle_key(data['key'])
+        return
+    elif (siddata.current_action == "wait_for_editfile"):
+        siddata.edit_file.handle_key(data['key'])
         return
     elif (siddata.current_action == "wait_for_messageeditor"):
         siddata.message_editor.handle_key(data['key'])

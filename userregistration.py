@@ -167,7 +167,7 @@ class UserRegistration:
             self.goto_next_line()
             db = self.mongo_client['bbs']
             users_collection = db['users']
-
+            self.userdata['user_level'] = 0
             existing_user = users_collection.find_one({"username": self.userdata["username"]})
             # If username does not exist, insert the new user data
             if existing_user is None:

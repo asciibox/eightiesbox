@@ -15,7 +15,7 @@ class Download:
         blob = bucket.blob(file['path'])
 
         # Use different quotes for the filename or escape the quotes inside the f-string
-         # Set the content disposition for the response header
+        # Set the content disposition for the response header
         response_disposition = f'attachment; filename="{file["filename"]}"'
 
         url = blob.generate_signed_url(

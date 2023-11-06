@@ -40,7 +40,14 @@ class BasicANSI:
             self.util.sid_data.startY  = 0
             for line_index in range(0, self.max_height):
                 action_value = menu_values[line_index][0]  # Assuming 'Key' field is the character.
-                if len(str(action_value))==2:
+                print(menu_values[line_index])
+                if menu_values is not None and menu_values[line_index] is not None:
+                    security_value = int(menu_values[line_index][3]) if menu_values[line_index][3] != '' else 0
+                else:
+                    # Handle the case when menu_values[line_index] is None, perhaps defaulting security_value to 0 or some other action.
+                    security_value = 0
+
+                if len(str(action_value))==2 and security_value <=self.sid_data.user_document['user_level']:
                     char_value = menu_values[line_index][2]  # Assuming 'Key' field is the character.
                     self.util.output(char_value, 6, 0)
                     self.util.output(" ", 6,0)
@@ -49,7 +56,14 @@ class BasicANSI:
 
         else:
             for idx in range(0, self.max_height):
-                self.draw_line(idx)
+                if menu_values is not None and menu_values[idx] is not None:
+                    security_value = int(menu_values[idx][3]) if menu_values[idx][3] != '' else 0
+                else:
+                    # Handle the case when menu_values[idx] is None, perhaps defaulting security_value to 0 or some other action.
+                    security_value = 0
+
+                if menu_values == None or security_value <= self.sid_data.user_document['user_level']:
+                    self.draw_line(idx)
             self.emit_gotoXY(0, 1)
 
     def display_menu_name(self, first_field, second_field, menu_structure):
@@ -91,6 +105,7 @@ class BasicANSI:
         current_color = color  # Initialize to the input color
         current_bgcolor = bgcolor  # Initialize to the input color
         current_text = ""
+        color_changed = False
 
         for idx, char in enumerate(text):
             cur_x = x + idx +1
@@ -110,6 +125,7 @@ class BasicANSI:
 
             # Check if color at the current position matches the new color
             if (stored_color is not None and stored_color != color) or (stored_bgcolor is not None and stored_bgcolor != bgcolor):
+                color_changed = True
                 # If the color changes, output the current text batch
                 if current_text:
                     self.util.output(current_text, current_color, current_bgcolor)
@@ -124,7 +140,10 @@ class BasicANSI:
 
         # Output any remaining text
         if current_text:
-            self.util.output(current_text, current_color, current_bgcolor)
+            if current_color == None and current_bgcolor == 0 and color_changed == False:
+                self.util.output(current_text, 7, 0)
+            else:
+                self.util.output(current_text, current_color, current_bgcolor)
     
     
     def display_ansi(self):

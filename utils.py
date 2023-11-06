@@ -347,7 +347,7 @@ class Utils:
             db = self.mongo_client['bbs']
             users_collection = db['users']
             hashed_password = bcrypt.hashpw(first_password.encode('utf-8'), bcrypt.gensalt())
-            new_sysop_user = {"username": "sysop", "password": hashed_password.decode('utf-8')}
+            new_sysop_user = {"username": "sysop", "user_level" : 32000, "password": hashed_password.decode('utf-8')}
             # Insert the document and capture the result
             insert_result = users_collection.insert_one(new_sysop_user)
 
