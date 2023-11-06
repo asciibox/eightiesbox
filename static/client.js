@@ -107,76 +107,85 @@ function setupSocketEventListeners(socket) {
     uploadDiv.style.display = "inline";
   });
 
+  function removeButtons() {
+    if (document.getElementById("download_files")) {
+      document
+        .getElementById("download_files")
+        .parentNode.removeChild(document.getElementById("download_files"));
+    }
+    if (document.getElementById("exit")) {
+      document
+        .getElementById("exit")
+        .parentNode.removeChild(document.getElementById("exit"));
+    }
+  }
+
   socket.on("download_ready", function (data) {
-    if (!document.getElementById("download_files")) {
-      console.log("DOWNLOAD_READY called");
-      const canvasElements = document.getElementsByTagName("canvas");
-      persistentID = data.sid;
-      for (let i = 0; i < canvasElements.length; i++) {
-        canvasElements[i].style.display = "none";
-      }
-      // Function to download all files received in the data parameter
-      const downloadAll = () => {
-        // Ensure that there are files to download
-        hideButtons();
-        if (data.files && data.files.length) {
-          data.files.forEach((fileInfo, index) => {
-            console.log("fileInfo:" + fileInfo);
-            // Use a closure to capture the current fileInfo and index
-            setTimeout(() => {
-              // Add a timeout to space out downloads
-              const link = document.createElement("a");
-              link.href = fileInfo;
-              // Extract filename from fileInfo.path and set it as the download attribute
-              link.download = fileInfo.split("/").pop().split("?")[0];
-              link.style.display = "none";
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
-            }, index * 300); // Increase the timeout for each file to download
-          });
+    removeButtons();
+
+    console.log("DOWNLOAD_READY called");
+    const canvasElements = document.getElementsByTagName("canvas");
+    persistentID = data.sid;
+    for (let i = 0; i < canvasElements.length; i++) {
+      canvasElements[i].style.display = "none";
+    }
+    // Function to download all files received in the data parameter
+    const downloadAll = () => {
+      // Ensure that there are files to download
+      hideButtons();
+      if (data.files && data.files.length) {
+        data.files.forEach((fileInfo, index) => {
+          console.log("fileInfo:" + fileInfo);
+          // Use a closure to capture the current fileInfo and index
           setTimeout(() => {
             // Add a timeout to space out downloads
-            setupSocketEventListeners(socket);
-            setupKeypressListeners();
-            //alert("OK");
-          }, (data.files.length + 1) * 300);
-        } else {
-          console.log("No files to download.");
-        }
-      };
+            const link = document.createElement("a");
+            link.href = fileInfo;
+            // Extract filename from fileInfo.path and set it as the download attribute
+            link.download = fileInfo.split("/").pop().split("?")[0];
+            link.style.display = "none";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          }, index * 300); // Increase the timeout for each file to download
+        });
+        setTimeout(() => {
+          // Add a timeout to space out downloads
+          setupSocketEventListeners(socket);
+          setupKeypressListeners();
+          //alert("OK");
+        }, (data.files.length + 1) * 300);
+      } else {
+        console.log("No files to download.");
+      }
+    };
 
-      const hideButtons = () => {
-        document
-          .getElementById("download_files")
-          .parentNode.removeChild(document.getElementById("download_files"));
-        document
-          .getElementById("exit")
-          .parentNode.removeChild(document.getElementById("exit"));
-        const canvasElements = document.getElementsByTagName("canvas");
-        for (let i = 0; i < canvasElements.length; i++) {
-          canvasElements[i].style.display = "inline";
-        }
-      };
+    const hideButtons = () => {
+      removeButtons();
+      const canvasElements = document.getElementsByTagName("canvas");
+      for (let i = 0; i < canvasElements.length; i++) {
+        canvasElements[i].style.display = "inline";
+      }
+    };
 
-      const exit = () => {
-        hideButtons();
-        socket.emit("download_close", {});
-      };
+    const exit = () => {
+      hideButtons();
+      socket.emit("download_close", {});
+    };
 
-      // Create and append the download button to the page
-      const downloadButton = document.createElement("button");
-      downloadButton.innerText = "Download Files";
-      downloadButton.id = "download_files";
-      downloadButton.onclick = downloadAll;
-      document.body.appendChild(downloadButton);
+    // Create and append the download button to the page
+    const downloadButton = document.createElement("button");
+    downloadButton.innerText = "Download Files";
+    downloadButton.id = "download_files";
+    downloadButton.onclick = downloadAll;
+    document.body.appendChild(downloadButton);
 
-      const exitButton = document.createElement("button");
-      exitButton.innerText = "Exit without downloading";
-      exitButton.id = "exit";
-      exitButton.onclick = exit;
-      document.body.appendChild(exitButton);
-    }
+    const exitButton = document.createElement("button");
+    exitButton.innerText = "Exit without downloading";
+    exitButton.id = "exit";
+    exitButton.onclick = exit;
+    document.body.appendChild(exitButton);
+
     //socket.emit("custom_disconnect", {});
     //alert("Disconnected");
   });

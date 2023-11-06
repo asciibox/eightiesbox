@@ -65,7 +65,10 @@ class Download:
                 self.query_file_by_id()
                 return  # Return after adding to queue
         else:
+            self.util.goto_next_line()
             self.util.output("File ID not found.", 7, 0)
+            self.query_file_by_id()
+
  
     def emit_download_event(self):
         if self.download_queue:
