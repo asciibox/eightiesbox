@@ -57,7 +57,7 @@ menu_structure = {
             'Multiline options': ['Users online', 'Chat between nodes', 'Add conference', 'Join conference', 'Delete conference'],
             'Display text': ['Display ANS / ASC', 'Display ANS / ASC and wait'],
             'BBS List': ['Long list display', 'Short list display', 'Add BBS'],
-            'Administration': ['Setup message areas', 'Setup file base', 'User editor', 'ANSI Editor', 'Menu editor', 'Edit uploaded files']
+            'Administration': ['Setup message areas', 'Setup file base', 'User editor', 'ANSI Editor', 'Menu editor', 'Edit uploaded files', 'Delete file']
         }
 
 
@@ -813,7 +813,8 @@ def check_upload_and_process():
                 "area_id": specific_document['area_id'],
                 "uploaded_by_user_id" : specific_document['user_id'],
                 "description": "",
-                "path": new_file_path
+                "path": new_file_path,
+                "visible_file" : false,
             }
             file_result = files_collection.insert_one(file_document)
             print("File document inserted:", file_result.inserted_id)

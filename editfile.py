@@ -95,7 +95,7 @@ class EditFile(UploadEditor):
             self.util.output("Enter new filename: ", 7, 0)
             self.util.ask(40, self.change_filename)
         elif decision.lower() == 'n':
-            self.start()  # Proceed with the next step if the user doesn't want to change the filename
+            self.ask_file_visibility_change()  # Proceed with the next step if the user doesn't want to change the filename
         else:
             self.util.goto_next_line()
             self.util.output("Invalid choice. Please enter Y or N.", 7, 0)
@@ -136,8 +136,8 @@ class EditFile(UploadEditor):
             self.ask_change_filename()  # Ask again for a new filename
 
         # Proceed with the next step
-        self.start()
-
+        self.ask_file_visibility_change()
+        
     def escape2FileEditEditor(self):
         sub_menus = {
             'File': ['Save and exit', 'Exit without saving'],
@@ -146,3 +146,40 @@ class EditFile(UploadEditor):
         self.sid_data.setMenuBar(MenuBarEditFileEditor(sub_menus, self.util, self.first_document['_id']))
 
         self.sid_data.setCurrentAction("wait_for_menubar_ansieditor")
+
+    def ask_file_visibility_change(self):
+        # Check the current visibility status of the file
+        if self.first_document['visible_file']:
+            self.util.goto_next_line()
+            self.util.output("File is currently visible. Change visibility to invisible? (Y/N): ", 7, 0)
+        else:
+            self.util.goto_next_line()
+            self.util.output("File is currently invisible. Change visibility to visible? (Y/N): ", 7, 0)
+        
+        self.util.ask(1, self.process_visibility_change_decision)
+
+    def process_visibility_change_decision(self, decision):
+        if decision.lower() == 'y':
+            new_visibility = not self.first_document['visible_file']
+            # Update the file visibility in the database
+            update_result = self.util.mongo_client["bbs"]["files"].update_one(
+                {"_id": self.first_document["_id"]},
+                {"$set": {"visible_file": new_visibility}}
+            )
+
+            # Check if the update was successful
+            if update_result.modified_count > 0:
+                visibility_status = "visible" if new_visibility else "invisible"
+                self.util.goto_next_line()
+                self.util.output(f"File visibility updated to {visibility_status}.", 7, 0)
+            else:
+                self.util.goto_next_line()
+                self.util.output("No changes made to file visibility.", 7, 0)
+            
+            self.start()  # Proceed with the next step
+        elif decision.lower() == 'n':
+            self.start()  # Proceed with the next step if the user doesn't want to change visibility
+        else:
+            self.util.goto_next_line()
+            self.util.output("Invalid choice. Please enter Y or N.", 7, 0)
+            self.ask_file_visibility_change()  # Ask again for the visibility decision
