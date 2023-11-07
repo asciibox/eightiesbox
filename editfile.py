@@ -121,9 +121,11 @@ class EditFile(UploadEditor):
             if update_result.modified_count > 0:
                 self.util.goto_next_line()
                 self.util.output("Filename updated successfully.", 7, 0)
+                self.exit()
             else:
                 self.util.goto_next_line()
                 self.util.output("No changes made to filename.", 7, 0)
+                self.exit()
         else:
             self.util.goto_next_line()
             if new_filename:
@@ -138,7 +140,7 @@ class EditFile(UploadEditor):
 
     def escape2FileEditEditor(self):
         sub_menus = {
-            'File': ['Save and proceed', 'Save and exit', 'Exit without saving'],
+            'File': ['Save and exit', 'Exit without saving'],
             'Edit': ['Clear description', 'Leave menu bar'],
         }
         self.sid_data.setMenuBar(MenuBarEditFileEditor(sub_menus, self.util, self.first_document['_id']))

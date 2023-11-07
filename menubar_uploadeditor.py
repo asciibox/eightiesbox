@@ -60,9 +60,11 @@ class MenuBarUploadEditor(MenuBar):
                     self.output("File description updated successfully.", 6,0)
                     self.util.wait_with_message(self.proceed_callback)
                     # Add any additional steps here if needed after a successful update
+                    self.exit()
                 else:
                     self.output("Failed to update file description.", 6, 0)
                     self.util.wait_with_message(self.proceed_callback)
+                    self.exit()
                     
                 # After save functionality, proceed with other tasks or redraw the menu
                 # self.draw_sub_menu()  # For example, to redraw the sub-menu

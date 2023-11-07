@@ -8,7 +8,7 @@ class MenuBarEditFileEditor(MenuBar):
         # Call the constructor of the parent class (MenuBar)
         super().__init__(sub_menus, util)
         # Add any additional properties or methods specific to MenuBarANSI here
-        util.sid_data.setCurrentAction("wait_for_menubar_uploadeditor")
+        util.sid_data.setCurrentAction("wait_for_menubar_editfile")
         self.current_filename = ""
         self.file_id = file_id
         
@@ -20,9 +20,14 @@ class MenuBarEditFileEditor(MenuBar):
             current_menu = self.current_main_menu_index
             selected_option = self.sub_menus[self.main_menu[current_menu]][self.current_sub_menu_indexes[current_menu]]
 
+            if selected_option == "Clear description":        
+                self.util.sid_data.color_array=[]
+                self.util.sid_data.color_bgarray=[]
+                self.util.sid_data.input_values=[]
+                self.leave_menu_bar()
             if selected_option == "Leave menu bar":
                 self.leave_menu_bar()
-            elif selected_option == "Save and proceed":
+            elif selected_option == "Save and exit":
                 # Assuming 'files container' is a collection in your database
                 mongo_client = self.util.mongo_client
                 db = mongo_client['bbs']
@@ -59,18 +64,17 @@ class MenuBarEditFileEditor(MenuBar):
                     self.output("File description updated successfully.", 6,0)
                     self.util.wait_with_message(self.proceed_callback)
                     # Add any additional steps here if needed after a successful update
+                    self.exit()
                 else:
                     self.output("Failed to update file description.", 6, 0)
                     self.util.wait_with_message(self.proceed_callback)
+                    self.exit()
                     
                 # After save functionality, proceed with other tasks or redraw the menu
                 # self.draw_sub_menu()  # For example, to redraw the sub-menu
 
-            elif selected_option == "Save and exit":
-                # Add save functionality here as well before exiting
-                self.leave_menu_bar()
             elif selected_option == "Exit without saving":
-                self.leave_menu_bar()
+                self.exit()
             else:
                 print("Hello world")
 
@@ -80,11 +84,11 @@ class MenuBarEditFileEditor(MenuBar):
 
 
     def proceed_callback(self):
-        self.sid_data.setCurrentAction("wait_for_uploadeditor")
-        self.sid_data.upload_editor.start()
+        self.sid_data.setCurrentAction("wait_for_editfile")
+        self.sid_data.edit_file.start()
 
     def leave_menu_bar(self):
-        self.sid_data.upload_editor.clear_screen()
-        self.sid_data.upload_editor.update_first_line()
-        self.sid_data.upload_editor.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values, None )
-        self.sid_data.setCurrentAction("wait_for_uploadeditor")
+        self.sid_data.edit_file.clear_screen()
+        self.sid_data.edit_file.update_first_line()
+        self.sid_data.edit_file.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values, None )
+        self.sid_data.setCurrentAction("wait_for_editfile")

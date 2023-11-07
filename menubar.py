@@ -25,7 +25,7 @@ class MenuBar:
         # Define main menu and sub-menus
         self.main_menu = ['File', 'Edit']
         self.current_sub_menu_indexes = [0,0]
-        self.sub_menus = sub_menus;
+        self.sub_menus = sub_menus
         self.main_menu_positions = {}
 
         self.show_file_content = util.show_file_content
@@ -126,4 +126,6 @@ class MenuBar:
             self.draw_sub_menu()
             self.in_sub_menu = True
 
-    
+    def exit(self):
+        self.sid_data.menu.return_from_gosub()
+        self.util.sid_data.setCurrentAction("wait_for_menu")
