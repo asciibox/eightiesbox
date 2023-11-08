@@ -27,9 +27,12 @@ class EditFile(UploadEditor):
         # If the selected file is already available in self.first_document, use it directly
         if 'description' in self.first_document:
             # Set input values from the description
-            self.util.sid_data.input_values = self.first_document['description']
-            
-            # Initialize color_array and color_bgarray with empty lists
+            if isinstance(self.first_document['description'], str):
+                self.util.sid_data.input_values = [self.first_document['description']]
+            else:
+                # Otherwise, directly assign it (assuming it's already a list)
+                self.util.sid_data.input_values = self.first_document['description']
+
             self.util.sid_data.color_array = []
             self.util.sid_data.color_bgarray = []
             
@@ -43,8 +46,7 @@ class EditFile(UploadEditor):
         else:
             # Handle the case where there is no description or the structure is different
             self.util.sid_data.input_values = []
-        print("INPUT VALUES")
-        print(self.util.sid_data.input_values)
+      
         # Now that input_values is set up, call display_editor
         self.display_editor(self.util.sid_data.color_array, self.util.sid_data.color_bgarray, self.util.sid_data.input_values, None)
         self.util.sid_data.setCurrentAction("wait_for_editfile")

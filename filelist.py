@@ -7,10 +7,13 @@ class Filelist:
         self.file_cursor = 0  # Local instance variable to keep track of cursor position
         self.counter = 1
         self.util.clear_screen()
+        self.show_visible_files = None
 
     def show_file_listing(self, show_visible_files):
+        self.show_visible_file = show_visible_files
         self.util.clear_screen()
-        self.util.emit_gotoXY(0,0)
+        self.util.sid_data.setStartX(0); 
+        self.util.sid_data.setStartY(0); 
         db = self.util.mongo_client["bbs"]
         collection = db["files"]
 
@@ -21,12 +24,8 @@ class Filelist:
         for file in files:
             if show_visible_files == True and file['visible_file']==False:
                 self.counter += 1  # Increment the counter for the next file
-                print("SKIPPING")
-                print(file)
                 continue
             elif show_visible_files == False and file['visible_file']==True:
-                print("SKIPPING")
-                print(file)
                 self.counter += 1  # Increment the counter for the next file
                 continue
                 
@@ -85,7 +84,7 @@ class Filelist:
         self.util.goto_next_line()
         if response.lower() in ['y', 'yes']:
             self.line_count = 0  # Reset line count
-            self.show_file_listing()  # Continue listing files starting from the current cursor
+            self.show_file_listing(self.show_visible_files)  # Continue listing files starting from the current cursor
         else:
             self.util.output("Listing terminated by user.", 6, 0)
             # Handle cleanup and reset actions here
