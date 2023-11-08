@@ -352,6 +352,8 @@
             setTimeout(() => checkUploadStatus(uploadID, attempts + 1), 2000);
           } else {
             console.error("Maximum attempts reached. Stopping retries.");
+            alert("An error occured during upload, please contact the Sysop");
+            document.getElementById("loadingSpinner").style.display = "none"; // Hide spinner
           }
         }
       }

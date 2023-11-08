@@ -8,18 +8,28 @@ class Filelist:
         self.counter = 1
         self.util.clear_screen()
 
-    def show_file_listing(self):
-
+    def show_file_listing(self, show_visible_files):
+        self.util.clear_screen()
+        self.util.emit_gotoXY(0,0)
         db = self.util.mongo_client["bbs"]
         collection = db["files"]
 
         # Retrieve all documents starting from the current cursor
         files = collection.find().skip(self.file_cursor)
 
-        fg_color = 7  # White or light grey text
-        bg_color = 0  # Black or default background
 
         for file in files:
+            if show_visible_files == True and file['visible_file']==False:
+                self.counter += 1  # Increment the counter for the next file
+                print("SKIPPING")
+                print(file)
+                continue
+            elif show_visible_files == False and file['visible_file']==True:
+                print("SKIPPING")
+                print(file)
+                self.counter += 1  # Increment the counter for the next file
+                continue
+                
             # Convert upload date from ObjectId to a readable date, if necessary
             timestamp = file['_id'].generation_time
             upload_date = timestamp.strftime("%Y-%m-%d %H:%M:%S")
@@ -28,8 +38,24 @@ class Filelist:
                 f"ID: {self.counter} Filename: {file['filename']}",
                 f"File Size: {file['file_size']}",
                 f"Upload Date: {upload_date}",
+                f"File visible: {file['visible_file']}",
                 "Description:"
-            ] + file.get('description', [])
+            ]
+
+            # Ensure that the description is always a list
+            description = file.get('description', [])
+            if not isinstance(description, list):
+                description = [description]  # Make it a list even if it's a single string
+
+            # Then extend the file_details list with the description
+            file_details.extend(description)
+
+            if file['visible_file']:
+                fg_color = 7  # White or light grey text
+                bg_color = 0  # Black or default background
+            else:
+                fg_color = 1  # Red
+                bg_color = 0  # Black or default background
 
             for detail in file_details:
                 self.util.output(detail, fg_color, bg_color)

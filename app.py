@@ -26,7 +26,7 @@ from google.oauth2 import service_account
 import google.auth.iam
 from google.auth.transport.requests import Request
 import uuid
-from datetime import date
+from datetime import date, timedelta
 import re
 
 from uploadeditor import UploadEditor
@@ -51,7 +51,7 @@ list2 = [0,1,2,3,4,5,6,7,8,9,13,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,
 menu_structure = {
             'Goto & Gosub': ['Goto new menu', 'Gosub new menu', 'Return from gosub'],
             'Message base': ['Read message', 'Write message', 'Area change'],
-            'File base': ['Download files', 'Upload files', 'List files', 'Select file area', 'Comment uploaded files'],
+            'File base': ['Download files', 'Upload files', 'List visible files', 'Select file area', 'Comment uploaded files', 'List invisible files'],
             'User options': ['Change password', 'Change email', 'Change interests/hobbies'],
             'Login/Logout': ['Logout', 'Show oneliners'],
             'Multiline options': ['Users online', 'Chat between nodes', 'Add conference', 'Join conference', 'Delete conference'],
@@ -716,7 +716,6 @@ def check_upload_and_process():
     upload_id = request.args.get('uploadID')
     db = mongo_client['bbs']
     uploads_collection = db['upload_requests']
-    status = False
 
     # Retrieve the specific document
     specific_document = uploads_collection.find_one({"uploadID": upload_id})
@@ -731,111 +730,122 @@ def check_upload_and_process():
         processed_bucket_name = "eightiesbox_uploaded"
         processed_bucket = storage_client.bucket(processed_bucket_name)
 
-        # Get today's date in the format DD-MM-YYYY
-        today = date.today().strftime('%d-%m-%Y')
-
-        # Check if there's a directory for the current day in the "processed" bucket
-        daily_directory = None
-        blobs = processed_bucket.list_blobs(prefix=today)
-        for b in blobs:
-            if b.name.startswith(today) and '/' in b.name:
-                daily_directory = b.name.split('/')[0]
+        # Try with today's, previous and next date
+        for offset in (0, -1, 1):
+            check_date = date.today() + timedelta(days=offset)
+            status = check_upload_date(check_date.strftime('%d-%m-%Y'), processed_bucket, file_path, processed_bucket_name, specific_document)
+            if status:
                 break
 
-        # If no directory for today was found, create one with a new UUID
-        if not daily_directory:
-            daily_uuid = str(uuid.uuid4())
-            daily_directory = f"{today}_{daily_uuid}"
-
-        # Define the pattern for the timestamp in the filename
-        timestamp_pattern = re.compile(r'_(\d{13})(?=\.)') 
-
-        # Extract the base directory name and the original filename
-        base_directory_name = os.path.dirname(file_path).split('/')[-1]
-        original_filename = os.path.basename(file_path)
-
-        # Search for the timestamp in the original filename
-        timestamp_match = timestamp_pattern.search(original_filename)
-        if timestamp_match:
-            # Extract the timestamp
-            timestamp = timestamp_match.group(0)
-            timestamp = timestamp[1:]
-            # Remove the timestamp from the original filename
-            clean_filename = timestamp_pattern.sub('', original_filename)
-
-            # New regex pattern to extract the category string
-            category_pattern = re.compile(r'^[a-fA-F0-9]{24}-(.{20})')
-            category_match = category_pattern.search(clean_filename)
-
-            # Initialize an empty category string
-            category_string = 'default_no_category'
-
-            if category_match:
-                # Extract the category string
-                category_string = category_match.group(1)
-                # Remove the category string from the clean_filename
-                clean_filename = category_pattern.sub('', clean_filename)
-                clean_filename = clean_filename[1:]
-            else:
-                print(f"Category not found in {clean_filename}")
-
-            # Extract the file extension
-            file_extension = os.path.splitext(clean_filename)[1]  # This will give you '.png' from your example
-
-            # Ensure we only get the first 20 characters of the filename without the extension
-            filename_prefix = os.path.splitext(clean_filename[:20])[0]
-
-            # Construct the new file path
-            new_file_path = f"{daily_directory}/{category_string}/{base_directory_name}/{timestamp}_{filename_prefix}{file_extension}/{clean_filename}"
-
-        else:
-            # If no timestamp is found, we keep the original structure
-            new_file_path = f"{daily_directory}/{base_directory_name}/{original_filename}"
-
-        incoming_bucket = storage_client.bucket(processed_bucket_name)
-        blob = incoming_bucket.blob(new_file_path)
-
-        # Check if the file exists in the incoming bucket
-        if blob.exists():
-            status = True
-            print(f"File {new_file_path} exists in the bucket.")
-            # Get the file size
-            blob.reload()  # Reload the blob properties
-            file_size = blob.size
-
-            files_collection = db['files']
-            to_be_edited_collection = db['to_be_edited']
-
-            # Insert into 'files' collection
-            file_document = {
-                "filename": clean_filename,
-                "file_size": file_size,
-                "area_id": specific_document['area_id'],
-                "uploaded_by_user_id" : specific_document['user_id'],
-                "description": "",
-                "path": new_file_path,
-                "visible_file" : false,
-            }
-            file_result = files_collection.insert_one(file_document)
-            print("File document inserted:", file_result.inserted_id)
-            
-            # Insert into 'to_be_edited' collection
-            edit_document = {
-                "file_id": file_result.inserted_id,
-                "filename": clean_filename,
-                "file_size" : file_size,
-                "area_id": specific_document['area_id'],
-                "uploaded_by_user_id" : specific_document['user_id'],
-                "description_empty": True
-            }
-            edit_result = to_be_edited_collection.insert_one(edit_document)
-            print("To be edited document inserted:", edit_result.inserted_id)
-            
-        else:
-            print(f"File {new_file_path} does not exist in the bucket.")
+        return jsonify({'success': status})
     else:
         print("No document found with the provided uploadID")
-    return jsonify({'success': status})
+    return jsonify({'success': False})
+
+
+
+def check_upload_date(today, processed_bucket, file_path, processed_bucket_name, specific_document):
+    status = False
+    # Check if there's a directory for the current day in the "processed" bucket
+    daily_directory = None
+    blobs = processed_bucket.list_blobs(prefix=today)
+    for b in blobs:
+        if b.name.startswith(today) and '/' in b.name:
+            daily_directory = b.name.split('/')[0]
+            break
+
+    # If no directory for today was found, create one with a new UUID
+    if not daily_directory:
+        daily_uuid = str(uuid.uuid4())
+        daily_directory = f"{today}_{daily_uuid}"
+
+    # Define the pattern for the timestamp in the filename
+    timestamp_pattern = re.compile(r'_(\d{13})(?=\.)') 
+
+    # Extract the base directory name and the original filename
+    base_directory_name = os.path.dirname(file_path).split('/')[-1]
+    original_filename = os.path.basename(file_path)
+
+    # Search for the timestamp in the original filename
+    timestamp_match = timestamp_pattern.search(original_filename)
+    if timestamp_match:
+        # Extract the timestamp
+        timestamp = timestamp_match.group(0)
+        timestamp = timestamp[1:]
+        # Remove the timestamp from the original filename
+        clean_filename = timestamp_pattern.sub('', original_filename)
+
+        # New regex pattern to extract the category string
+        category_pattern = re.compile(r'^[a-fA-F0-9]{24}-(.{20})')
+        category_match = category_pattern.search(clean_filename)
+
+        # Initialize an empty category string
+        category_string = 'default_no_category'
+
+        if category_match:
+            # Extract the category string
+            category_string = category_match.group(1)
+            # Remove the category string from the clean_filename
+            clean_filename = category_pattern.sub('', clean_filename)
+            clean_filename = clean_filename[1:]
+        else:
+            print(f"Category not found in {clean_filename}")
+
+        # Extract the file extension
+        file_extension = os.path.splitext(clean_filename)[1]  # This will give you '.png' from your example
+
+        # Ensure we only get the first 20 characters of the filename without the extension
+        filename_prefix = os.path.splitext(clean_filename[:20])[0]
+
+        # Construct the new file path
+        new_file_path = f"{daily_directory}/{category_string}/{base_directory_name}/{timestamp}_{filename_prefix}{file_extension}/{clean_filename}"
+
+    else:
+        # If no timestamp is found, we keep the original structure
+        new_file_path = f"{daily_directory}/{base_directory_name}/{original_filename}"
+
+    incoming_bucket = storage_client.bucket(processed_bucket_name)
+    blob = incoming_bucket.blob(new_file_path)
+
+    # Check if the file exists in the incoming bucket
+    if blob.exists():
+        status = True
+        print(f"File {new_file_path} exists in the bucket.")
+        # Get the file size
+        blob.reload()  # Reload the blob properties
+        file_size = blob.size
+
+        files_collection = db['files']
+        to_be_edited_collection = db['to_be_edited']
+
+        # Insert into 'files' collection
+        file_document = {
+            "filename": clean_filename,
+            "file_size": file_size,
+            "area_id": specific_document['area_id'],
+            "uploaded_by_user_id" : specific_document['user_id'],
+            "description": "",
+            "path": new_file_path,
+            "visible_file" : False,
+        }
+        file_result = files_collection.insert_one(file_document)
+        print("File document inserted:", file_result.inserted_id)
+        
+        # Insert into 'to_be_edited' collection
+        edit_document = {
+            "file_id": file_result.inserted_id,
+            "filename": clean_filename,
+            "file_size" : file_size,
+            "area_id": specific_document['area_id'],
+            "uploaded_by_user_id" : specific_document['user_id'],
+            "description_empty": True
+        }
+        edit_result = to_be_edited_collection.insert_one(edit_document)
+        print("To be edited document inserted:", edit_result.inserted_id)
+        
+    else:
+        print(f"File {new_file_path} does not exist in the bucket.")
+    return status
 
 
 if __name__ == '__main__':

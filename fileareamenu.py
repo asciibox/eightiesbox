@@ -47,12 +47,12 @@ class FileAreaMenu(AreaMenu):
         db = mongo_client['bbs']
         db['fileareas'].insert_one({
             'name': self.new_area_name,
-            'min_level': 1,
+            'min_level': 0,
             'order': order
         })
 
         # Update self.areas to include new area
-        self.areas.append({'name': self.new_area_name, 'min_level': 1, 'order': order})
+        self.areas.append({'name': self.new_area_name, 'min_level': 0, 'order': order})
 
         # Sort self.areas based on the order
         self.areas = sorted(self.areas, key=lambda k: k['order'])

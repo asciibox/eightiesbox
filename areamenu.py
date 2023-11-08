@@ -118,23 +118,18 @@ class AreaMenu(BasicANSI):
 
     def change_min_level(self):
         self.util.goto_next_line()
-        self.util.output_wrap("Enter the index of the area to change min_level:", 6, 0)
-        self.util.ask(2, self.update_min_level)
+        self.util.output_wrap("Enter the index of the area to change the min_level:", 6, 0)
+        self.util.ask(3, self.update_min_level)
         
     def update_min_level(self, choice):
         try:
             choice_idx = int(choice) - 1
             selected_area = self.areas[choice_idx]
-            
-            if self.user_level >= selected_area['min_level']:
-                self.util.goto_next_line()
-                self.util.output_wrap(f"Current min_level is {selected_area['min_level']}. Enter new min_level:", 6, 0)
-                self.util.ask(5, lambda new_level: self.set_new_min_level(choice_idx, new_level))
-                
-            else:
-                self.util.output_wrap("You don't have permission to access this area.", 6, 0)
-                self.display_menu()
-                
+      
+            self.util.goto_next_line()
+            self.util.output_wrap(f"Current min_level is {selected_area['min_level']}. Enter new min_level:", 6, 0)
+            self.util.ask(5, lambda new_level: self.set_new_min_level(choice_idx, new_level))
+             
         except (ValueError, IndexError):
             self.util.output("Invalid choice. Please try again.", 6, 0)
             self.display_menu()
@@ -142,11 +137,19 @@ class AreaMenu(BasicANSI):
     def set_new_min_level(self, choice_idx, new_level):
         try:
             new_level = int(new_level)
-            self.areas[choice_idx]['min_level'] = new_level
+            area_id = self.areas[choice_idx]['_id']  # get the area id from the selected choice index
             
-            # Add code here to persist the change to database if needed
+            # Update the database, code for saving new min_level
+            mongo_client = self.util.mongo_client
+            db = mongo_client['bbs']
+            update_result = db['fileareas'].update_one({'_id': area_id}, {'$set': {'min_level': new_level}})
             
-            self.util.output_wrap(f"Successfully updated min_level to {new_level}", 6, 0)
+            if update_result.modified_count == 1:
+                self.areas[choice_idx]['min_level'] = new_level  # update local data structure
+                self.util.output_wrap(f"Successfully updated min_level to {new_level}", 6, 0)
+            else:
+                self.util.output_wrap("Failed to update min_level in the database.", 6, 0)
+            
             self.display_menu()
             
         except ValueError:

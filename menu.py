@@ -97,7 +97,7 @@ class Menu(BasicANSI):
                         self.sid_data.setDownload(Download(self.util))
                         self.sid_data.download.query_file_by_id()
                         return
-                    elif action_code == "22":
+                    elif action_code == "22":  # upload file
                         self.append_gosub()
                         if (self.sid_data.current_file_area == None):
                             self.sid_data.setFileAreaChange(FileAreaChange(self.util, self.on_file_area_selected_22))
@@ -108,7 +108,12 @@ class Menu(BasicANSI):
                     elif action_code == "23":
                         self.append_gosub()
                         self.sid_data.setFilelist(Filelist(self.util))
-                        self.sid_data.filelist.show_file_listing()
+                        self.sid_data.filelist.show_file_listing(True)
+                        return
+                    elif action_code == "26":
+                        self.append_gosub()
+                        self.sid_data.setFilelist(Filelist(self.util))
+                        self.sid_data.filelist.show_file_listing(False)
                         return
                     elif action_code == "24":
                         self.append_gosub()
