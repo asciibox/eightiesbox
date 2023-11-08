@@ -164,3 +164,25 @@ class FileAreaMenu(AreaMenu):
 
         # Redraw the menu
         self.display_menu()
+
+    def set_new_min_level(self, choice_idx, new_level):
+        try:
+            new_level = int(new_level)
+            area_id = self.areas[choice_idx]['_id']  # get the area id from the selected choice index
+            
+            # Update the database, code for saving new min_level
+            mongo_client = self.util.mongo_client
+            db = mongo_client['bbs']
+            update_result = db['fileareas'].update_one({'_id': area_id}, {'$set': {'min_level': new_level}})
+            
+            if update_result.modified_count == 1:
+                self.areas[choice_idx]['min_level'] = new_level  # update local data structure
+                self.util.output_wrap(f"Successfully updated min_level to {new_level}", 6, 0)
+            else:
+                self.util.output_wrap("Failed to update min_level in the database.", 6, 0)
+            
+            self.display_menu()
+            
+        except ValueError:
+            self.util.output_wrap("Invalid input for min_level. Please try again.", 6, 0)
+            self.display_menu()
