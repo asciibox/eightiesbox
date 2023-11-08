@@ -58,12 +58,17 @@ class Download:
         files = self.util.mongo_client["bbs"]["files"].find()
         for index, file in enumerate(files, start=1):
             if index == file_id_num:
-                self.util.goto_next_line()
-                self.util.output(f"Filename: {file['filename']}", 7, 0)
-                self.util.goto_next_line()
-                self.add_to_download_queue(file)
-                self.query_file_by_id()
-                return  # Return after adding to queue
+                if file['visible_file']==False:
+                    self.util.goto_next_line()
+                    self.util.output(f"File is not visible", 1, 0)
+                    self.util.goto_next_line()
+                else:
+                    self.util.goto_next_line()
+                    self.util.output(f"Filename: {file['filename']}", 7, 0)
+                    self.util.goto_next_line()
+                    self.add_to_download_queue(file)
+                    self.query_file_by_id()
+                    return  # Return after adding to queue
         else:
             self.util.goto_next_line()
             self.util.output("File ID not found.", 7, 0)
