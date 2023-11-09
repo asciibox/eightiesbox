@@ -94,7 +94,7 @@ class Menu(BasicANSI):
                         return
                     elif action_code == "21":
                         self.append_gosub()
-                        self.sid_data.setDownload(Download(self.util))
+                        self.sid_data.setDownload(Download(self.util, False))
                         self.sid_data.download.query_file_by_id()
                         return
                     elif action_code == "22":  # upload file
@@ -110,11 +110,6 @@ class Menu(BasicANSI):
                         self.sid_data.setFilelist(Filelist(self.util))
                         self.sid_data.filelist.show_file_listing(True)
                         return
-                    elif action_code == "26":
-                        self.append_gosub()
-                        self.sid_data.setFilelist(Filelist(self.util))
-                        self.sid_data.filelist.show_file_listing(False)
-                        return
                     elif action_code == "24":
                         self.append_gosub()
                         self.sid_data.setFileAreaChange(FileAreaChange(self.util))
@@ -125,6 +120,16 @@ class Menu(BasicANSI):
                         self.sid_data.setCurrentAction("wait_for_uploadeditor")
                         self.sid_data.setUploadEditor(UploadEditor(self.util))
                         self.sid_data.upload_editor.start()
+                        return
+                    elif action_code == "26":
+                        self.append_gosub()
+                        self.sid_data.setFilelist(Filelist(self.util))
+                        self.sid_data.filelist.show_file_listing(False)
+                        return
+                    elif action_code == "27":
+                        self.append_gosub()
+                        self.sid_data.setDownload(Download(self.util, True))
+                        self.sid_data.download.query_file_by_id()
                         return
                     elif action_code == "51":
                         

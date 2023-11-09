@@ -4,9 +4,10 @@ import socketio
 import datetime
 
 class Download:
-    def __init__(self, util):
+    def __init__(self, util, download_invisible_files):
         self.util = util
         self.download_queue = []
+        self.download_invisible_files = download_invisible_files
 
     def add_to_download_queue(self, file):
         # Create a signed URL for the file to be downloaded
@@ -58,7 +59,7 @@ class Download:
         files = self.util.mongo_client["bbs"]["files"].find()
         for index, file in enumerate(files, start=1):
             if index == file_id_num:
-                if file['visible_file']==False:
+                if self.download_invisible_files == False and file['visible_file']==False:
                     self.util.goto_next_line()
                     self.util.output(f"File is not visible", 1, 0)
                     self.util.goto_next_line()

@@ -51,7 +51,7 @@ list2 = [0,1,2,3,4,5,6,7,8,9,13,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,
 menu_structure = {
             'Goto & Gosub': ['Goto new menu', 'Gosub new menu', 'Return from gosub'],
             'Message base': ['Read message', 'Write message', 'Area change'],
-            'File base': ['Download files', 'Upload files', 'List visible files', 'Select file area', 'Comment uploaded files', 'List invisible files'],
+            'File base': ['Download files', 'Upload files', 'List visible files', 'Select file area', 'Comment uploaded files', 'List invisible files', 'Download invisible files'],
             'User options': ['Change password', 'Change email', 'Change interests/hobbies'],
             'Login/Logout': ['Logout', 'Show oneliners'],
             'Multiline options': ['Users online', 'Chat between nodes', 'Add conference', 'Join conference', 'Delete conference'],
