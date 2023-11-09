@@ -10,7 +10,7 @@ class Filelist:
         self.show_visible_files = None
 
     def show_file_listing(self, show_visible_files):
-        self.show_visible_file = show_visible_files
+        self.show_visible_files = show_visible_files
         self.util.clear_screen()
         self.util.sid_data.setStartX(0); 
         self.util.sid_data.setStartY(0); 
