@@ -4,6 +4,9 @@ class MessageReader :
     def __init__(self, util, callback):
         self.util = util
         self.callback = callback
+        self.db_filter=""
+        self.sort_filter=""
+        self.next = "next"
 
     def display_menu(self):
         # Clear the screen and set the coordinates
@@ -29,10 +32,7 @@ class MessageReader :
         self.util.goto_next_line()
         self.util.output("--------------------", 6, 0)
         self.util.goto_next_line()
-        self.db_filter=""
-        self.sort_filter=""
-        self.next = "next"
-
+        
         if total_messages == 0:
             self.util.output("No messages found", 7, 0)
             self.util.goto_next_line()
@@ -171,7 +171,7 @@ class MessageReader :
         # Setting filter to only select messages addressed to the user
         user_name = self.util.sid_data.user_name
         db_filter = {"to": user_name}
-        sort_direction = 1  # Sorting in ascending order
+        self.sort_direction = 1  # Sorting in ascending order
 
         # Connect to MongoDB
         mongo_client = self.util.mongo_client
@@ -189,7 +189,7 @@ class MessageReader :
         # Fetch the next unread message addressed to the user
         next_message = db['messages'].find_one(
             final_filter,
-            sort=[('_id', sort_direction)]
+            sort=[('_id', self.sort_direction)]
         )
 
         if next_message:
