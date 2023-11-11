@@ -33,7 +33,7 @@ class MenuBarEditFileEditor(MenuBar):
                 db = mongo_client['bbs']
                 
                 files_collection = db['files']
-                
+                print("Looking for "+str(self.file_id)+" in files")
                 # Update the document with the _id of self.file_id with the description from self.util.sid_data.input_values
                 update_result = files_collection.update_one(
                     {'_id': self.file_id},  # Query for the specific document by _id
@@ -46,6 +46,7 @@ class MenuBarEditFileEditor(MenuBar):
                     to_be_edited_collection = db['to_be_edited']
     
                     try:
+                        print("Looking for "+str(self.file_id)+" in to_be_edited['file_id']")
                         file_id_obj = ObjectId(self.file_id)
                         # Attempt to delete the document with the given file_id
                         delete_result = to_be_edited_collection.delete_one({'file_id': file_id_obj})
@@ -62,13 +63,15 @@ class MenuBarEditFileEditor(MenuBar):
                             return False
                 
                     self.output("File description updated successfully.", 6,0)
-                    self.util.wait_with_message(self.proceed_callback)
+                    self.util.wait_with_message(self.exit)
+                    return
                     # Add any additional steps here if needed after a successful update
-                    self.exit()
+                    # self.exit()
                 else:
                     self.output("Failed to update file description.", 6, 0)
-                    self.util.wait_with_message(self.proceed_callback)
-                    self.exit()
+                    self.util.wait_with_message(self.exit)
+                    return
+                    # self.exit()
                     
                 # After save functionality, proceed with other tasks or redraw the menu
                 # self.draw_sub_menu()  # For example, to redraw the sub-menu

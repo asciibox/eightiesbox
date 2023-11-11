@@ -92,6 +92,6 @@ class UploadEditor(ANSIEditor):
             'File': ['Save and proceed', 'Save and exit', 'Exit without saving'],
             'Edit': ['Clear description', 'Leave menu bar'],
         }
-        self.sid_data.setMenuBar(MenuBarUploadEditor(sub_menus, self.util, self.first_document['file_id']))
+        self.sid_data.setMenuBar(MenuBarUploadEditor(sub_menus, self.util, self.first_document['_id']))
 
         self.sid_data.setCurrentAction("wait_for_menubar_ansieditor")

@@ -122,12 +122,11 @@ class EditFile(UploadEditor):
             # Check if the update was successful
             if update_result.modified_count > 0:
                 self.util.goto_next_line()
+                self.first_document['filename']=new_filename
                 self.util.output("Filename updated successfully.", 7, 0)
-                self.exit()
             else:
                 self.util.goto_next_line()
                 self.util.output("No changes made to filename.", 7, 0)
-                self.exit()
         else:
             self.util.goto_next_line()
             if new_filename:
