@@ -103,6 +103,34 @@ class EditFile(UploadEditor):
             self.util.output("Invalid choice. Please enter Y or N.", 7, 0)
             self.ask_change_filename()
 
+
+    def rename_file_in_gcs(self, bucket_name, current_file_path, new_file_path):
+        """Rename a file in Google Cloud Storage."""
+        # Initialize the client
+        storage_client = storage.Client()
+
+        # Get the bucket
+        bucket = storage_client.bucket(bucket_name)
+
+        # Copy the file to the new path
+        blob = bucket.blob(current_file_path)
+        new_blob = bucket.copy_blob(blob, bucket, new_file_path)
+
+        # Check if the new file is created
+        if new_blob.exists():
+            # Delete the old file
+            blob.delete()
+            print("File renamed successfully.")
+        else:
+            print("Error in renaming file.")
+
+    def construct_new_path(self, current_path, new_filename):
+        # Split the current path and replace the filename
+        path_parts = current_path.split('/')
+        path_parts[-1] = new_filename  # Assuming the filename is the last part of the path
+        return '/'.join(path_parts)
+
+
     def change_filename(self, new_filename):
         # Assuming self.first_document is the document retrieved from the database
         if not self.first_document:
@@ -110,13 +138,18 @@ class EditFile(UploadEditor):
             self.util.output("No file selected for renaming.", 7, 0)
             self.query_file_by_id()
             return
+        
+
+        new_path = self.construct_new_path(self.first_document['path'], new_filename)
+        print("Renaming "+self.first_document['path']+" to "+new_path)
+        self.rename_file_in_gcs("eightiesbox_uploaded", self.first_document['path'], new_path)
 
         # Check if new filename is not empty and does not already exist
         if new_filename and not self.util.mongo_client["bbs"]["files"].find_one({"filename": new_filename}):
             # Update the filename in the database
             update_result = self.util.mongo_client["bbs"]["files"].update_one(
                 {"_id": self.first_document["_id"]},
-                {"$set": {"filename": new_filename}}
+                {"$set": {"filename": new_filename, "path" : new_path}}
             )
 
             # Check if the update was successful
@@ -124,6 +157,8 @@ class EditFile(UploadEditor):
                 self.util.goto_next_line()
                 self.first_document['filename']=new_filename
                 self.util.output("Filename updated successfully.", 7, 0)
+
+                
             else:
                 self.util.goto_next_line()
                 self.util.output("No changes made to filename.", 7, 0)
