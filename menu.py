@@ -288,6 +288,7 @@ class Menu(BasicANSI):
         last_state = self.menu_stack.pop()
         self.values = last_state['values']
         self.sid_data.setSauceWidth(last_state['sauce_width'])
+
         self.sid_data.setSauceHeight(last_state['sauce_height'])
         self.sid_data.color_array = last_state['color_array']
         self.sid_data.color_bgarray = last_state['color_bgarray']
@@ -334,13 +335,16 @@ class Menu(BasicANSI):
             ansi_code_bytes = self.util.strip_sauce(ansi_code_bytes)
             if sauce != None:
                 if sauce.columns and sauce.rows:
+                    self.max_height = sauce.rows
                     self.sid_data.setSauceWidth(sauce.columns)
                     self.sid_data.setSauceHeight(sauce.rows)
                 else:
                     self.sid_data.setSauceWidth(80)
+                    self.max_height = 50
                     self.sid_data.setSauceHeight(50)    
             else:
                 self.sid_data.setSauceWidth(80)
+                self.max_height = 50
                 self.sid_data.setSauceHeight(50)
 
             ansi_code = ansi_code_bytes.decode('cp1252')
