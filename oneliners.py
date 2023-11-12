@@ -35,17 +35,54 @@ class OnelinerBBS:
         if result:
             self.goto_next_line()
             current_time = datetime.utcnow()
-            self.collection.insert_one({"text": result, "timestamp": current_time})
+            self.collection.insert_one({"text": result, "timestamp": current_time, "username" : self.sid_data.user_name})
             self.output_oneliners()
             self.goto_next_line()
             self.output("Press any button to continue", 3, 0)
             self.wait(self.launchMenuCallback)
 
     def output_oneliners(self):
+        current_time = datetime.utcnow()
         cursor = self.collection.find({}).sort("timestamp", -1).limit(25)
         counter = 1
         for document in reversed(list(cursor)):
-            self.output(f"{counter}: {document['text']}", 3, 0)
+            
+            # Check if 'timestamp' is a datetime object
+            if not isinstance(document['timestamp'], datetime):
+                raise TypeError("Timestamp is not a datetime object")
+            
+            time_diff = self.humanize_date_difference(current_time, otherdate=document['timestamp'])
+            self.util.output_wrap(f"({counter}) {document['username']}: {document['text']} - {time_diff}", 3, 0)
             self.goto_next_line()
             counter += 1
+
+    def humanize_date_difference(self, now, otherdate=None, offset=None):
+        if otherdate is not None:
+            dt = now - otherdate
+            offset = dt.total_seconds()
+        if offset is not None and offset > 0:
+            delta_s = int(offset) % 60
+            delta_m = int(offset // 60) % 60
+            delta_h = int(offset // 3600) % 24
+            delta_d = int(offset // 86400)
+        else:
+            raise ValueError("Must supply otherdate or offset (from now)")
+
+        if delta_d > 1:
+            if delta_d > 6:
+                date = now + datetime.timedelta(days=-delta_d, hours=-delta_h, minutes=-delta_m)
+                return date.strftime('%A, %Y %B %m, %H:%I')
+            else:
+                wday = now + datetime.timedelta(days=-delta_d)
+                return wday.strftime('%A')
+        if delta_d == 1:
+            return "Yesterday"
+        if delta_h > 0:
+            return "%dh%dm ago" % (delta_h, delta_m)
+        if delta_m > 0:
+            return "%dm ago" % delta_m  # Changed here to show only minutes if 0 hours
+        else:
+            return "%ds ago" % delta_s
+
+
 
