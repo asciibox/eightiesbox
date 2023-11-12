@@ -4,9 +4,12 @@ class MessageReader :
     def __init__(self, util, callback):
         self.util = util
         self.callback = callback
-        self.db_filter=""
+        self.db_filter={}
         self.sort_filter=""
         self.next = "next"
+        self.consider_read = True
+        self.mode = "ALL"
+
 
     def display_menu(self):
         # Clear the screen and set the coordinates
@@ -92,9 +95,10 @@ class MessageReader :
             self.display_menu()
 
     def read_messages_with_filter_and_direction(self, db_filter, sort_direction, next, consider_read=True):
-        # Get current area and its id
+        self.mode="ALL"
+        # Get current area and its id, if available
         current_area = self.util.sid_data.current_message_area
-        area_id = current_area['_id']
+        area_id = current_area['_id'] if current_area is not None else None
         self.db_filter = db_filter
         self.sort_direction = sort_direction
         self.next = next
@@ -104,25 +108,30 @@ class MessageReader :
         mongo_client = self.util.mongo_client
         db = mongo_client['bbs']
 
-        read_messages = db['read_messages'].find({
-        "user_id": self.util.sid_data.user_document['_id'],
-        "area_id": area_id
-        })
+        # Only fetch read messages if we have a current area
+        if area_id is not None:
+            read_messages = db['read_messages'].find({
+                "user_id": self.util.sid_data.user_document['_id'],
+                "area_id": area_id
+            })
 
-        read_message_ids = [msg['message_id'] for msg in read_messages]
-    
-        # Build your final filter
-        final_filter = {**db_filter, "area_id": area_id}
+            read_message_ids = [msg['message_id'] for msg in read_messages]
         
-        if consider_read:
-            final_filter['_id'] = {'$nin': read_message_ids}
+            # Build your final filter
+            final_filter = {**db_filter}
+            if area_id:
+                final_filter["area_id"] = area_id
+            
+            if consider_read:
+                final_filter['_id'] = {'$nin': read_message_ids}
+        else:
+            final_filter = db_filter  # Use the db_filter as is if no area_id
 
         if self.current_message_id is not None:
             if '_id' not in final_filter:
                 final_filter['_id'] = {}
             final_filter['_id'].update({'$gt': self.current_message_id} if sort_direction == 1 else {'$lt': self.current_message_id})
-    
-
+        
         next_message = db['messages'].find_one(
             final_filter,
             sort=[('_id', sort_direction)]
@@ -155,10 +164,6 @@ class MessageReader :
 
             self.display_message_content()
 
-            # If you're adding a prompt after the message, place it here.
-            #self.util.output_wrap(f"Press Enter to read the {next} message or 'x' to stop: ", 7, 0)
-            #self.util.ask(1, self.handle_input_for_reading)
-
         else:
             self.util.goto_next_line()
             self.util.output_wrap("No more messages matching your criteria.", 7, 0)
@@ -167,6 +172,7 @@ class MessageReader :
             self.util.wait_with_message(self.exit_to_main_menu)
 
     def display_unread_messages_addressed_to_user(self):
+        self.mode="UNREAD"
         self.next = "next"
         # Setting filter to only select messages addressed to the user
         user_name = self.util.sid_data.user_name
@@ -219,10 +225,6 @@ class MessageReader :
 
             self.display_message_content()
 
-            # If you're adding a prompt after the message, place it here.
-            #self.util.output_wrap(f"Press Enter to read the next message or 'x' to stop: ", 7, 0)
-            #self.util.ask(1, self.handle_input_for_reading)
-
         else:
             self.util.goto_next_line()
             self.util.output_wrap("No more personal, unread messages.", 7, 0)
@@ -249,7 +251,10 @@ class MessageReader :
             self.exit_to_main_menu()
             self.current_message_id = None  # Reset the current message ID
         else:
-            self.read_messages_with_filter_and_direction(self.db_filter, self.sort_direction, self.next, self.consider_read)
+            if self.mode == "ALL":
+                self.read_messages_with_filter_and_direction(self.db_filter, self.sort_direction, self.next, self.consider_read)
+            else:
+                self.display_unread_messages_addressed_to_user()
 
     def display_message_content(self):
         yHeight_limit = self.util.sid_data.yHeight - 3  # Define a limit, adjust based on your needs

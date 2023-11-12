@@ -374,22 +374,21 @@ class Utils:
             return value  # returns the original value if index out of range in list2
 
     def launchMenuCallback(self):
-        if self.sid_data.user_name!='sysop':
-           self.check_for_new_messsages()
-        else:
-            self.goto_next_line()
+        self.check_for_new_messsages()
 
-            self.askYesNo('Do you want to edit the menu? Otherwise we will take you to the ANSI editor.', self.menuCallback)
-        
     def check_for_new_messsages(self):
         if self.get_all_unread_messages_addressed_to_user_count() > 0:
                 self.sid_data.setMessageReader(MessageReader(self, self.message_reader_new_messages_callback_on_exit))
                 self.sid_data.message_reader.display_unread_messages_addressed_to_user()
         else:
-            self.load_menu()
+            self.message_reader_new_messages_callback_on_exit()
 
     def message_reader_new_messages_callback_on_exit(self):
-        self.load_menu()
+        if self.sid_data.user_name=='sysop':
+            self.goto_next_line()
+            self.askYesNo('Do you want to edit the menu? Otherwise we will take you to the ANSI editor.', self.menuCallback)    
+        else:
+            self.load_menu()
     
 
     def get_all_unread_messages_addressed_to_user_count(self):
