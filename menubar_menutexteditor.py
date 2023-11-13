@@ -75,7 +75,7 @@ class MenuBarTextEditor(MenuBarANSIEditor):
         self.sid_data.menutexteditor.current_line_index=0
 
     def import_ansi(self):
-        collection = self.mongo_client.bbs.uploads  # Replace with actual MongoDB database and collection
+        collection = self.mongo_client.bbs.uploads_ansi  # Replace with actual MongoDB database and collection
         filenames = collection.find({}, {'filename': 1})  # Query MongoDB for filenames
         
         self.clear_screen()
@@ -93,7 +93,7 @@ class MenuBarTextEditor(MenuBarANSIEditor):
             self.leave_menu_bar()
             self.in_sub_menu = False
             return
-        collection = self.mongo_client.bbs.uploads  # Replace with the actual MongoDB database and collection
+        collection = self.mongo_client.bbs.uploads_ansi  # Replace with the actual MongoDB database and collection
         
         # Look for the filename in the database
         file_data = collection.find_one({"filename": entered_filename})
