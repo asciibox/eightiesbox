@@ -143,7 +143,7 @@ class MessageEditor(ANSIEditor):
             self.update_page_data()
 
     def arrow_down_pressed(self):
-        if self.current_line_index < self.max_height - 1:
+        if self.current_line_index < self.max_height - 2:
             self.current_line_index += 1
             self.emit_gotoXY(self.current_line_x, self.current_line_index + 1)
             
@@ -187,7 +187,11 @@ class MessageEditor(ANSIEditor):
         self.sid_data.input_values = self.input_values_page[self.current_page]
         self.sid_data.color_array = self.color_array_page[self.current_page]
         self.sid_data.color_bgarray = self.color_bgarray_page[self.current_page]
-        self.sid_data.message_editor.clear_screen()
+        self.util.clear_screen()
+        self.input_values = self.sid_data.input_values
+        self.color_array = self.sid_data.color_array
+        self.color_bgarray = self.sid_data.color_bgarray
+        print("CLEARED")
         self.sid_data.message_editor.display_editor(self.current_page == 0)
 
     def save_current_page_data(self):
