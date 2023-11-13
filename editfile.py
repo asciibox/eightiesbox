@@ -55,7 +55,7 @@ class EditFile(UploadEditor):
     def query_file_by_id(self):
         self.util.goto_next_line()
         self.util.output("Enter file ID or press Enter to exit: ", 6, 0)
-        self.util.ask(40, self.process_file_id)  # Ensure correct signature for ask method
+        self.util.ask(35, self.process_file_id)  # Ensure correct signature for ask method
         # The check for an empty string should be inside the callback method
 
     def process_file_id(self, file_id):
@@ -95,7 +95,7 @@ class EditFile(UploadEditor):
         if decision.lower() == 'y':
             self.util.goto_next_line()
             self.util.output("Enter new filename: ", 7, 0)
-            self.util.ask(40, self.change_filename)
+            self.util.ask(35, self.change_filename)
         elif decision.lower() == 'n':
             self.ask_file_visibility_change()  # Proceed with the next step if the user doesn't want to change the filename
         else:

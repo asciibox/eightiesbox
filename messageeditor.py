@@ -72,7 +72,7 @@ class MessageEditor(ANSIEditor):
         
         # Ask for "To:"
         self.output("To: ", 6, 0)
-        self.ask(40, self.to_input_callback)
+        self.ask(35, self.to_input_callback)
 
     def to_input_callback(self, response):
     # Assume you've connected to MongoDB and got the users_collection object
@@ -129,7 +129,7 @@ class MessageEditor(ANSIEditor):
 
         self.output("Subject: ", 6, 0)
         # Ask for "Subject:"
-        self.ask(40, subject_input_callback)
+        self.ask(35, subject_input_callback)
 
     def enter_pressed(self):
         super().enter_pressed()

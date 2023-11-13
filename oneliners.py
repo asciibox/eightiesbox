@@ -27,7 +27,7 @@ class OnelinerBBS:
     def oneliner_callback(self, result):
         if result.lower() == 'y':
             self.goto_next_line()
-            self.ask(40, self.creation_callback)
+            self.ask(35, self.creation_callback)
         else:
             self.launchMenuCallback()
 

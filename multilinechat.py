@@ -12,7 +12,7 @@ class MultilineChat:
     def ask_username(self):
         if self.count_online_users()>1:
             self.util.output("User you want to chat with: ", 6, 0)
-            self.util.ask(40, self.to_input_callback)
+            self.util.ask(35, self.to_input_callback)
         else:
             self.util.output("No users online, please wait", 1, 0)
             self.util.goto_next_line()

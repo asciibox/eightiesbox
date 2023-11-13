@@ -262,7 +262,7 @@ class Utils:
                     self.passwordRetries += 1
                     if self.passwordRetries < 3:
                         self.output_wrap("Incorrect password. Try again: ", 3, 0)
-                        self.askPassword(40, self.passwordRetryCallback)  # Prompt again for the password
+                        self.askPassword(35, self.passwordRetryCallback)  # Prompt again for the password
                         
                     else:
                         self.output_wrap("Too many tries!", 1, 0)
@@ -276,12 +276,12 @@ class Utils:
                     self.output(str(e), 1, 0)
                     self.goto_next_line()
                     self.output_wrap("Please re-enter username: ", 3, 0)
-                    self.ask(40, self.usernameCallback)
+                    self.ask(35, self.usernameCallback)
         else:
             # This should not happen, but just in case
             self.goto_next_line()
             self.output_wrap("User "+ self.sid_data.user_name + " not found. Please re-enter username: ", 3, 0)
-            self.ask(40, self.usernameCallback)
+            self.ask(35, self.usernameCallback)
 
     def passwordRetryCallback(self, input):
         if len(input)==0:
@@ -296,7 +296,7 @@ class Utils:
         if input == '':
             self.goto_next_line()
             self.output_wrap("Please enter your name: ", 3, 0)
-            self.ask(40, self.usernameCallback)
+            self.ask(35, self.usernameCallback)
             return
 
         db = self.mongo_client['bbs']
@@ -313,13 +313,13 @@ class Utils:
                 self.sid_data.setInputType("password")
                 self.passwordRetries = 0
                 self.output_wrap("Please enter your password: ", 3, 0)
-                self.askPassword(40, self.passwordCallback)
+                self.askPassword(35, self.passwordCallback)
             else:
                 # Sysop user doesn't exist; create a new Sysop user
                 self.goto_next_line()
                 self.sid_data.setInputType("password")
                 self.output_wrap("You are registering as SYSOP. Please enter a new password: ", 3, 0)
-                self.askPassword(40, self.sysopPasswordCreationCallback)
+                self.askPassword(35, self.sysopPasswordCreationCallback)
             return
 
         if user_document:
@@ -327,7 +327,7 @@ class Utils:
             self.goto_next_line()
             self.sid_data.setInputType("password")
             self.output_wrap("Please enter your password: ", 3, 0)
-            self.askPassword(40, self.passwordCallback)
+            self.askPassword(35, self.passwordCallback)
         else:
             # User doesn't exist in the database
             self.goto_next_line()
@@ -338,7 +338,7 @@ class Utils:
         self.goto_next_line()
         self.sid_data.setInputType("password")
         self.output_wrap("Please confirm your new password: ", 3, 0)
-        self.askPassword(40, lambda second_password: self.sysopPasswordConfirmationCallback(first_password, second_password))
+        self.askPassword(35, lambda second_password: self.sysopPasswordConfirmationCallback(first_password, second_password))
 
     # Callback for Sysop password confirmation
     def sysopPasswordConfirmationCallback(self, first_password, second_password):
@@ -362,7 +362,7 @@ class Utils:
         else:
             self.goto_next_line()
             self.output_wrap("Passwords did not match. Please try again.", 3, 0)
-            self.askPassword(40, self.sysopPasswordCreationCallback)
+            self.askPassword(35, self.sysopPasswordCreationCallback)
 
     def map_value(self, value, list1, list2):
         try:

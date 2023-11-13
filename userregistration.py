@@ -39,18 +39,18 @@ class UserRegistration:
         if result == 'Y' or result == 'y':
             self.goto_next_line()
             self.output_wrap("Please enter your new username: ", 6, 0)
-            self.ask(40, self.username_callback)
+            self.ask(35, self.username_callback)
         else:
             self.goto_next_line()
             self.output_wrap("Please enter your name: ", 6, 0)
-            self.ask(40, self.usernameCallback)
+            self.ask(35, self.usernameCallback)
 
     def username_callback(self, input):
         input = input.lower().strip()
         if input == '':
             self.goto_next_line()
             self.output_wrap("Please enter your new username: ", 6, 0)
-            self.ask(40, self.username_callback)
+            self.ask(35, self.username_callback)
             return
         self.userdata['username'] = input
         db = self.mongo_client['bbs']
@@ -61,51 +61,51 @@ class UserRegistration:
         if existing_user is None:
            self.goto_next_line()
            self.output_wrap("Please enter your new password: ", 6, 0)
-           self.askPassword(40, self.password_callback)
+           self.askPassword(35, self.password_callback)
         else:
             self.goto_next_line()
             self.output_wrap("This username is already taken", 1, 0)
             self.goto_next_line()
             self.output_wrap("Please enter your new username: ", 6, 0)
-            self.ask(40, self.username_callback)
+            self.ask(35, self.username_callback)
         
     def password_callback(self, input):
         if input == '':
             self.goto_next_line()
             self.output_wrap("Please enter your new password: ", 6, 0)
-            self.askPassword(40, self.password_callback)
+            self.askPassword(35, self.password_callback)
             return
         self.password_input = input
         hashed_password = bcrypt.hashpw(input.encode('utf-8'), bcrypt.gensalt())
         self.userdata['password'] = hashed_password.decode('utf-8')
         self.goto_next_line()
         self.output_wrap("Please repeat your new paswword: ", 6, 0)
-        self.askPassword(40, self.password_repetition_callback)
+        self.askPassword(35, self.password_repetition_callback)
 
     def password_repetition_callback(self, input):
         if input == '':
             self.goto_next_line()
             self.output_wrap("Please repeat your new password: ", 6, 0)
-            self.askPassword(40, self.password_repetition_callback)
+            self.askPassword(35, self.password_repetition_callback)
             return
         if input != self.password_input:
             self.goto_next_line()
             self.output_wrap("Wrong password repetition", 1, 0)
             self.goto_next_line()
             self.output_wrap("Please enter your new password: ", 6, 0)
-            self.askPassword(40, self.password_callback) # Certainly not self.password_repetition_callback
+            self.askPassword(35, self.password_callback) # Certainly not self.password_repetition_callback
             return
 
         self.sid_data.setInputType("text")
         self.goto_next_line()
         self.output_wrap("Please enter your email address: ", 6, 0)
-        self.ask(40, self.email_callback)
+        self.ask(35, self.email_callback)
 
     def email_callback(self, input):
         if input == '':
             self.goto_next_line()
             self.output_wrap("Please enter your email address: ", 6, 0)
-            self.ask(40, self.email_callback)
+            self.ask(35, self.email_callback)
             return
         db = self.mongo_client['bbs']
         users_collection = db['users']
@@ -122,7 +122,7 @@ class UserRegistration:
             self.output_wrap("This email address is already taken", 1, 0)
             self.goto_next_line()
             self.output_wrap("Please enter your email address: ", 6, 0)
-            self.ask(40, self.email_callback) 
+            self.ask(35, self.email_callback) 
 
     def age_callback(self, input):
         if input == '' or not input.isnumeric():
@@ -189,7 +189,7 @@ class UserRegistration:
                 self.output_wrap("Another user has just take this username. Please choose another.", 6, 0)
                 self.goto_next_line()
                 self.output_wrap("Please enter your new username: ", 6, 0)
-                self.ask(40, username_exists_callback)
+                self.ask(35, username_exists_callback)
 
         pass
 
@@ -197,7 +197,7 @@ class UserRegistration:
         if input == '':
             self.goto_next_line()
             self.output_wrap("Please enter your new username: ", 6, 0)
-            self.ask(40, self.username_callback)
+            self.ask(35, self.username_callback)
             return
         self.userdata['username'] = input
         self.creation_callback('y')

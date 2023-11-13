@@ -158,7 +158,7 @@ def handle_connect():
     request_sid = request.sid
     Timer(1, sid_data[request_sid].util.update_status_bar_periodically).start()
     socketio.emit('initPage',  [
-        {'minWidth': 0, 'x': 40, 'y': 25},
+        {'minWidth': 0, 'x': 36, 'y': 20},
         {'minWidth': 640, 'x': 80, 'y': 50},
         {'minWidth': 1280, 'x': 120, 'y': 60}
     ], room=request.sid)
@@ -179,7 +179,7 @@ def onload(data):
     sid_data[request.sid].util.goto_next_line()
     
     sid_data[request.sid].util.output_wrap("Please enter your name: ", 3, 0)
-    sid_data[request.sid].util.ask(40, sid_data[request.sid].util.usernameCallback)
+    sid_data[request.sid].util.ask(35, sid_data[request.sid].util.usernameCallback)
 
 @socketio.on('disconnect')
 def disconnect():

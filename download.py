@@ -33,7 +33,7 @@ class Download:
     def query_file_by_id(self):
         self.util.goto_next_line()
         self.util.output("Enter file ID or press Enter to exit: ", 6, 0)
-        self.util.ask(40, self.process_file_id)  # Ensure correct signature for ask method
+        self.util.ask(35, self.process_file_id)  # Ensure correct signature for ask method
         # The check for an empty string should be inside the callback method
 
     def process_file_id(self, file_id):

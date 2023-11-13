@@ -17,7 +17,7 @@ class MessageAreaMenu(AreaMenu):
         self.util.sid_data.setStartX(0)
         self.util.sid_data.setStartY(10)
         self.util.output_wrap(f"Editing Origin for {selected_area['name']}:")
-        self.util.ask(40, self.save_origin)
+        self.util.ask(35, self.save_origin)
         
     def save_origin(self, new_origin):
         """Save the new Origin line."""
@@ -32,7 +32,7 @@ class MessageAreaMenu(AreaMenu):
         """Prompt for the new name of the message area."""
         self.util.goto_next_line()
         self.util.output_wrap("Enter the name of the new message area:", 6, 0)
-        self.util.ask(40, self.ask_for_order)
+        self.util.ask(35, self.ask_for_order)
 
     def ask_for_order(self, new_area_name):
         """Prompt for the order of the new message area."""
@@ -83,7 +83,7 @@ class MessageAreaMenu(AreaMenu):
         """Change the order of a message area."""
         self.util.goto_next_line()
         self.util.output_wrap("Enter the number of the message area you want to change:", 6, 0)
-        self.util.ask(40, self.ask_new_order)
+        self.util.ask(35, self.ask_new_order)
 
     def ask_new_order(self, idx):
         """Ask for the new order value for the selected message area."""
@@ -104,7 +104,7 @@ class MessageAreaMenu(AreaMenu):
 
         self.util.goto_next_line()
         self.util.output_wrap("Enter the new order value:", 6, 0)
-        self.util.ask(40, lambda new_order: self.save_new_order(idx, new_order))
+        self.util.ask(35, lambda new_order: self.save_new_order(idx, new_order))
 
     def save_new_order(self, idx, new_order):
         """Save the new order value in the database and update self.areas."""
@@ -134,7 +134,7 @@ class MessageAreaMenu(AreaMenu):
         """Start the process of renaming a message area."""
         self.util.goto_next_line()
         self.util.output_wrap("Enter the number of the message area you want to rename:", 6, 0)
-        self.util.ask(40, self.ask_new_message_area_name)
+        self.util.ask(35, self.ask_new_message_area_name)
 
     def ask_new_message_area_name(self, idx):
         """Ask for the new name for the selected message area."""
@@ -155,7 +155,7 @@ class MessageAreaMenu(AreaMenu):
 
         self.util.goto_next_line()
         self.util.output("Enter the new name for the message area:", 6, 0)
-        self.util.ask(40, lambda new_name: self.save_new_message_area_name(idx, new_name))
+        self.util.ask(35, lambda new_name: self.save_new_message_area_name(idx, new_name))
 
     def save_new_message_area_name(self, idx, new_name):
         """Save the new name in the database and update self.areas."""

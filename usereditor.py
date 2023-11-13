@@ -127,7 +127,7 @@ class UserEditor(BasicANSI):
         """Ask for existing username before changing."""
         self.util.goto_next_line()
         self.util.output_wrap("Enter existing username:", 6, 0)
-        self.util.ask(40, self.ask_new_username)
+        self.util.ask(35, self.ask_new_username)
 
     def ask_new_username(self, existing_username):
         """Ask for new username."""
@@ -135,7 +135,7 @@ class UserEditor(BasicANSI):
             self.old_username = existing_username  # Store the old username
             self.util.goto_next_line()
             self.util.output_wrap("Enter new username:", 6, 0)
-            self.util.ask(40, self.save_username)
+            self.util.ask(35, self.save_username)
         else:
             self.util.goto_next_line()
             self.util.output_wrap("Username not found. Try again!", 6, 0)
@@ -147,14 +147,14 @@ class UserEditor(BasicANSI):
         """Ask for existing username before changing user level."""
         self.util.goto_next_line()
         self.util.output_wrap("Enter username to change user level:", 6, 0)
-        self.util.ask(40, self.ask_new_level)
+        self.util.ask(35, self.ask_new_level)
 
     def ask_new_level(self, existing_username):
         """Ask for new user level."""
         if existing_username in [user['username'] for user in self.users]:
             self.util.goto_next_line()
             self.util.output_wrap("Enter new user level:", 6, 0)
-            self.util.ask(40, self.save_user_level)
+            self.util.ask(35, self.save_user_level)
         else:
             self.util.goto_next_line()
             self.util.output_wrap("Username not found. Try again...", 6, 0)
@@ -211,7 +211,7 @@ class UserEditor(BasicANSI):
         """Delete a user."""
         self.util.goto_next_line()
         self.util.output_wrap("Enter username to delete:", 6, 0)
-        self.util.ask(40, self.confirm_delete_user)
+        self.util.ask(35, self.confirm_delete_user)
 
     def confirm_delete_user(self, username_to_delete):
         """Confirm if the user should be deleted."""

@@ -15,7 +15,7 @@ class FileAreaMenu(AreaMenu):
         """Prompt for the new name of the file area."""
         self.util.goto_next_line()
         self.util.output_wrap("Enter the name of the new file area:", 6, 0)
-        self.util.ask(40, self.ask_for_order)
+        self.util.ask(35, self.ask_for_order)
 
     def ask_for_order(self, new_area_name):
         """Prompt for the order of the new file area."""
@@ -66,7 +66,7 @@ class FileAreaMenu(AreaMenu):
         """Change the order of a file area."""
         self.util.goto_next_line()
         self.util.output_wrap("Enter the number of the file area you want to change:", 6, 0)
-        self.util.ask(40, self.ask_new_order)
+        self.util.ask(35, self.ask_new_order)
 
     def ask_new_order(self, idx):
         """Ask for the new order value for the selected file area."""
@@ -87,7 +87,7 @@ class FileAreaMenu(AreaMenu):
 
         self.util.goto_next_line()
         self.util.output_wrap("Enter the new order value:", 6, 0)
-        self.util.ask(40, lambda new_order: self.save_new_order(idx, new_order))
+        self.util.ask(35, lambda new_order: self.save_new_order(idx, new_order))
 
     def save_new_order(self, idx, new_order):
         """Save the new order value in the database and update self.areas."""
@@ -117,7 +117,7 @@ class FileAreaMenu(AreaMenu):
         """Start the process of renaming a file area."""
         self.util.goto_next_line()
         self.util.output_wrap("Enter the number of the file area you want to rename:", 6, 0)
-        self.util.ask(40, self.ask_new_file_area_name)
+        self.util.ask(35, self.ask_new_file_area_name)
 
     def ask_new_file_area_name(self, idx):
         """Ask for the new name for the selected file area."""
@@ -138,7 +138,7 @@ class FileAreaMenu(AreaMenu):
 
         self.util.goto_next_line()
         self.util.output_wrap("Enter the new name for the file area:", 6, 0)
-        self.util.ask(40, lambda new_name: self.save_new_file_area_name(idx, new_name))
+        self.util.ask(35, lambda new_name: self.save_new_file_area_name(idx, new_name))
 
     def save_new_file_area_name(self, idx, new_name):
 
