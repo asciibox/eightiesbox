@@ -316,6 +316,19 @@ subscription_path = subscriber.subscription_path('animated-moon-403620', 'projec
 
 This will make it possible to run the application without a file base.
 
+# Troubleshooting issues
+
+Using Gunicorn you might be facing timeout issues with Socket.IO calls. The issue might be stemming from the fact that Gunicorn, as a WSGI server, does not natively support long-lived connections like WebSockets, which are used by Socket.IO.
+
+```
+pip install eventlet
+```
+
+Then on your linux server call:
+```
+sudo GOOGLE_APPLICATION_CREDENTIALS=~/eightiesbox/animated-moon-403620-a91bc66243a8.json gunicorn -k eventlet -w 1 --bind 0.0.0.0:80 app:app
+```
+
 # BBS Sysop Guide
 
 ## Accessing the BBS
