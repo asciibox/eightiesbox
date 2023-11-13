@@ -1,5 +1,5 @@
 from pymongo import MongoClient
-from datetime import datetime
+from datetime import datetime, timedelta
 
 class OnelinerBBS:
     def __init__(self, util):
@@ -70,10 +70,10 @@ class OnelinerBBS:
 
         if delta_d > 1:
             if delta_d > 6:
-                date = now + datetime.timedelta(days=-delta_d, hours=-delta_h, minutes=-delta_m)
+                date = now + timedelta(days=-delta_d, hours=-delta_h, minutes=-delta_m)
                 return date.strftime('%A, %Y %B %m, %H:%I')
             else:
-                wday = now + datetime.timedelta(days=-delta_d)
+                wday = now + timedelta(days=-delta_d)
                 return wday.strftime('%A')
         if delta_d == 1:
             return "Yesterday"
