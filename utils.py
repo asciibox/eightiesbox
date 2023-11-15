@@ -32,8 +32,7 @@ class Utils:
         self.passwordRetries = 0
         self.request_id = request_id
         self.menu_structure = menu_structure
-        self.status_bar_paused = False
-    
+        
     def askinput(self, mylen, callback, accept_keys):
         if self.sid_data.startX + mylen >= self.sid_data.xWidth:
             self.sid_data.setStartY(self.sid_data.startY + 1)  # Move to the next line
@@ -133,8 +132,8 @@ class Utils:
     def get_status_content(self):
         # Generate the status bar content based on pending_requests
         status_bar = "Incoming Requests: "+str(len(self.sid_data.incoming_requests))
-        random_number = random.randint(1, 100)  # This will generate a random number between 1 and 100
-        status_bar = str(random_number) + " - " + status_bar
+        # random_number = random.randint(1, 100)  # This will add a random number between 1 and 100
+        # status_bar = str(random_number) + " - " + status_bar
         if self.sid_data.xWidth > 50:
             status_bar += " - Press F10 for more"
         else:
@@ -182,7 +181,7 @@ class Utils:
         self.sid_data.setCursorY(self.sid_data.startY)
 
     def update_status_bar_periodically(self):
-        if self.status_bar_paused == False:
+        if self.sid_data.status_bar_paused == False:
             currentString = self.get_status_content()
             currentColor = 6
             backgroundColor = 4
@@ -205,7 +204,7 @@ class Utils:
                         'currentColor': currentColor,
                         'backgroundColor': backgroundColor
                     }, room=sid)
-        Timer(3, self.update_status_bar_periodically).start()
+        Timer(1, self.update_status_bar_periodically).start()
 
     def passwordCallback(self, input):
         db = self.mongo_client['bbs']

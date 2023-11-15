@@ -59,11 +59,17 @@ class MultilineChat:
             self.util.wait_with_message(self.exit)
             return
 
-        # Record the chat request in the requester's sid_data
-        self.util.sid_data.outgoing_requests.append({
-            "to": username,
-            "status": "sent"
-        })
+        print("If not any")
+        if not any(request['to'] == username for request in self.util.sid_data.outgoing_requests):
+            # Append the new request if the username is not found
+            self.util.sid_data.outgoing_requests.append({
+                "to": username,
+                "status": "sent"
+            })
+            print ("Request sent to " + username)
+        else:
+            # Username already exists in the outgoing requests
+            print ("Request to " + username + " already exists.")
 
         if username not in self.util.sid_data.contacted_users:
             self.util.sid_data.contacted_users.append(username)
@@ -71,15 +77,22 @@ class MultilineChat:
         # Find the sid_data for the user being requested and record the chat request
         for sid, sid_data in self.util.all_sid_data.items():
             if sid_data.user_document and sid_data.user_document["username"] == username:
-                sid_data.incoming_requests.append({
-                    "from": self.util.sid_data.user_document["username"],
-                    "status": "received",
-                    "sid_data": self.util.sid_data  # Store the sid_data of the requester here
-                })
-                self.util.sid_data.outgoing_requests[-1]["sid_data"] = sid_data  # Store the sid_data of the receiver here
+                # Append to incoming_requests only if the username isn't already in the list
+                if not any(request['from'] == self.util.sid_data.user_document["username"] for request in sid_data.incoming_requests):
+                    sid_data.incoming_requests.append({
+                        "from": self.util.sid_data.user_document["username"],
+                        "status": "received",
+                        "sid_data": self.util.sid_data  # Store the sid_data of the requester here
+                    })
 
+                # Store the sid_data of the receiver in the last outgoing request
+                # Assuming the last request is the current one
+                self.util.sid_data.outgoing_requests[-1]["sid_data"] = sid_data  
+
+                # Append to contacted_users only if the username isn't already in the list
                 if self.util.sid_data.user_document["username"] not in sid_data.contacted_users:
                     sid_data.contacted_users.append(self.util.sid_data.user_document["username"])
+
         self.show_contacted_users()
 
 

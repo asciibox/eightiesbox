@@ -66,6 +66,8 @@ class SessionData:
         self.download = None
         self.edit_file = None
         self.delete_file = None
+        self.status_bar_paused = False
+    
         
 
     def move_cursor_up(self):

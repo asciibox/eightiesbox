@@ -21,7 +21,7 @@ class F10ActionHandler:
             self.util.statusinfo("No pending requests")
             return
 
-        self.util.status_bar_paused = True
+        self.util.sid_data.status_bar_paused = True
         # Change the current action to wait_for_f10_action
         self.previous_action = self.util.sid_data.current_action
         
@@ -52,10 +52,10 @@ class F10ActionHandler:
                 self.current_user_index += 1
                 self.show_status_bar_request(requesting_users)
         elif key == 'Enter':
-            self.util.status_bar_paused = False
+            self.util.sid_data.status_bar_paused = False
             self.accept_current_request()
         elif key == 'Escape':
-            self.util.status_bar_paused = False
+            self.util.sid_data.status_bar_paused = False
             self.exit_F10_mode()
     
     def accept_current_request(self):
