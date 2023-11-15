@@ -18,6 +18,7 @@ import time
 from time import sleep
 from threading import Timer
 import uuid
+import random
 
 class Utils:
     def __init__(self, sio, my_client, mylist1, mylist2, sdata, Sauce, request_id, menu_structure):
@@ -31,6 +32,7 @@ class Utils:
         self.passwordRetries = 0
         self.request_id = request_id
         self.menu_structure = menu_structure
+        self.status_bar_paused = False
     
     def askinput(self, mylen, callback, accept_keys):
         if self.sid_data.startX + mylen >= self.sid_data.xWidth:
@@ -131,6 +133,8 @@ class Utils:
     def get_status_content(self):
         # Generate the status bar content based on pending_requests
         status_bar = "Incoming Requests: "+str(len(self.sid_data.incoming_requests))
+        random_number = random.randint(1, 100)  # This will generate a random number between 1 and 100
+        status_bar = str(random_number) + " - " + status_bar
         if self.sid_data.xWidth > 50:
             status_bar += " - Press F10 for more"
         else:
@@ -178,30 +182,30 @@ class Utils:
         self.sid_data.setCursorY(self.sid_data.startY)
 
     def update_status_bar_periodically(self):
-        
-        currentString = self.get_status_content()
-        currentColor = 6
-        backgroundColor = 4
+        if self.status_bar_paused == False:
+            currentString = self.get_status_content()
+            currentColor = 6
+            backgroundColor = 4
 
-        sid = self.request_id  # Get the Session ID
-        if currentString:
-            ascii_codes = [ord(char) for char in currentString]
+            sid = self.request_id  # Get the Session ID
+            if currentString:
+                ascii_codes = [ord(char) for char in currentString]
 
-            if self.sid_data.map_character_set == True:
-                mapped_ascii_codes = [self.map_value(code, self.list2, self.list1) for code in ascii_codes]
-              
-                self.socketio.emit('draw_to_status_bar', {
-                    'ascii_codes': mapped_ascii_codes,
-                    'currentColor': currentColor,
-                    'backgroundColor': backgroundColor
-                }, room=sid)
-            else:
-                self.socketio.emit('draw_to_status_bar', {
-                    'ascii_codes': ascii_codes,
-                    'currentColor': currentColor,
-                    'backgroundColor': backgroundColor
-                }, room=sid)
-        Timer(1, self.update_status_bar_periodically).start()
+                if self.sid_data.map_character_set == True:
+                    mapped_ascii_codes = [self.map_value(code, self.list2, self.list1) for code in ascii_codes]
+                
+                    self.socketio.emit('draw_to_status_bar', {
+                        'ascii_codes': mapped_ascii_codes,
+                        'currentColor': currentColor,
+                        'backgroundColor': backgroundColor
+                    }, room=sid)
+                else:
+                    self.socketio.emit('draw_to_status_bar', {
+                        'ascii_codes': ascii_codes,
+                        'currentColor': currentColor,
+                        'backgroundColor': backgroundColor
+                    }, room=sid)
+        Timer(3, self.update_status_bar_periodically).start()
 
     def passwordCallback(self, input):
         db = self.mongo_client['bbs']

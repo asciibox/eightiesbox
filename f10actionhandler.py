@@ -10,6 +10,7 @@ class F10ActionHandler:
         return [req['from'] for req in self.util.sid_data.incoming_requests if req['status'] == 'received']
         
     def handle_F10(self):
+
         requesting_users = self.get_requesting_users()
         if self.util.sid_data.current_action == 'in_chat':
             self.util.statusinfo("You are currently chatting with "+self.util.sid_data.current_chat_partner+" and cannot accept new requests. Press ESC to leave conversation.")
@@ -20,6 +21,7 @@ class F10ActionHandler:
             self.util.statusinfo("No pending requests")
             return
 
+        self.util.status_bar_paused = True
         # Change the current action to wait_for_f10_action
         self.previous_action = self.util.sid_data.current_action
         
@@ -50,8 +52,10 @@ class F10ActionHandler:
                 self.current_user_index += 1
                 self.show_status_bar_request(requesting_users)
         elif key == 'Enter':
+            self.util.status_bar_paused = False
             self.accept_current_request()
         elif key == 'Escape':
+            self.util.status_bar_paused = False
             self.exit_F10_mode()
     
     def accept_current_request(self):
