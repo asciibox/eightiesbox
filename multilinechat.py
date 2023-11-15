@@ -118,11 +118,13 @@ class MultilineChat:
             elapsed_time = asyncio.get_event_loop().time() - start_time
             if elapsed_time > timeout:
                 print("Timeout reached")
+                self.remove_user_from_requests(self.util.sid_data.user_name)
                 self.exit()
                 return
                 break
             if self.stop_waiting:
                 print("Waiting stopped.")
+                self.remove_user_from_requests(self.util.sid_data.user_name)
                 self.exit()
                 return
                 break
@@ -179,3 +181,21 @@ class MultilineChat:
     def exit(self):
         self.util.sid_data.menu.return_from_gosub()
         self.util.sid_data.setCurrentAction("wait_for_menu")
+
+    def remove_user_from_requests(self, username):
+        # Remove from outgoing_requests
+        self.util.sid_data.outgoing_requests = [request for request in self.util.sid_data.outgoing_requests if request['to'] != username]
+
+        # Remove from contacted_users
+        if username in self.util.sid_data.contacted_users:
+            self.util.sid_data.contacted_users.remove(username)
+
+        # Iterate over all_sid_data to remove from incoming_requests and contacted_users of other users
+        for sid, sid_data in self.util.all_sid_data.items():
+            # Remove from incoming_requests
+            if sid_data.user_document:
+                sid_data.incoming_requests = [request for request in sid_data.incoming_requests if request['from'] != username]
+
+                # Remove from contacted_users
+                if username in sid_data.contacted_users:
+                    sid_data.contacted_users.remove(username)
