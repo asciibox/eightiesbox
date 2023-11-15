@@ -2,7 +2,7 @@ class F10ActionHandler:
     def __init__(self, util):
         self.util = util
         self.current_user_index = 0  # To keep track of the current selected user
-        self.previous_action = None
+        self.previous_action = self.util.sid_data.current_action
 
 
     def get_requesting_users(self):
@@ -94,6 +94,8 @@ class F10ActionHandler:
         # Remove the accepted request
         if to_remove:
             self.util.sid_data.incoming_requests.remove(to_remove)
+        else:
+            self.exit_F10_mode()
 
                 
     

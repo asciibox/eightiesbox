@@ -158,16 +158,19 @@ class MultilineChat:
         if to_remove:
             self.util.sid_data.outgoing_requests.remove(to_remove)
 
-        # Notify the user and start chat
-        self.util.sid_data.copy_action = False
-        self.util.goto_next_line()
-        self.util.output(f"Request from {from_username} has been ACCEPTED.", 6, 0)
-        self.util.clear_screen()
-        self.util.sid_data.setStartX(0)
-        self.util.sid_data.setStartY(0)
-        self.util.statusinfo(f"You are chatting with {from_username}")
-        self.util.sid_data.setCurrentAction("in_chat")
-        
+            # Notify the user and start chat
+            self.util.sid_data.copy_action = False
+            self.util.goto_next_line()
+            self.util.output(f"Request from {from_username} has been ACCEPTED.", 6, 0)
+            self.util.clear_screen()
+            self.util.sid_data.setStartX(0)
+            self.util.sid_data.setStartY(0)
+            self.util.statusinfo(f"You are chatting with {from_username}")
+            self.util.sid_data.setCurrentAction("in_chat")
+        else:
+            print("Error: Request not found")
+
+            
 
     def goto_user_picker(self, username):
             # You could initialize a UserPicker instance here, or however you've planned to navigate to UserPicker
