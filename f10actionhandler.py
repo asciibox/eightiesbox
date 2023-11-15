@@ -23,7 +23,7 @@ class F10ActionHandler:
 
         self.util.sid_data.status_bar_paused = True
         # Change the current action to wait_for_f10_action
-        self.previous_action = self.util.sid_data.current_action
+        # self.previous_action = self.util.sid_data.current_action
         
         
         # Show the first requesting user in the status bar
@@ -32,6 +32,7 @@ class F10ActionHandler:
     def show_status_bar_request(self, requesting_users):
 
         self.util.sid_data.previous_action = self.util.sid_data.current_action
+        
         self.util.sid_data.setCurrentAction("wait_for_f10_action")
         # Show the current user in the status bar using yHeight for last line
         self.util.sid_data.current_chat_partner = requesting_users[self.current_user_index % len(requesting_users)]
@@ -59,6 +60,7 @@ class F10ActionHandler:
             self.exit_F10_mode()
     
     def accept_current_request(self):
+        
         requesting_users = self.get_requesting_users()
         to_remove = None  # Initialize the variable to store the dictionary to be removed
         self.util.sid_data.copy_action = False
