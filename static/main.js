@@ -12,6 +12,7 @@ let TOTAL_HEIGHT_CHARACTERS;
 let LIMIT_TO_VISIBLE_WIDTH;
 let baseWidth;
 let baseHeight;
+let enableTrackerKeyboard = false;
 
 let initCalled = false;
 

@@ -440,6 +440,13 @@ class Utils:
             self.sid_data.ansi_editor.start()
             self.sid_data.setCurrentAction("wait_for_ansieditor")
 
+    def emit_ansi_mod_editor(self):
+        sid = self.request_id  # Get the Session ID
+        self.socketio.emit('ansi_mod_editor', {}, room=sid)
+    
+    def emit_graphic_mod_editor(self):
+        sid = self.request_id  # Get the Session ID
+        self.socketio.emit('graphic_mod_editor', {}, room=sid)
 
     def emit_gotoXY(self, x, y):
         sid = self.request_id  # Get the Session ID

@@ -151,19 +151,28 @@ class Menu(BasicANSI):
                         self.sid_data.multi_line_chat.ask_username()
                         return
                     elif action_code == "81":
+                        self.append_gosub()
+                        self.util.emit_ansi_mod_editor();
+                        return
+                    elif action_code == "82":
+                        self.append_gosub()
+                        self.util.emit_graphic_mod_editor();
+                        
+                        return
+                    elif action_code == "91":
                         
                         self.sid_data.setMessageAreaMenu(MessageAreaMenu(self.util, self.message_menu_callback_on_exit))
                         return
-                    elif action_code == "82":
+                    elif action_code == "92":
                         
                         self.sid_data.setFileAreaMenu(FileAreaMenu(self.util, self.message_menu_callback_on_exit))
                         return
-                    elif action_code == "83":                        
+                    elif action_code == "93":                        
                         # Example usage:
                         # Replace 'util' with your actual utility object
                         self.sid_data.setUserEditor(UserEditor(self.util, self.user_editor_callback_on_exit))
                         return
-                    elif action_code == "84":         
+                    elif action_code == "94":         
                         # Example usage:
                         # Replace 'util' with your actual utility object
                         if self.sid_data.xWidth < 50:
@@ -188,7 +197,7 @@ class Menu(BasicANSI):
                         filename = self.values[row_idx][1]
                         self.load_menu(filename)
                         return
-                    elif action_code == "85":        
+                    elif action_code == "95":        
                         # Example usage:
                         if self.sid_data.xWidth < 50:
                             self.util.output("Your screen resolution is too low", 1,0)
@@ -203,7 +212,7 @@ class Menu(BasicANSI):
                         return
 
                     # Gosub menu
-                    elif action_code == "86":
+                    elif action_code == "96":
                         
                         self.append_gosub()
                         self.sid_data.setEditFile(EditFile(self.util))

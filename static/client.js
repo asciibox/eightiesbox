@@ -63,6 +63,17 @@ function setupSocketEventListeners(socket) {
     clearScreen();
   });
 
+  socket.on("ansi_mod_editor", (data) => {
+    clearScreen();
+  });
+  socket.on("graphic_mod_editor", (data) => {
+    clearScreen();
+    var canvas = document.getElementsByClassName('tracker');
+    console.log(canvas);
+    canvas[0].style.display='inline';
+    enableTrackerKeyboard = true;
+  });
+
   socket.on("clearline", (data) => {
     clearLine(data.y);
   });

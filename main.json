@@ -36,30 +36,44 @@
             "Flags": ""
         },
         {
-            "Type": "81",
+            "Type": "91",
             "Data": "",
             "Key": "1",
             "Sec": "",
             "Flags": ""
         },
         {
-            "Type": "83",
+            "Type": "93",
             "Data": "",
             "Key": "2",
             "Sec": "",
             "Flags": ""
         },
         {
-            "Type": "84",
+            "Type": "94",
             "Data": "",
             "Key": "3",
             "Sec": "",
             "Flags": ""
-        },
+        },        
         {
-            "Type": "85",
+            "Type": "95",
             "Data": "",
             "Key": "4",
+            "Sec": "",
+            "Flags": ""
+        },
+        {
+            "Type": "81",
+            "Data": "",
+            "Key": "8",
+            "Sec": "",
+            "Flags": ""
+        },
+        {
+            "Type": "82",
+            "Data": "",
+            "Key": "9",
             "Sec": "",
             "Flags": ""
         }
