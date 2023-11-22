@@ -65,9 +65,9 @@ function setupSocketEventListeners(socket) {
 
   socket.on("ansi_mod_editor", (data) => {
     clearScreen();
+    enableTrackerKeyboard = true;
   });
   socket.on("graphic_mod_editor", (data) => {
-    clearScreen();
     var canvas = document.getElementsByClassName('tracker');
     console.log(canvas);
     canvas[0].style.display='inline';

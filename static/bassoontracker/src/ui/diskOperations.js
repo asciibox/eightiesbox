@@ -307,8 +307,8 @@ UI.DiskOperations = function(){
 			browseButton.show();
 		}else{
 			listbox.show();
-			dropzone.hide();
-			browseButton.hide();
+			//dropzone.hide(); # MODIFICATION by Datarunner / Oliver Bachmann
+			//browseButton.hide(); # MODIFICATION by Datarunner / Oliver Bachmann
 
 			if (currentView == "bassoon"){
 				currentView = typePanel.getType();

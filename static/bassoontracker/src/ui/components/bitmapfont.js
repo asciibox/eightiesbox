@@ -136,7 +136,7 @@ var BitmapFont = function(){
 		return w;
 	};
 
-	me.write = function(canvasCtx,text,x,y,spacing,color){
+	me.write = function(canvasCtx,text,x,y,spacing,color, offsetX, offsetY, doCopy){
 		if (onlyUpperCase) text = text.toUpperCase();
 
 		var colorArray = me.colors[color] || me.fontArray;
@@ -145,7 +145,6 @@ var BitmapFont = function(){
 		x=x||0;
 		y=y||0;
 		var _x = x;
-
 		for (var i = 0, len = text.length; i<len;i++){
 			var code = text.charCodeAt(i);
 			var c = colorArray[code];

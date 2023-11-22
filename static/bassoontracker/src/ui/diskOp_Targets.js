@@ -18,17 +18,17 @@ UI.DiskOperationTargets = function(){
 	me.addChild(label);
 
 	var targetsModule = [
-		{label: "Bassoon:" , target: "bassoon", active:true},
+		/*{label: "Bassoon:" , target: "bassoon", active:true},
 		{label: "Modarchive:",target: "modarchive"},
 		{label: "Modules.pl:",target: "modulespl"},
-		{label: "Dropbox:" , target: "dropbox"},
-		{label: "local:" , target: "local"}
+		{label: "Dropbox:" , target: "dropbox"},*/
+		{label: "local:" , target: "local", active: true}
 	];
 
 	var targetsSample = [
-		{label: "Bassoon:" , target: "bassoon", active:true},
-		{label: "Dropbox:" , target: "dropbox"},
-		{label: "local:" , target: "local"}
+		/*{label: "Bassoon:" , target: "bassoon", active:true},
+		{label: "Dropbox:" , target: "dropbox"},*/
+		{label: "local:" , target: "local", active:true}
 	];
 
 	var targetsSave = [
@@ -122,11 +122,11 @@ UI.DiskOperationTargets = function(){
 				if (target.fileType === FILETYPE.sample){
 					currentLoadTargets = targetsSample;
 				}
-
 				selectionTarget.setItems(currentLoadTargets);
 			}
 
             selectionTarget.setSelectedIndex(0);
+			
         }
     });
 

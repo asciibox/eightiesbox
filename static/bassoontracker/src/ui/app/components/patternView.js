@@ -131,6 +131,7 @@ UI.app_patternView = function(x,y,w,h){
         if (this.needsRendering){
             me.clearCanvas();
 
+
             var index = Tracker.getCurrentPattern() || 0;
             var patternPos = Tracker.getCurrentPatternPos() || 0;
             var song = Tracker.getSong();
@@ -408,6 +409,7 @@ UI.app_patternView = function(x,y,w,h){
             }
 
             font.write(c,noteString,0,0,0);
+            //myWrite(noteString, x, y);
 
             noteCache[id] = canvas;
 
@@ -435,6 +437,7 @@ UI.app_patternView = function(x,y,w,h){
             if (noteString == "00") noteString = "..";
             var nx=0;
             font.write(c,noteString,nx,0,0,"green");
+            //myWrite(noteString, x, y);
 
             if (displayVolume){
                 nx += (font.charWidth*2) + 4;
@@ -479,6 +482,8 @@ UI.app_patternView = function(x,y,w,h){
             if (noteString === "000") noteString = "...";
             font.write(c,noteString,nx,0,0,"orange");
 
+            //myWrite(noteString, x, y);
+            
             noteParamCache[id] = canvas;
         }
 
@@ -519,6 +524,7 @@ UI.app_patternView = function(x,y,w,h){
         }
 
     }
+  
 
     function renderLineNumber(nr,x,y){
 
@@ -535,7 +541,10 @@ UI.app_patternView = function(x,y,w,h){
             var color = false;
             if (nr%4 === 0) color = "orange";
 
+            //myWrite(ti, x, y);
+
             font.write(c,ti,0,0,0,color);
+
             lineNumberCache[id] = canvas;
         }
 
@@ -543,8 +552,43 @@ UI.app_patternView = function(x,y,w,h){
 
     }
 
+    // Define a function that takes a string as a parameter
+    /*function stringToAsciiArray(str) {
+        // Initialize an empty array to store the ASCII codes
+        let asciiArray = [];
+        // Loop through each character of the string
+        for (let i = 0; i < str.length; i++) {
+        // Get the ASCII code of the current character using the charCodeAt method
+        let asciiCode = str.charCodeAt(i);
+        // Push the ASCII code to the array
+        asciiArray.push(asciiCode);
+        }
+        // Return the array of ASCII codes
+        return asciiArray;
+    }
+  
+    function myWrite(t, x, y) {
+
+        let myX = Math.floor(x/8);
+        let myY = Math.floor(y/16);
+
+            console.log(myX+"/"+myY);
+            console.log(t);
+            storeAsciiHTMLPos(
+                stringToAsciiArray(t),
+                3,
+                0,
+                myX,
+                myY,
+              );
+
+
+    }*/
+
     function drawText(t,x,y,color){
 		font.write(me.ctx,t,x,y,0,color);
+
+        //myWrite(t, x, y);
     }
 
     function formatHex(i,length,padString){

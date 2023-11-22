@@ -4,7 +4,7 @@
  *  - Asciibox
  */
 
-// Assuming your base game dimensions are stored in variables called 'baseWidth' and 'baseHeight'
+// Assuming your base dimensions are stored in variables called 'baseWidth' and 'baseHeight'
 let TOTAL_WIDTH;
 let VISIBLE_WIDTH_CHARACTERS;
 let VISIBLE_HEIGHT_CHARACTERS;
@@ -13,6 +13,7 @@ let LIMIT_TO_VISIBLE_WIDTH;
 let baseWidth;
 let baseHeight;
 let enableTrackerKeyboard = false;
+let copyTrackerToBBSCanvas = false;
 
 let initCalled = false;
 
@@ -411,6 +412,23 @@ function clearLine(y) {
     canvasbg[y][x] = defaultBGColor;
   }
 }
+
+//let storedAsciiCommands = [];
+
+/*function storeAsciiHTMLPos(ascii_codes, currentColor, backgroundColor, x, y) {
+    // Store the drawing commands instead of executing them
+    storedAsciiCommands.push({ ascii_codes, currentColor, backgroundColor, x, y });
+}
+
+function flushStoredAsciiHTML() {
+    // Execute each stored command using writeAsciiHTMLPos
+    storedAsciiCommands.forEach(command => {
+        writeAsciiHTMLPos(command.ascii_codes, command.currentColor, command.backgroundColor, command.x, command.y);
+    });
+    // Clear the buffer after flushing
+    storedAsciiCommands = [];
+}*/
+
 
 function writeAsciiHTMLPos(ascii_codes, currentColor, backgroundColor, x, y) {
   return new Promise((resolve, reject) => {

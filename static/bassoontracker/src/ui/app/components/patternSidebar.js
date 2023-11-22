@@ -9,11 +9,11 @@ UI.pattern_sidebar = function(){
         label: "DEMOSONGS:",
         font: fontFT
     });
-    me.addChild(sideLabel);
+    //me.addChild(sideLabel);
     
 
     var buttonsSide = [];
-    var buttonsSideInfo=[
+    /*var buttonsSideInfo=[
         {label:"Demomusic", onClick:function(){Tracker.load(Host.getRemoteUrl() + 'demomods/demomusic.mod')}},
         {label:"Stardust", onClick:function(){Tracker.load(Host.getRemoteUrl() + 'demomods/StardustMemories.mod')}},
         {label:"Space Debris", onClick:function(){Tracker.load(Host.getRemoteUrl() + 'demomods/spacedeb.mod')}},
@@ -32,7 +32,8 @@ UI.pattern_sidebar = function(){
         {label:"Random MOD", onClick:function(){App.doCommand(COMMAND.randomSong)}},
         {label:"Random XM", onClick:function(){App.doCommand(COMMAND.randomSongXM)}},
         //{label:"Generator", onClick:function(){App.doCommand(COMMAND.generator)}}
-    ];
+    ];*/
+    var buttonsSideInfo=[];
 
 
 

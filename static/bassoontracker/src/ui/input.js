@@ -2,6 +2,7 @@ var Input = (function(){
 
 	var me={};
 
+	var lastEscPressTime = 0;
 	var touchData = {};
 	touchData.touches = [];
 	touchData.mouseWheels = [];
@@ -297,6 +298,20 @@ var Input = (function(){
 			}
 
             switch(keyCode){
+				case 27:// esc
+					UI.clearSelection();
+					var currentTime = Date.now();
+					if (currentTime - lastEscPressTime < 1000) {
+						// ESC key pressed twice within 1 second
+						// Perform the action you want here
+						var canvas = document.getElementsByClassName('tracker');
+						canvas[0].style.display='none';
+						enableTrackerKeyboard = false;
+					} else {
+						// First ESC key press or not pressed within 1 second
+						lastEscPressTime = currentTime;
+					}
+					break;
                 case 8:// backspace
                     if (Tracker.isRecording()){
                         if (isMetaKeyDown) {
@@ -343,9 +358,6 @@ var Input = (function(){
                 case 16:// shift
                     //Tracker.playPattern();
                     break;
-				case 27:// esc
-					UI.clearSelection();
-					break;
                 case 32:// space
                     Tracker.toggleRecord();
                     return;

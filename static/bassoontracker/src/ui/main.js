@@ -17,7 +17,7 @@ var UI = (function(){
 	var fontCondensed;
 	var fontDark;
 
-	var maxWidth = 1200;
+	var maxWidth = 3200;
 	var maxHeight = 2000;
 	var minHeight = 200;
 	var modalElement;
