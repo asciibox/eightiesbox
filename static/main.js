@@ -73,8 +73,8 @@ var removedYChars = 0;
 var currentColor = 15;
 var isColorPalette = false;
 var storedTiles = [];
-var canvas = [];
-var canvasbg = [];
+var drawcanvas = [];
+var drawcanvasbg = [];
 var secondCanvas = [];
 var canvasColor = [];
 var secondCanvasColor = [];
@@ -176,10 +176,10 @@ function clear() {
   initPosition();
   for (var x = 0; x < TOTAL_WIDTH; x++) {
     for (var y = 0; y < TOTAL_HEIGHT_CHARACTERS_CHARACTERS; y++) {
-      if (!canvas[y]) canvas[y] = [];
-      canvas[y][x] = 32;
-      if (!canvasbg[y]) canvasbg[y] = [];
-      canvasbg[y][x] = 0;
+      if (!drawcanvas[y]) drawcanvas[y] = [];
+      drawcanvas[y][x] = 32;
+      if (!drawcanvasbg[y]) drawcanvasbg[y] = [];
+      drawcanvasbg[y][x] = 0;
     }
   }
 }
@@ -187,10 +187,10 @@ function clear() {
 function drawbg(index, x, y, backgroundColor) {
   y = y - removedYChars;
   layer.putTileAt(index, x, y);
-  if (!canvasbg[y]) {
-    canvasbg[y] = [];
+  if (!drawcanvasbg[y]) {
+    drawcanvasbg[y] = [];
   }
-  canvasbg[y][x] = backgroundColor;
+  drawcanvasbg[y][x] = backgroundColor;
 }
 
 function draw(index, x, y, currentColor) {
@@ -198,10 +198,10 @@ function draw(index, x, y, currentColor) {
 
   bglayer.putTileAt(index, x, y);
 
-  if (!canvas[y]) {
-    canvas[y] = [];
+  if (!drawcanvas[y]) {
+    drawcanvas[y] = [];
   }
-  canvas[y][x] = index;
+  drawcanvas[y][x] = index;
   if (!canvasColor[y]) {
     canvasColor[y] = [];
   }
@@ -400,16 +400,16 @@ function clearLine(y) {
     // Clear the character layer
     const charIndex = getCharIndex(defaultColor, defaultChar);
     bglayer.putTileAt(charIndex, x, y);
-    if (!canvas[y]) canvas[y] = [];
-    canvas[y][x] = defaultChar;
+    if (!drawcanvas[y]) drawcanvas[y] = [];
+    drawcanvas[y][x] = defaultChar;
     if (!canvasColor[y]) canvasColor[y] = [];
     canvasColor[y][x] = defaultColor;
 
     // Clear the background layer
     const bgIndex = getCharIndex(defaultBGColor, 219);
     layer.putTileAt(bgIndex, x, y);
-    if (!canvasbg[y]) canvasbg[y] = [];
-    canvasbg[y][x] = defaultBGColor;
+    if (!drawcanvasbg[y]) drawcanvasbg[y] = [];
+    drawcanvasbg[y][x] = defaultBGColor;
   }
 }
 
@@ -439,8 +439,8 @@ function writeAsciiHTMLPos(ascii_codes, currentColor, backgroundColor, x, y) {
       // Scroll until we've made room for the y-coordinate we're trying to reach
       while (y > maxReachedY + 1 && y >= TOTAL_HEIGHT_CHARACTERS - 1) {
         // Shift all lines up by one
-        canvas.shift();
-        canvasbg.shift();
+        drawcanvas.shift();
+        drawcanvasbg.shift();
         canvasColor.shift();
 
         shiftTilesUp(bglayer); // Shift the tiles up in bglayer
