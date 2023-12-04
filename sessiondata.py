@@ -67,6 +67,7 @@ class SessionData:
         self.edit_file = None
         self.delete_file = None
         self.status_bar_paused = False
+        self.bbschooser = None
     
         
 
@@ -217,3 +218,6 @@ class SessionData:
 
     def setDeletefile(self, value):
         self.delete_file = value
+
+    def setBBSChooser(self, value):
+        self.bbschooser = value

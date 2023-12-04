@@ -33,11 +33,10 @@ from uploadeditor import UploadEditor
 
 
 MAX_FILE_SIZE = 1024 * 102  # 1MB in bytes
-server_available = True
 util = None
 try:
     mongo_client = MongoClient("mongodb://localhost:27017", serverSelectionTimeoutMS=5000)
-    mongo_client.admin.command('ping')  # This should force a connection attempt
+    # mongo_client.admin.command('ping')  # This should force a connection attempt
 except ServerSelectionTimeoutError:
     print("Server not available")
     server_available = False
@@ -130,7 +129,6 @@ def on_connection_close():
     if request_sid in sid_data:
         del sid_data[request_sid]
 
-startFile = 'welcome'
 
 
 @socketio.on('custom_disconnect')
@@ -166,21 +164,15 @@ def handle_connect():
 
 @socketio.on('onload')
 def onload(data):
+    #login(data)
     x = data.get('x')
     sid_data[request.sid].setXWidth(x)
     y = data.get('y')
     sid_data[request.sid].setYHeight(y)
-    if server_available == False:
-        sid_data[request.sid].util.output_wrap("* Database connection could not get established *", 1,0)
-        time.sleep(3)
-    
-    data2 = { 'filename' : startFile+'-'+str(x)+'x'+str(y), 'x' : x, 'y': y}
-    
-    sid_data[request.sid].util.show_file(data2, sid_data[request.sid].util.emit_current_string)
-    sid_data[request.sid].util.goto_next_line()
-    
-    sid_data[request.sid].util.output_wrap("Please enter your name: ", 3, 0)
-    sid_data[request.sid].util.ask(35, sid_data[request.sid].util.usernameCallback)
+    sid_data[request.sid].util.choose_bbs(data)
+    return
+
+
 
 @socketio.on('disconnect')
 def disconnect():
@@ -344,6 +336,10 @@ def handle_keypress(data):
     elif siddata.current_action == "wait_for_userpicker":
         key = data['key']
         siddata.user_picker.handle_key(key)
+        return
+    elif siddata.current_action == "wait_for_bbschooser":
+        key = data['key']
+        siddata.bbschooser.handle_key(key)
         return
     elif siddata.current_action == "wait_for_menu":
         key = data['key']

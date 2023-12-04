@@ -19,6 +19,7 @@ from time import sleep
 from threading import Timer
 import uuid
 import random
+from bbschooser import BBSChooser
 
 class Utils:
     def __init__(self, sio, my_client, mylist1, mylist2, sdata, Sauce, request_id, menu_structure):
@@ -971,5 +972,10 @@ class Utils:
         else:
             return filename[:8]+".MNU"
 
-  
+    def choose_bbs(self, data):
+        print("choose bbs")
+        print(data)
+        self.sid_data.setBBSChooser(BBSChooser(self))
+        return
+    
 
