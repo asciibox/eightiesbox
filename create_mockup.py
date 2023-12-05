@@ -67,6 +67,11 @@ def create_random_users():
 
     print("Random users have been successfully created.")
 
+    mailboxes_collection = db['mailboxes']
+    for id in range(1, 101):
+        mailboxes_collection.insert_one({"name": f"EightiesBox Box Nr. {id}"})
+
+
 # Call the function to create random users
 
 create_random_users()

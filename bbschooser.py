@@ -9,7 +9,7 @@ class BBSChooser(BasicANSI):
         self.util = util
         self.util.sid_data.setCurrentAction('wait_for_bbschooser')
         self.current_page = 0
-        self.bbs_per_page = self.util.sid_data.yHeight - 5  # Adjust for frame and page indicator
+        self.bbs_per_page = self.util.sid_data.yHeight - 9  # Adjust for frame and page indicator
         self.current_selection = 0  # The currently selected BBS index on the page
 
         db = self.util.mongo_client['bbs']
@@ -87,9 +87,9 @@ class BBSChooser(BasicANSI):
         self.current_selection = 0
         
         # Draw BBS names
-        self.draw_bbs()
+        self.draw_bbses()
 
-    def draw_bbs(self):
+    def draw_bbses(self):
         for i, bbs in enumerate(self.bbs_on_page):
             self.util.sid_data.setStartY(i + 4)  # Adjust for frame and page indicator
             self.util.sid_data.setStartX(2)
@@ -97,7 +97,7 @@ class BBSChooser(BasicANSI):
             self.util.output(bbs['name'], fg_color, 0)  # Assuming 'name' is the field for BBS name
 
     def draw_single_bbs(self, index, fg_color):
-        self.util.sid_data.setStartY(index + 3)  # Adjust for frame and page indicator
+        self.util.sid_data.setStartY(index + 4)  # Adjust for frame and page indicator
         self.util.sid_data.setStartX(2)
         self.util.output(self.bbs_on_page[index]['name'], fg_color, 0)
 
@@ -105,31 +105,36 @@ class BBSChooser(BasicANSI):
         print(key)
         if key == 'ArrowRight':
             if self.current_page < self.total_pages - 1:
+                self.util.clear_screen()
+                self.draw_frame()
                 self.current_page += 1
                 self.show_page(self.current_page)
         elif key == 'ArrowLeft':
             if self.current_page > 0:
+                self.util.clear_screen()
+                self.draw_frame()
                 self.current_page -= 1
                 self.show_page(self.current_page)
         elif key == 'ArrowDown':
+            print(self.bbs_per_page )
             if self.current_selection < min(len(self.bbs_on_page) - 1, self.bbs_per_page - 1):
                 # Redraw the current selection with non-highlight color
-                self.draw_bbs(self.current_selection, 6)
+                self.draw_single_bbs(self.current_selection, 6)
 
                 self.current_selection += 1
 
                 # Redraw the new selection with highlight color
-                self.draw_bbs(self.current_selection, 11)
+                self.draw_single_bbs(self.current_selection, 11)
 
         elif key == 'ArrowUp':
             if self.current_selection > 0:
                 # Redraw the current selection with non-highlight color
-                self.draw_bbs(self.current_selection, 6)
+                self.draw_single_bbs(self.current_selection, 6)
 
                 self.current_selection -= 1
 
                 # Redraw the new selection with highlight color
-                self.draw_bbs(self.current_selection, 11)
+                self.draw_single_bbs(self.current_selection, 11)
         elif key == 'Enter':
             print(self.current_selection)
             self.login(self.current_selection)
