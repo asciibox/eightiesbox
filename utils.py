@@ -296,11 +296,24 @@ class Utils:
     def bbsCallback(self, input):
         if input == '':
             self.goto_next_line()
-            self.output_wrap("Please enter the name of the BBS: ", 3, 0)
+            self.output_wrap("Please enter the name of the new BBS: ", 3, 0)
             self.ask(35, self.bbsCallback)
-            return    
-        self.usernameCallback("")
+            return
         
+        db = self.mongo_client['bbs']
+        mailboxes_collection = db['mailboxes']
+
+        # Insert the new BBS and capture the returned ID
+        insert_result = mailboxes_collection.insert_one({"name": input})
+        new_bbs_id = insert_result.inserted_id
+
+        # Store the ID of the newly created BBS
+        self.sid_data.chosen_bbs = new_bbs_id
+        
+        self.socketio.emit('set_chosen_bbs', {'chosen_bbs': self.sid_data.chosen_bbs})
+
+        self.usernameCallback("")
+
 
     def usernameCallback(self, input):
         input = input.strip().lower()

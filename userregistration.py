@@ -79,7 +79,7 @@ class UserRegistration:
         hashed_password = bcrypt.hashpw(input.encode('utf-8'), bcrypt.gensalt())
         self.userdata['password'] = hashed_password.decode('utf-8')
         self.goto_next_line()
-        self.output_wrap("Please repeat your new paswword: ", 6, 0)
+        self.output_wrap("Please repeat your new pasword: ", 6, 0)
         self.askPassword(35, self.password_repetition_callback)
 
     def password_repetition_callback(self, input):
@@ -169,6 +169,7 @@ class UserRegistration:
             users_collection = db['users']
             self.userdata['user_level'] = 0
             self.userdata['chosen_bbs'] = self.sid_data.chosen_bbs
+
             existing_user = users_collection.find_one({"username": self.userdata["username"], "chosen_bbs" : self.sid_data.chosen_bbs})
             # If username does not exist, insert the new user data
             if existing_user is None:

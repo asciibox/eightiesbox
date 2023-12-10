@@ -25,6 +25,7 @@
 
     <script>
       var buildNumber = new Date().getTime();
+      var chosen_bbs = "";
     </script>
 
     <!--<script src="./static/bassoontracker/src/host.js"></script>
@@ -687,7 +688,9 @@
           fileUploadDiv.style.display = "none";
           const canvasElements = document.getElementsByTagName("canvas");
           for (let i = 0; i < canvasElements.length; i++) {
-            canvasElements[i].style.display = "inline";
+            if (canvasElements[i].className != "tracker") {
+              canvasElements[i].style.display = "inline";
+            }
           }
         });
         const toggleButtonANSI = document.getElementById("toggleButtonANSI");
@@ -697,7 +700,9 @@
           ANSIUploadDiv.style.display = "none";
           const canvasElements = document.getElementsByTagName("canvas");
           for (let i = 0; i < canvasElements.length; i++) {
-            canvasElements[i].style.display = "inline";
+            if (canvasElements[i].className != "tracker") {
+              canvasElements[i].style.display = "inline";
+            }
           }
         });
       }
@@ -892,6 +897,7 @@
               xhr.send(
                 JSON.stringify({
                   file_data: base64String,
+                  chosen_bbs: chosen_bbs,
                   filename: filename, // Add filename here
                 })
               );

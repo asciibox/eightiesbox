@@ -68,9 +68,9 @@ function setupSocketEventListeners(socket) {
     enableTrackerKeyboard = true;
   });
   socket.on("graphic_mod_editor", (data) => {
-    var canvas = document.getElementsByClassName('tracker');
+    var canvas = document.getElementsByClassName("tracker");
     console.log(canvas);
-    canvas[0].style.display='inline';
+    canvas[0].style.display = "inline";
     enableTrackerKeyboard = true;
   });
 
@@ -130,6 +130,10 @@ function setupSocketEventListeners(socket) {
         .parentNode.removeChild(document.getElementById("exit"));
     }
   }
+
+  socket.on("set_chosen_bbs", function (data) {
+    chosen_bbs = data.chosen_bbs;
+  });
 
   socket.on("download_ready", function (data) {
     removeButtons();

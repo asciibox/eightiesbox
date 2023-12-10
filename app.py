@@ -147,38 +147,41 @@ def allowed_file(filename):
 @app.route('/upload', methods=['POST'])
 def upload_file():
     global sid_data
-    if server_available:
+    
+    data = request.json
+    base64_string = data.get('file_data')
+    filename = data.get('filename')  # Retrieve the filename here
+    chosen_bbs = data.get('chosen_bbs')
 
-        data = request.json
-        base64_string = data.get('file_data')
-        filename = data.get('filename')  # Retrieve the filename here
+    print("chosen_bbs:");
+    print(chosen_bbs);
 
-        if not base64_string or not filename:
-            return jsonify({"error": "Missing file data or filename"}), 400
+    if not base64_string or not filename or not chosen_bbs:
+        return jsonify({"error": "Missing file data or filename or no chosen_bbs"}), 400
 
-        # Decode the Base64 string
-       
-        # Check file size
-        if len(base64_string) > MAX_FILE_SIZE:
-            return jsonify({"error": "File size exceeds 100KB"}), 400
-        
-        filename = generate_unique_filename(filename)
+    # Decode the Base64 string
+    
+    # Check file size
+    if len(base64_string) > MAX_FILE_SIZE:
+        return jsonify({"error": "File size exceeds 100KB"}), 400
+    
+    filename = generate_unique_filename(filename, chosen_bbs)
 
-        # Save file data and filename to MongoDB
-        new_file = {
-            "filename": filename,
-            "file_data": base64_string,
-            "chosen_bbs" : sid_data.chosen_bbs
-        }
+    # Save file data and filename to MongoDB
+    new_file = {
+        "filename": filename,
+        "file_data": base64_string,
+        "chosen_bbs" : chosen_bbs
+    }
 
-        #with open('output_app.ans', "w", encoding='cp1252') as ansi_file:
-        #
-        #     ansi_file.write(file_data)
+    #with open('output_app.ans', "w", encoding='cp1252') as ansi_file:
+    #
+    #     ansi_file.write(file_data)
 
-        uploads_collection.insert_one(new_file)
-        return jsonify({"success": f"File {filename} uploaded successfully"}), 200
+    uploads_collection.insert_one(new_file)
+    return jsonify({"success": f"File {filename} uploaded successfully"}), 200
 
-def generate_unique_filename(filename):
+def generate_unique_filename(filename, chosen_bbs):
     global sid_data
     base, ext = os.path.splitext(filename)
     
@@ -190,7 +193,7 @@ def generate_unique_filename(filename):
     counter = 1
 
     # Check if file exists and modify the filename accordingly
-    while uploads_collection.find_one({"filename": base + ext, "chosen_bbs" : sid_data.chosen_bbs}):
+    while uploads_collection.find_one({"filename": base + ext, "chosen_bbs" : chosen_bbs}):
         # Adjust the base name to accommodate the counter
         base = original_base[:11-len(ext)-len(str(counter))] + str(counter)
         counter += 1

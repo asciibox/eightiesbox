@@ -136,11 +136,22 @@ class BBSChooser(BasicANSI):
                 # Redraw the new selection with highlight color
                 self.draw_single_bbs(self.current_selection, 11)
         elif key == 'Enter':
-            self.util.sid_data.chosen_bbs = self.current_selection+1
+            # Get the selected BBS document
+            selected_bbs = self.bbs_on_page[self.current_selection]
+
+            # Convert the ObjectId to a string
+            bbs_id_str = str(selected_bbs['_id'])
+
+            # Store the string representation of the unique ID of the BBS
+            self.util.sid_data.chosen_bbs = bbs_id_str
+
+            # Now you can emit the event with the string ID
+            self.util.socketio.emit('set_chosen_bbs', {'chosen_bbs': self.sid_data.chosen_bbs})
 
             self.login(self.current_selection)
+            
         elif key == 'C' or key =='c':
-            self.util.sid_data.chosen_bbs = 0
+            self.util.sid_data.chosen_bbs = ""
             self.login(0)
 
 
@@ -151,7 +162,7 @@ class BBSChooser(BasicANSI):
         self.util.show_file(data2, self.util.emit_current_string)
         self.util.goto_next_line()
         
-        if self.util.sid_data.chosen_bbs == 0:
+        if self.util.sid_data.chosen_bbs == "":
             self.util.output_wrap("Please enter the name of the new BBS: ", 3, 0)
             self.util.ask(35, self.util.bbsCallback)
         else:

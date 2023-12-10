@@ -14,6 +14,7 @@ collections_to_clear = [
     'to_be_edited',
     'oneliners',
     'mailboxes',
+    'users'
 ]
 
 def clear_collections(collections):
