@@ -14,7 +14,7 @@ class UserEditor(BasicANSI):
           # Retrieve the users collection from BBS
         mongo_client = util.mongo_client  # Assuming util has a MongoDB client attribute
         db = mongo_client['bbs']
-        self.users = list(db['users'].find({}))  # This will fetch all documents from the "users" collection
+        self.users = list(db['users'].find({'chosen_bbs' : util.sid_data.chosen_bbs}))  # This will fetch all documents from the "users" collection
 
         # Store the exit callback
         self.callback_on_exit = callback_on_exit
@@ -98,7 +98,7 @@ class UserEditor(BasicANSI):
         # Update the users collection using the old username
         mongo_client = self.util.mongo_client
         db = mongo_client['bbs']
-        update_result = db['users'].update_one({'username': self.old_username}, {'$set': {'username': new_username}})
+        update_result = db['users'].update_one({'username': self.old_username, 'chosen_bbs' : self.sid_data.chosen_bbs}, {'$set': {'username': new_username}})
 
         # Check if the update was successful
         if update_result.matched_count > 0:
@@ -178,7 +178,7 @@ class UserEditor(BasicANSI):
             mongo_client = self.util.mongo_client
             db = mongo_client['bbs']
             update_result = db['users'].update_one(
-                {'username': self.old_username},
+                {'username': self.old_username, 'chosen_bbs' : self.sid_data.chosen_bbs},
                 {'$set': {'user_level': user_level_int}}
             )
 
@@ -233,7 +233,7 @@ class UserEditor(BasicANSI):
             # Proceed to delete the user
             mongo_client = self.util.mongo_client
             db = mongo_client['bbs']
-            delete_result = db['users'].delete_one({'username': self.user_to_delete})
+            delete_result = db['users'].delete_one({'username': self.user_to_delete, 'chosen_bbs' : self.sid_data.chosen_bbs})
 
             if delete_result.deleted_count > 0:
                 # Update self.users

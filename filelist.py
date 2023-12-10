@@ -18,7 +18,7 @@ class Filelist:
         collection = db["files"]
 
         # Retrieve all documents starting from the current cursor
-        files = collection.find().skip(self.file_cursor)
+        files = collection.find({'chosen_bbs' : self.sid_data.chosen_bbs}).skip(self.file_cursor)
 
 
         for file in files:

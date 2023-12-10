@@ -7,7 +7,7 @@ class FileAreaMenu(AreaMenu):
         util.sid_data.setCurrentAction("wait_for_file_area")
         mongo_client = util.mongo_client  # Assuming you have a mongo_client in util
         db = mongo_client['bbs']
-        self.areas = list(db['fileareas'].find())
+        self.areas = list(db['fileareas'].find({'chosen_bbs' : util.sid_data.chosen_bbs}))
         self.areas.sort(key=lambda x: x.get('order', 0))
         self.start()
         

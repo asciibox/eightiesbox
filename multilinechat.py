@@ -29,7 +29,7 @@ class MultilineChat:
         db = self.util.mongo_client['bbs']
         users_collection = db['users']
 
-        existing_user = users_collection.find_one({"username": response})
+        existing_user = users_collection.find_one({"username": response, 'chosen_bbs' : self.util.sid_data.chosen_bbs})
         
         if existing_user is None:
             # If the user does not exist, redirect to UserPicker class

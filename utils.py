@@ -213,7 +213,7 @@ class Utils:
         
         # Retrieve the user document based on the username saved in self.sid_data
 
-        user_document = users_collection.find_one({"username": self.sid_data.user_name})
+        user_document = users_collection.find_one({"username": self.sid_data.user_name, 'chosen_bbs': self.sid_data.chosen_bbs})
         self.sid_data.user_document = user_document
 
         if user_document:
@@ -293,6 +293,14 @@ class Utils:
         else:
             self.passwordCallback(input)
 
+    def bbsCallback(self, input):
+        if input == '':
+            self.goto_next_line()
+            self.output_wrap("Please enter the name of the BBS: ", 3, 0)
+            self.ask(35, self.bbsCallback)
+            return    
+        self.usernameCallback("")
+        
 
     def usernameCallback(self, input):
         input = input.strip().lower()
@@ -306,7 +314,7 @@ class Utils:
         db = self.mongo_client['bbs']
         users_collection = db['users']
         self.sid_data.setUserName(input)
-        user_document = users_collection.find_one({"username": input})
+        user_document = users_collection.find_one({"username": input, "chosen_bbs" : self.sid_data.chosen_bbs})
 
         self.goto_next_line()
 
@@ -351,7 +359,7 @@ class Utils:
             db = self.mongo_client['bbs']
             users_collection = db['users']
             hashed_password = bcrypt.hashpw(first_password.encode('utf-8'), bcrypt.gensalt())
-            new_sysop_user = {"username": "sysop", "user_level" : 32000, "password": hashed_password.decode('utf-8')}
+            new_sysop_user = {"username": "sysop", "user_level" : 32000, "password": hashed_password.decode('utf-8'), 'chosen_bbs': self.sid_data.chosen_bbs}
             # Insert the document and capture the result
             insert_result = users_collection.insert_one(new_sysop_user)
 
@@ -378,7 +386,48 @@ class Utils:
             return value  # returns the original value if index out of range in list2
 
     def launchMenuCallback(self):
+        self.create_main_menu()
         self.check_for_new_messsages()
+
+
+    def load_json_data(self):
+        with open("main.json", "r") as f:
+            return json.load(f)
+
+    def create_main_menu(self):
+        num_rows = 42
+        fields = ['Type', 'Data', 'Key', 'Sec', 'Flags']
+        values = [["" for _ in fields] for _ in range(num_rows)]
+
+        json_data = self.load_json_data()
+
+        collection = self.mongo_client.bbs.menufiles  # Replace with the actual MongoDB database and collection
+
+        # Check if file already exists
+        existing_file = collection.find_one({"filename": 'MAIN.MNU', "chosen_bbs" : self.sid_data.chosen_bbs})
+        if existing_file:
+            return
+
+        non_empty_values = [
+            {"y": index, "row_data": {str(fields.index(key)): value for key, value in row.items()}}
+            for index, row in enumerate(json_data["table"])
+        ]
+
+        # Save the new file
+        menu_box_data = {
+            "fields": fields,
+            "values": non_empty_values,
+        }
+
+        new_file_data = {
+            "filename": 'MAIN.MNU',
+            "menu_box_data": menu_box_data,
+            "ansi_code_base64": json_data.get("ansi_data", ""),  # Assuming ansi_data is the field in your JSON
+            "chosen_bbs" : self.sid_data.chosen_bbs
+            # Add other file details here
+        }
+
+        collection.insert_one(new_file_data)
 
     def check_for_new_messsages(self):
         if self.get_all_unread_messages_addressed_to_user_count() > 0:
@@ -405,7 +454,8 @@ class Utils:
 
         # Query read_messages for the current user across all areas
         read_messages_cursor = db['read_messages'].find({
-            "user_id": user_id
+            "user_id": user_id,
+            "chosen_bbs" : self.sid_data.chosen_bbs
         })
 
         # Convert the cursor to a list of message IDs that have been read
@@ -423,7 +473,7 @@ class Utils:
         db = self.mongo_client["bbs"]  # You can replace "mydatabase" with the name of your database
         collection = db["menufiles"]
     
-        file_data = collection.find_one({"filename": 'MAIN.MNU'})
+        file_data = collection.find_one({"filename": 'MAIN.MNU', "chosen_bbs" : self.sid_data.chosen_bbs})
             
         if file_data:
             self.sid_data.setMenu(Menu(self, [["" for _ in ['Type', 'Data', 'Key', 'Sec', 'Flags']] for _ in range(50)], 50, None))

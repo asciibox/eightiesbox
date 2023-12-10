@@ -56,7 +56,7 @@ class UserRegistration:
         db = self.mongo_client['bbs']
         users_collection = db['users']
 
-        existing_user = users_collection.find_one({"username": input})
+        existing_user = users_collection.find_one({"username": input, 'chosen_bbs': self.sid_data.chosen_bbs})
         # If username does not exist, insert the new user data
         if existing_user is None:
            self.goto_next_line()
@@ -110,7 +110,7 @@ class UserRegistration:
         db = self.mongo_client['bbs']
         users_collection = db['users']
 
-        existing_email = users_collection.find_one({"email": input})
+        existing_email = users_collection.find_one({"email": input, "chosen_bbs" : self.sid_data.chosen_bbs})
         # If username does not exist, insert the new user data
         if existing_email is None:
             self.userdata['email'] = input
@@ -168,7 +168,8 @@ class UserRegistration:
             db = self.mongo_client['bbs']
             users_collection = db['users']
             self.userdata['user_level'] = 0
-            existing_user = users_collection.find_one({"username": self.userdata["username"]})
+            self.userdata['chosen_bbs'] = self.sid_data.chosen_bbs
+            existing_user = users_collection.find_one({"username": self.userdata["username"], "chosen_bbs" : self.sid_data.chosen_bbs})
             # If username does not exist, insert the new user data
             if existing_user is None:
                 insert_result = users_collection.insert_one(self.userdata)

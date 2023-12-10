@@ -5,9 +5,6 @@ class AreaMenu(BasicANSI):
         super().__init__(util)
         
         self.headline_type = headline_type
-        # Store provided parameters
-        # Connect to MongoDB and read areas
-        
         
         self.user_level = self.sid_data.user_document['user_level']
         self.user_name = self.sid_data.user_name

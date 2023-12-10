@@ -54,7 +54,7 @@ def create_random_users():
             "user_level" : 0
         }
 
-        existing_user = users_collection.find_one({"username": userdata["username"]})
+        existing_user = users_collection.find_one({"username": userdata["username"], "chosen_bbs" : 1})
         if existing_user is None:
             insert_result = users_collection.insert_one(userdata)
             new_user_id = insert_result.inserted_id

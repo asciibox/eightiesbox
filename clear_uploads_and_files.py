@@ -12,7 +12,8 @@ collections_to_clear = [
     'upload_files',
     'files',
     'to_be_edited',
-    'oneliners'
+    'oneliners',
+    'mailboxes',
 ]
 
 def clear_collections(collections):

@@ -35,7 +35,7 @@ class OnelinerBBS:
         if result:
             self.goto_next_line()
             current_time = datetime.utcnow()
-            self.collection.insert_one({"text": result, "timestamp": current_time, "username" : self.sid_data.user_name})
+            self.collection.insert_one({"text": result, "timestamp": current_time, "username" : self.sid_data.user_name, "chosen_bbs" : self.sid_data.chosen_bbs})
             self.output_oneliners()
             self.goto_next_line()
             self.output("Press any button to continue", 3, 0)
@@ -43,7 +43,7 @@ class OnelinerBBS:
 
     def output_oneliners(self):
         current_time = datetime.utcnow()
-        cursor = self.collection.find({}).sort("timestamp", -1).limit(25)
+        cursor = self.collection.find({"chosen_bbs" : self.sid_data.chosen_bbs}).sort("timestamp", -1).limit(25)
         counter = 1
         for document in reversed(list(cursor)):
             

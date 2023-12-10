@@ -136,8 +136,12 @@ class BBSChooser(BasicANSI):
                 # Redraw the new selection with highlight color
                 self.draw_single_bbs(self.current_selection, 11)
         elif key == 'Enter':
-            print(self.current_selection)
+            self.util.sid_data.chosen_bbs = self.current_selection+1
+
             self.login(self.current_selection)
+        elif key == 'C' or key =='c':
+            self.util.sid_data.chosen_bbs = 0
+            self.login(0)
 
 
     def login(self, current_selection):
@@ -147,8 +151,12 @@ class BBSChooser(BasicANSI):
         self.util.show_file(data2, self.util.emit_current_string)
         self.util.goto_next_line()
         
-        self.util.output_wrap("Please enter your name: ", 3, 0)
-        self.util.ask(35, self.util.usernameCallback)
+        if self.util.sid_data.chosen_bbs == 0:
+            self.util.output_wrap("Please enter the name of the new BBS: ", 3, 0)
+            self.util.ask(35, self.util.bbsCallback)
+        else:
+            self.util.output_wrap("Please enter your name: ", 3, 0)
+            self.util.ask(35, self.util.usernameCallback)
 
 
     # Usage

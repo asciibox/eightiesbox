@@ -20,7 +20,7 @@ class UploadEditor(ANSIEditor):
 
        # Retrieve the first document uploaded by the user
         user_id = self.sid_data.user_document['_id']
-        self.first_document = to_be_edited_collection.find_one({'uploaded_by_user_id': str(user_id)})
+        self.first_document = to_be_edited_collection.find_one({'uploaded_by_user_id': str(user_id), 'chosen_bbs' : self.sid_data.chosen_bbs})
 
         self.update_first_line()
 

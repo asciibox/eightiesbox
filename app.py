@@ -61,50 +61,6 @@ menu_structure = {
         }
 
 
-def load_json_data():
-    with open("main.json", "r") as f:
-        return json.load(f)
-
-def create_main_menus():
-    global mongo_client
-    num_rows = 42
-    fields = ['Type', 'Data', 'Key', 'Sec', 'Flags']
-    values = [["" for _ in fields] for _ in range(num_rows)]
-
-    json_data = load_json_data()
-
-    collection = mongo_client.bbs.menufiles  # Replace with the actual MongoDB database and collection
-
-    # Check if file already exists
-    existing_file = collection.find_one({"filename": 'MAIN.MNU'})
-    if existing_file:
-        return
-
-    non_empty_values = [
-        {"y": index, "row_data": {str(fields.index(key)): value for key, value in row.items()}}
-        for index, row in enumerate(json_data["table"])
-    ]
-
-    # Save the new file
-    menu_box_data = {
-        "fields": fields,
-        "values": non_empty_values,
-    }
-
-    new_file_data = {
-        "filename": 'MAIN.MNU',
-        "menu_box_data": menu_box_data,
-        "ansi_code_base64": json_data.get("ansi_data", "")  # Assuming ansi_data is the field in your JSON
-        # Add other file details here
-    }
-
-    collection.insert_one(new_file_data)
-
-
-
-
-create_main_menus()
-
 target_values = [223, 176, 177, 178, 220, 191, 250]
 for i, value in enumerate(list2):
     if value in target_values:
@@ -190,6 +146,7 @@ def allowed_file(filename):
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
+    global sid_data
     if server_available:
 
         data = request.json
@@ -210,7 +167,8 @@ def upload_file():
         # Save file data and filename to MongoDB
         new_file = {
             "filename": filename,
-            "file_data": base64_string
+            "file_data": base64_string,
+            "chosen_bbs" : sid_data.chosen_bbs
         }
 
         #with open('output_app.ans', "w", encoding='cp1252') as ansi_file:
@@ -221,6 +179,7 @@ def upload_file():
         return jsonify({"success": f"File {filename} uploaded successfully"}), 200
 
 def generate_unique_filename(filename):
+    global sid_data
     base, ext = os.path.splitext(filename)
     
     # If the filename (including its extension) is longer than 11 characters, truncate it.
@@ -231,7 +190,7 @@ def generate_unique_filename(filename):
     counter = 1
 
     # Check if file exists and modify the filename accordingly
-    while uploads_collection.find_one({"filename": base + ext}):
+    while uploads_collection.find_one({"filename": base + ext, "chosen_bbs" : sid_data.chosen_bbs}):
         # Adjust the base name to accommodate the counter
         base = original_base[:11-len(ext)-len(str(counter))] + str(counter)
         counter += 1
@@ -597,13 +556,13 @@ bucket = storage_client.get_bucket('eightiesbox')
 subscriber = pubsub_v1.SubscriberClient()
 subscription_path = subscriber.subscription_path('animated-moon-403620', 'projects/animated-moon-403620/subscriptions/bbs-file-upload-notification')
 
-def callback(message):
-    print(f"Received message: {message}")
-    message.ack()
-    
-    # Update MongoDB
-    file_name = message.attributes.get('objectId')
-    collection.insert_one({"file_name": file_name})
+#def callback(message):
+#    print(f"Received message: {message}")
+#    message.ack()
+#    
+#    # Update MongoDB
+#    file_name = message.attributes.get('objectId')
+#    collection.insert_one({"file_name": file_name})
 
 @app.route('/getSignedUrl', methods=['GET'])
 
@@ -742,6 +701,7 @@ def check_upload_and_process():
 
 
 def check_upload_date(today, processed_bucket, file_path, processed_bucket_name, specific_document):
+    global sid_data
     status = False
     # Check if there's a directory for the current day in the "processed" bucket
     daily_directory = None
@@ -824,6 +784,7 @@ def check_upload_date(today, processed_bucket, file_path, processed_bucket_name,
             "description": "",
             "path": new_file_path,
             "visible_file" : False,
+            "chosen_bbs" : sid_data.chosen_bbs
         }
         file_result = files_collection.insert_one(file_document)
         print("File document inserted:", file_result.inserted_id)
@@ -835,7 +796,8 @@ def check_upload_date(today, processed_bucket, file_path, processed_bucket_name,
             "file_size" : file_size,
             "area_id": specific_document['area_id'],
             "uploaded_by_user_id" : specific_document['user_id'],
-            "description_empty": True
+            "description_empty": True,
+            "chosen_bbs" : sid_data.chosen_bbs
         }
         edit_result = to_be_edited_collection.insert_one(edit_document)
         print("To be edited document inserted:", edit_result.inserted_id)

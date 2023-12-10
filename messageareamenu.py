@@ -7,7 +7,7 @@ class MessageAreaMenu(AreaMenu):
         util.sid_data.setCurrentAction("wait_for_message_area")
         mongo_client = util.mongo_client  # Assuming you have a mongo_client in util
         db = mongo_client['bbs']
-        self.areas = list(db['messageareas'].find())
+        self.areas = list(db['messageareas'].find({ 'chosen_bbs' : util.sid_data.chosen_bbs}))
         self.areas.sort(key=lambda x: x.get('order', 0))
         self.start()
         
@@ -64,12 +64,13 @@ class MessageAreaMenu(AreaMenu):
         db = mongo_client['bbs']
         db['messageareas'].insert_one({
             'name': self.new_area_name,
-            'min_level': 1,
-            'order': order
+            'min_level': 0,
+            'order': order,
+            'chosen_bbs' : self.sid_data.chosen_bbs
         })
 
         # Update self.areas to include new area
-        self.areas.append({'name': self.new_area_name, 'min_level': 1, 'order': order})
+        self.areas.append({'name': self.new_area_name, 'min_level': 0, 'order': order})
 
         # Sort self.areas based on the order
         self.areas = sorted(self.areas, key=lambda k: k['order'])

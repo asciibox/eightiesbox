@@ -77,7 +77,7 @@ class MenuBarMenuEditor(MenuBar):
 
     def load_menu(self):
         collection = self.mongo_client.bbs.menufiles  # Replace with actual MongoDB database and collection
-        filenames = collection.find({}, {'filename': 1})  # Query MongoDB for filenames
+        filenames = collection.find({'chosen_bbs' : self.sid_data.chosen_bbs}, {'filename': 1})  # Query MongoDB for filenames
         
         self.clear_screen()
 
@@ -90,7 +90,7 @@ class MenuBarMenuEditor(MenuBar):
     
     def save_menu(self):
         collection = self.mongo_client.bbs.menufiles  # Replace with actual MongoDB database and collection
-        filenames = collection.find({}, {'filename': 1})  # Query MongoDB for filenames
+        filenames = collection.find({'chosen_bbs' : self.sid_data.chosen_bbs}, {'filename': 1})  # Query MongoDB for filenames
 
         self.clear_screen()
 
@@ -115,7 +115,7 @@ class MenuBarMenuEditor(MenuBar):
         collection = self.mongo_client.bbs.menufiles  # Replace with the actual MongoDB database and collection
 
         # Check if this filename already exists
-        if collection.find_one({"filename": entered_filename}):
+        if collection.find_one({"filename": entered_filename, 'chosen_bbs' : self.sid_data.chosen_bbs}):
             self.goto_next_line()
             self.output_wrap("File "+entered_filename+" already exists!", 6, 0)
             self.goto_next_line()
@@ -141,7 +141,7 @@ class MenuBarMenuEditor(MenuBar):
         collection = self.mongo_client.bbs.menufiles  # Replace with the actual MongoDB database and collection
 
         # Delete any existing file with the same filename
-        collection.delete_one({"filename": entered_filename})
+        collection.delete_one({"filename": entered_filename, 'chosen_bbs' : self.sid_data.chosen_bbs})
 
         # Create a list containing each row and its y-coordinate
         # Convert the row into a dictionary format similar to create_main_menus
@@ -172,7 +172,8 @@ class MenuBarMenuEditor(MenuBar):
         new_file_data = {
             "filename": entered_filename,
             "menu_box_data": menu_box_data,
-            "ansi_code_base64": self.sid_data.menutexteditor.get_ansi_code_base64()
+            "ansi_code_base64": self.sid_data.menutexteditor.get_ansi_code_base64(),
+            "chosen_bbs" : self.sid_data.chosen_bbs
             # Add other file details here
         }
 
@@ -270,7 +271,7 @@ class MenuBarMenuEditor(MenuBar):
 
     def delete_menu(self):
         collection = self.mongo_client.bbs.menufiles  # Replace with the actual MongoDB database and collection
-        filenames = collection.find({}, {'filename': 1})  # Query MongoDB for filenames
+        filenames = collection.find({'chosen_bbs' : self.sid_data.chosen_bbs}, {'filename': 1})  # Query MongoDB for filenames
         
         self.clear_screen()
         
@@ -291,11 +292,11 @@ class MenuBarMenuEditor(MenuBar):
         collection = self.mongo_client.bbs.menufiles  # Replace with the actual MongoDB database and collection
 
         # Look for the filename in the database
-        file_data = collection.find_one({"filename": entered_filename})
+        file_data = collection.find_one({"filename": entered_filename, 'chosen_bbs' : self.sid_data.chosen_bbs})
 
         if file_data:
             # Delete the file from the database
-            collection.delete_one({"filename": entered_filename})
+            collection.delete_one({"filename": entered_filename, 'chosen_bbs': self.sid_data.chosen_bbs})
             self.goto_next_line()
             self.output_wrap("File "+entered_filename+" deleted successfully!", 6, 0)
             self.goto_next_line()
@@ -324,7 +325,7 @@ class MenuBarMenuEditor(MenuBar):
 
     def load_ansi(self):
         collection = self.mongo_client.bbs.ansifiles  # Replace with actual MongoDB database and collection
-        filenames = collection.find({}, {'filename': 1})  # Query MongoDB for filenames
+        filenames = collection.find({'chosen_bbs' : self.sid_data.chosen_bbs}, {'filename': 1})  # Query MongoDB for filenames
         
         self.clear_screen()
 

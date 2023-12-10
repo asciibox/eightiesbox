@@ -14,7 +14,7 @@ class MessageAreaChange(AreaChange):
         db = mongo_client['bbs']
         user_level = self.sid_data.user_document['user_level']
 
-        message_areas = list(db['messageareas'].find().sort('order'))
+        message_areas = list(db['messageareas'].find({'chosen_bbs' : self.sid_data.chosen_bbs}).sort('order'))
 
         self.displayed_areas.clear()
         

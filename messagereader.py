@@ -205,7 +205,8 @@ class MessageReader :
             # Insert read message for the user in read_messages collection
             db['read_messages'].insert_one({
                 "user_id": self.util.sid_data.user_document['_id'],
-                "message_id": next_message['_id']
+                "message_id": next_message['_id'],
+                'chosen_bbs' : self.util.sid_data.chosen_bbs
             })
 
             # Display the message header

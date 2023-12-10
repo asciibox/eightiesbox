@@ -78,7 +78,7 @@ class MenuBarANSIEditor(MenuBar):
 
     def load_ansi(self):
         collection = self.mongo_client.bbs.ansifiles  # Replace with actual MongoDB database and collection
-        filenames = collection.find({}, {'filename': 1})  # Query MongoDB for filenames
+        filenames = collection.find({'chosen_bbs' : self.sid_data.chosen_bbs}, {'filename': 1})  # Query MongoDB for filenames
         
         self.clear_screen()
 
@@ -91,7 +91,7 @@ class MenuBarANSIEditor(MenuBar):
     
     def save_ansi(self):
         collection = self.mongo_client.bbs.ansifiles  # Replace with actual MongoDB database and collection
-        filenames = collection.find({}, {'filename': 1})  # Query MongoDB for filenames
+        filenames = collection.find({'chosen_bbs' : self.sid_data.chosen_bbs}, {'filename': 1})  # Query MongoDB for filenames
         
         self.clear_screen()
 
@@ -127,7 +127,7 @@ class MenuBarANSIEditor(MenuBar):
         collection = self.mongo_client.bbs.ansifiles  # Replace with the actual MongoDB database and collection
         self.current_filename = entered_filename
         # Check if the filename already exists
-        if collection.find_one({"filename": entered_filename}):
+        if collection.find_one({"filename": entered_filename, 'chosen_bbs' : self.sid_data.chosen_bbs}):
             self.goto_next_line()
             self.output("File "+entered_filename+" already exists!", 6, 0)
             self.goto_next_line()
@@ -152,12 +152,13 @@ class MenuBarANSIEditor(MenuBar):
             
             new_file_data = {
                 "filename": entered_filename,
-                "ansi_code": self.sid_data.ansi_editor.get_ansi_code_base64() if self.sid_data.ansi_editor else ""
+                "ansi_code": self.sid_data.ansi_editor.get_ansi_code_base64() if self.sid_data.ansi_editor else "",
+                'chosen_bbs' : self.sid_data.chosen_bbs
                 # Add other file details here
             }
             collection = self.mongo_client.bbs.ansifiles  # Replace with the actual MongoDB database and collection
             # Delete any existing file with the same filename
-            collection.delete_one({"filename": entered_filename})
+            collection.delete_one({"filename": entered_filename, 'chosen_bbs' : self.sid_data.chosen_bbs})
             
             collection.insert_one(new_file_data)
             
@@ -173,7 +174,7 @@ class MenuBarANSIEditor(MenuBar):
         collection = self.mongo_client.bbs.ansifiles  # Replace with the actual MongoDB database and collection
         
         # Look for the filename in the database
-        file_data = collection.find_one({"filename": entered_filename})
+        file_data = collection.find_one({"filename": entered_filename, 'chosen_bbs' : self.sid_data.chosen_bbs})
         
         self.file_data = file_data
         if file_data:
@@ -231,7 +232,7 @@ class MenuBarANSIEditor(MenuBar):
 
     def delete_ansi(self):
         collection = self.mongo_client.bbs.ansifiles  # Replace with the actual MongoDB database and collection
-        filenames = collection.find({}, {'filename': 1})  # Query MongoDB for filenames
+        filenames = collection.find({'chosen_bbs' : self.sid_data.chosen_bbs}, {'filename': 1})  # Query MongoDB for filenames
         
         self.clear_screen()
         
@@ -244,7 +245,7 @@ class MenuBarANSIEditor(MenuBar):
 
     def delete_uploaded_ansi(self):
         collection = self.mongo_client.bbs.uploads  # Replace with the actual MongoDB database and collection
-        filenames = collection.find({}, {'filename': 1})  # Query MongoDB for filenames
+        filenames = collection.find({'chosen_bbs' : self.sid_data.chosen_bbs}, {'filename': 1})  # Query MongoDB for filenames
         
         self.clear_screen()
         
@@ -267,7 +268,7 @@ class MenuBarANSIEditor(MenuBar):
 
         if file_data:
             # Delete the file from the database
-            collection.delete_one({"filename": entered_filename})
+            collection.delete_one({"filename": entered_filename, 'chosen_bbs' : self.sid_data.chosen_bbs})
             self.goto_next_line()
             self.output_wrap("File "+entered_filename+" deleted successfully!", 6, 0)
             self.goto_next_line()
@@ -290,11 +291,11 @@ class MenuBarANSIEditor(MenuBar):
         collection = self.mongo_client.bbs.ansifiles  # Replace with the actual MongoDB database and collection
 
         # Look for the filename in the database
-        file_data = collection.find_one({"filename": entered_filename})
+        file_data = collection.find_one({"filename": entered_filename, 'chosen_bbs' : self.sid_data.chosen_bbs})
 
         if file_data:
             # Delete the file from the database
-            collection.delete_one({"filename": entered_filename})
+            collection.delete_one({"filename": entered_filename, 'chosen_bbs' : self.sid_data.chosen_bbs})
             self.goto_next_line()
             self.output_wrap("File "+entered_filename+" deleted successfully!", 6, 0)
             self.goto_next_line()
@@ -322,7 +323,7 @@ class MenuBarANSIEditor(MenuBar):
 
     def import_ansi(self):
         collection = self.mongo_client.bbs.uploads_ansi  # Replace with actual MongoDB database and collection
-        filenames = collection.find({}, {'filename': 1})  # Query MongoDB for filenames
+        filenames = collection.find({'chosen_bbs' : self.sid_data.chosen_bbs}, {'filename': 1})  # Query MongoDB for filenames
         self.clear_screen()
 
         self.show_filenames(filenames)
@@ -340,7 +341,7 @@ class MenuBarANSIEditor(MenuBar):
         collection = self.mongo_client.bbs.uploads_ansi  # Replace with the actual MongoDB database and collection
         
         # Look for the filename in the database
-        file_data = collection.find_one({"filename": entered_filename})
+        file_data = collection.find_one({"filename": entered_filename, 'chosen_bbs' : self.sid_data.chosen_bbs})
 
         try:
             file_data = base64.b64decode(file_data['file_data'])

@@ -26,7 +26,7 @@ class UserPickerOnline(UserPicker):
         # Only query for online users from the MongoDB collection
         start_index = page_number * self.users_per_page
         end_index = start_index + self.users_per_page
-        query_filter = {'username': {'$in': self.online_usernames}}
+        query_filter = {'chosen_bbs': self.util.sid_data.chosen_bbs, 'username': {'$in': self.online_usernames}}
         self.users_on_page = list(self.users_collection.find(query_filter)[start_index:end_index])
         
         # Reset current_selection when switching pages
