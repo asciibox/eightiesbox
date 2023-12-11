@@ -310,7 +310,7 @@ class Utils:
         # Store the ID of the newly created BBS
         self.sid_data.chosen_bbs = new_bbs_id
         
-        self.socketio.emit('set_chosen_bbs', {'chosen_bbs': self.sid_data.chosen_bbs})
+        self.socketio.emit('set_chosen_bbs', {'chosen_bbs': str(self.sid_data.chosen_bbs)})
 
         self.usernameCallback("")
 
