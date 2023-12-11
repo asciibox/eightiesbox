@@ -12,7 +12,7 @@ class UserPicker:
         db = self.util.mongo_client['bbs']
         self.users_collection = db['users']
 
-        self.total_users = self.users_collection.count_documents({'chosen_bbs': self.sid_data.chosen_bbs})
+        self.total_users = self.users_collection.count_documents({'chosen_bbs': self.util.sid_data.chosen_bbs})
         self.total_pages = self.total_users // self.users_per_page
         if self.total_users % self.users_per_page != 0:
             self.total_pages += 1  # Add an extra page if there are remaining users
@@ -31,7 +31,7 @@ class UserPicker:
 
         start_index = page_number * self.users_per_page
         end_index = start_index + self.users_per_page
-        self.users_on_page = list(self.users_collection.find({'chosen_bbs': self.sid_data.chosen_bbs})[start_index:end_index])
+        self.users_on_page = list(self.users_collection.find({'chosen_bbs': self.util.sid_data.chosen_bbs})[start_index:end_index])
         
         # Reset current_selection when switching pages
         self.current_selection = 0
