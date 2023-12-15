@@ -71,7 +71,7 @@ class MessageEditor(ANSIEditor):
         
         
         # Ask for "To:"
-        self.output("To: ", 6, 0)
+        self.output("To (type 'All' for everybody): ", 6, 0)
         self.ask(35, self.to_input_callback)
 
     def to_input_callback(self, response):
