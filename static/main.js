@@ -80,6 +80,10 @@ var canvasColor = [];
 var secondCanvasColor = [];
 var specialKeyCharacterSet = 0;
 
+var shiftPressed = false;
+var ctrlKeyPressed = false;
+var altgrPressed = false;
+
 function initPage(dataArray) {
   // Sort the array based on minWidth for easy comparison.
   dataArray.sort((a, b) => a.minWidth - b.minWidth);
@@ -109,19 +113,32 @@ function initPage(dataArray) {
 
 function keyDownHandler(e) {
   var key = e.key;
+
+  if (e.shiftKey) {
+    shiftPressed = true;
+  }
+  if (e.ctrlKey) {
+    ctrlKeyPressed = true;
+  }
+  if (e.altKey) {
+    altgrPressed = true;
+  }
+
   handleKeyCode(key);
   e.preventDefault();
 }
 
 function keyUpHandler(e) {
-  var keyCode = e.which;
-  if (keyCode == 18) {
-    altgrPressed = false;
-  } else if (keyCode == 16) {
-    e.preventDefault();
+  var key = e.key;
+
+  if (e.shiftKey) {
     shiftPressed = false;
-  } else if (keyCode == 17) {
-    ctrlKey = false;
+  }
+  if (e.ctrlKey) {
+    ctrlKeyPressed = false;
+  }
+  if (e.altKey) {
+    altgrPressed = false;
   }
 }
 
@@ -602,7 +619,7 @@ function getCharIndex(foreground, asciiCode) {
 }
 
 function handleKeyCode(keyCode) {
-  socket.emit("input_keypress", { key: keyCode });
+  socket.emit("input_keypress", { key: keyCode, shiftPressed: shiftPressed, ctrlKeyPressed : ctrlKeyPressed, altgrPressed : altgrPressed });
 }
 
 function redrawCursor() {

@@ -78,7 +78,7 @@ class ANSIEditor(BasicANSI):
 
   
 
-    def handle_key(self, key):
+    def handle_key(self, key, key_status_array):
         random_number = random.randint(1, 100)  # Generates a random integer between 1 and 100
         # print("KEY" + str(random_number))
         if key in ['AltGraph', 'Shift', 'Dead', 'CapsLock']:
@@ -86,7 +86,11 @@ class ANSIEditor(BasicANSI):
 
         if self.check_key_by_subclass and self.check_key_by_subclass(key) == True:
             return
+        # keyStatusArray = [shiftPressed, ctrlKeyPressed, altgrPressed]
+        if (key_status_array[1]==True) and key == 'a':
+            self.color_chooser()
             
+            return
         if key == 'AltGraph':
             return
         elif key == 'ArrowDown':
@@ -536,3 +540,97 @@ class ANSIEditor(BasicANSI):
             return new_str
         # If it exceeds, you might want to handle this case, e.g., by not allowing the insert or beeping
         return current_str
+    
+    # Color picker
+    
+    def update_color_lines(self):
+        self.clear_screen()
+
+        # Center the colors by calculating the starting X position
+        # Assuming terminal width is 80 characters
+        terminal_width = self.sid_data.yHeight
+        fg_block_width = 3 * 15  # 5 characters per block, 15 colors
+        bg_block_width = 2 * 8   # 2 characters per block, 8 colors
+        fg_start_x = (terminal_width - fg_block_width) // 2
+        bg_start_x = (terminal_width - bg_block_width) // 2
+
+       # Set the cursor position for the first line (foreground colors)
+        self.sid_data.setStartX(fg_start_x)
+        self.sid_data.setStartY(1)  # Assuming the first line is at Y=1
+
+        # Output the foreground color blocks and numbers
+        for fg_color in range(15):
+            readable_fg = 0 if fg_color > 7 else 15  # Black for light backgrounds, white for dark
+            for _ in range(2):  # 2-character wide block for color
+                self.output(' ', fg_color, fg_color)
+            self.output(str(fg_color), readable_fg, fg_color)  # 1-character wide for the number
+        
+        # Move to the next line for background colors
+        self.sid_data.setStartX(bg_start_x)
+        self.sid_data.setStartY(2)  # Assuming the next line is at Y=2
+
+        # Output the background color blocks and numbers
+        for bg_color in range(8):
+            readable_fg = 15  # Use white for numbers as bg is dark
+            for _ in range(1):  # 1-character wide block for color
+                self.output(' ', bg_color, bg_color)
+            self.output(str(bg_color), readable_fg, bg_color)  # 1-character wide for the number
+
+    def color_chooser(self):
+            self.update_color_lines()
+            
+            message = "Please Select Foreground Color (0-15): "
+            self.sid_data.setStartX((self.sid_data.xWidth - len(message)) // 2)
+
+            self.sid_data.setStartY(9)
+            self.output(message, 7, 0)  # 7 for light grey, 0 for black
+            self.ask(2, self.foreground_color_callback)  # Assuming 2 characters for input
+
+    def foreground_color_callback(self, input):
+        try:
+            fg_color = int(input)
+            if 0 <= fg_color <= 15:
+                self.foregroundColor = fg_color
+                self.output("Foreground color set to " + str(fg_color), fg_color, self.backgroundColor)
+                message = "Please Select Background Color (0-7): "
+                self.sid_data.setStartX((self.sid_data.xWidth - len(message)) // 2)
+                self.sid_data.setStartY(10)
+                self.output(message, 7, 0)
+                self.ask(1, self.background_color_callback)  # Assuming 1 character for input
+            else:
+                message = "Invalid input. Please enter a number (0-15)."
+                self.sid_data.setStartX((self.sid_data.xWidth - len(message)) // 2)
+                self.sid_data.setStartY(10)
+                self.output(message, 7, 0)
+                self.color_chooser()
+        except ValueError:
+            message = "Invalid input. Please enter a number (0-15)."
+            self.sid_data.setStartX((self.sid_data.xWidth - len(message)) // 2)
+            self.sid_data.setStartY(10)
+            self.output(message, 7, 0)
+            self.color_chooser()
+
+    def background_color_callback(self, input):
+        try:
+            bg_color = int(input)
+            if 0 <= bg_color <= 7:
+                self.backgroundColor = bg_color
+                self.output("Background color set to " + str(bg_color), self.foregroundColor, bg_color)
+                # Now proceed with other tasks or loop back to color chooser
+                self.sid_data.setCurrentAction("wait_for_ansieditor")
+                self.sid_data.ansi_editor.clear_screen()
+                self.sid_data.ansi_editor.update_first_line()
+                self.sid_data.ansi_editor.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values, None)
+            else:
+                message = "Invalid input. Please enter a number (0-7)."
+                self.sid_data.setStartX((self.sid_data.xWidth - len(message)) // 2)
+                self.sid_data.setStartY(10)
+                self.output(message, 7, 0)
+                self.color_chooser()
+        except ValueError:
+            message = "Invalid input. Please enter a number (0-7)."
+            self.sid_data.setStartX((self.sid_data.xWidth - len(message)) // 2)
+            self.sid_data.setStartY(10)
+            self.output(message, 7, 0)
+            self.color_chooser()
+

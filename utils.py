@@ -1025,7 +1025,7 @@ class Utils:
     def statusinfo(self, message):
         self.emit_status_bar(message, 11, 4)
 
-    def format_filename(self, filename):
+    def format_filename(self, filename, extension):
         filename = filename.upper()
         if '.' in filename:
             name, ext = filename.split('.', 1)
@@ -1033,7 +1033,7 @@ class Utils:
             ext = ext[:3]
             return f"{name}.{ext}"
         else:
-            return filename[:8]+".MNU"
+            return filename[:8]+"."+extension
 
     def choose_bbs(self, data):
         print("choose bbs")

@@ -205,3 +205,15 @@ function setupSocketEventListeners(socket) {
     //alert("Disconnected");
   });
 }
+
+// Event listener for paste event
+document.addEventListener('paste', (event) => {
+  // Prevent the default paste action
+  event.preventDefault();
+
+  // Get the text from the clipboard
+  const clipboardData = event.clipboardData || window.clipboardData;
+  const pastedText = clipboardData.getData('Text');
+
+  alert(pastedText);
+});

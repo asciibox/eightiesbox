@@ -214,6 +214,13 @@ def handle_keypress(data):
     global sid_data
     siddata = sid_data[request.sid]
 
+    shiftPressed=data['shiftPressed']
+    ctrlKeyPressed = data['ctrlKeyPressed']
+    altgrPressed = data['altgrPressed']
+    
+    # Create an array (list in Python) with these values
+    keyStatusArray = [shiftPressed, ctrlKeyPressed, altgrPressed]
+
     key = data['key']
     if key == 'F10':
        siddata.setF10ActionHandler(F10ActionHandler(siddata.util))
@@ -421,7 +428,7 @@ def handle_keypress(data):
         siddata.menutexteditor.handle_key(data['key'])
         return
     elif (siddata.current_action == "wait_for_ansieditor"):
-        siddata.ansi_editor.handle_key(data['key'])
+        siddata.ansi_editor.handle_key(data['key'], keyStatusArray)
         return
     elif (siddata.current_action == "wait_for_uploadeditor"):
         siddata.upload_editor.handle_key(data['key'])

@@ -123,7 +123,7 @@ class MenuBarANSIEditor(MenuBar):
             self.leave_menu_bar()
             self.in_sub_menu = False
             return
-        entered_filename = self.util.format_filename(entered_filename)
+        entered_filename = self.util.format_filename(entered_filename, "ANS")
         collection = self.mongo_client.bbs.ansifiles  # Replace with the actual MongoDB database and collection
         self.current_filename = entered_filename
         # Check if the filename already exists
