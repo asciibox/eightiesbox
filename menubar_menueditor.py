@@ -181,6 +181,7 @@ class MenuBarMenuEditor(MenuBar):
         collection.insert_one(new_file_data)
 
         self.output_wrap("File saved successfully!", 6, 0)
+        
         self.sid_data.menu_box.draw_all_rows()
         self.sid_data.setCurrentAction("wait_for_menubox")
         self.in_sub_menu = False
@@ -207,7 +208,7 @@ class MenuBarMenuEditor(MenuBar):
         collection = self.mongo_client.bbs.menufiles  # Replace with the actual MongoDB database and collection
         
         # Look for the filename in the database
-        file_data = collection.find_one({"filename": entered_filename})
+        file_data = collection.find_one({"filename": entered_filename, "chosen_bbs" : self.sid_data.chosen_bbs})
         
         if file_data:
             # Clear the existing values in MenuBox
