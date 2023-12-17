@@ -611,6 +611,8 @@ class ANSIEditor(BasicANSI):
             self.color_chooser()
 
     def background_color_callback(self, input):
+        if input == '':
+            input = '0'
         try:
             bg_color = int(input)
             if 0 <= bg_color <= 7:
