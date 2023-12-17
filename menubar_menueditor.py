@@ -290,6 +290,7 @@ class MenuBarMenuEditor(MenuBar):
             self.sid_data.setCurrentAction("wait_for_menubox")
             self.in_sub_menu = False
             return
+        entered_filename = entered_filename.upper()
         collection = self.mongo_client.bbs.menufiles  # Replace with the actual MongoDB database and collection
 
         # Look for the filename in the database
