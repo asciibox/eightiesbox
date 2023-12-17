@@ -153,7 +153,7 @@ def upload_file():
     filename = data.get('filename')  # Retrieve the filename here
     chosen_bbs = data.get('chosen_bbs')
 
-    print("chosen_bbs:");
+    print("***********chosen_bbs****************:");
     print(chosen_bbs);
 
     if not base64_string or not filename or not chosen_bbs:
@@ -425,16 +425,16 @@ def handle_keypress(data):
         siddata.callback()
         return
     elif (siddata.current_action == "wait_for_menutexteditor"):
-        siddata.menutexteditor.handle_key(data['key'])
+        siddata.menutexteditor.handle_key(data['key'], [False, False, False])
         return
     elif (siddata.current_action == "wait_for_ansieditor"):
         siddata.ansi_editor.handle_key(data['key'], keyStatusArray)
         return
     elif (siddata.current_action == "wait_for_uploadeditor"):
-        siddata.upload_editor.handle_key(data['key'])
+        siddata.upload_editor.handle_key(data['key'], [False, False, False])
         return
     elif (siddata.current_action == "wait_for_editfile"):
-        siddata.edit_file.handle_key(data['key'])
+        siddata.edit_file.handle_key(data['key'], [False, False, False])
         return
     elif (siddata.current_action == "wait_for_messageeditor"):
         siddata.message_editor.handle_key(data['key'], [False, False, False])
@@ -583,6 +583,7 @@ def get_signed_url():
     object_name = request.args.get('filename')
     file_name, file_extension = os.path.splitext(object_name)
 
+    chosen_bbs = request.args.get('chosen_bbs')
     current_file_area = request.args.get('current_file_area')
 
     db = mongo_client['bbs']
@@ -604,7 +605,7 @@ def get_signed_url():
     # Append the UUID before the extension
     current_time_millis = time.time_ns() // 1_000_000
     
-    new_object_name = f"{user_id_str}/{current_file_area}_{file_name}_{current_time_millis}{file_extension}"
+    new_object_name = f"{chosen_bbs}/{user_id_str}/{current_file_area}_{file_name}_{current_time_millis}{file_extension}"
     print(new_object_name)
     file_size = request.args.get('filesize')
     
@@ -612,7 +613,7 @@ def get_signed_url():
     credentials = service_account.Credentials.from_service_account_file(
     "animated-moon-403620-a91bc66243a8.json",
     scopes=["https://www.googleapis.com/auth/iam", "https://www.googleapis.com/auth/cloud-platform"]
-)
+    )
     googleAccessId = credentials.service_account_email
     
     # The URL will be valid for 10 minutes
@@ -645,6 +646,7 @@ def get_signed_url():
 
     # Now, create the document to insert
     upload_document = {
+        "chosen_bbs" : chosen_bbs,
         "area_id" : current_file_area.split("-")[0],
         "user_id": user_id_str.split("_")[0],
         "filename": file_name+file_extension,
@@ -711,11 +713,14 @@ def check_upload_and_process():
 
 
 def check_upload_date(today, processed_bucket, file_path, processed_bucket_name, specific_document):
-    global sid_data
+    print("*CHECK_UPLOAD_DATE*")
+    chosen_bbs = request.args.get('chosen_bbs', default=None, type=str)
     status = False
     # Check if there's a directory for the current day in the "processed" bucket
     daily_directory = None
+    print("BLOBS")
     blobs = processed_bucket.list_blobs(prefix=today)
+    print("BLOBS2")
     for b in blobs:
         if b.name.startswith(today) and '/' in b.name:
             daily_directory = b.name.split('/')[0]
@@ -770,7 +775,7 @@ def check_upload_date(today, processed_bucket, file_path, processed_bucket_name,
     else:
         # If no timestamp is found, we keep the original structure
         new_file_path = f"{daily_directory}/{base_directory_name}/{original_filename}"
-
+    print("*CHECKING "+new_file_path)
     incoming_bucket = storage_client.bucket(processed_bucket_name)
     blob = incoming_bucket.blob(new_file_path)
 
@@ -794,7 +799,7 @@ def check_upload_date(today, processed_bucket, file_path, processed_bucket_name,
             "description": "",
             "path": new_file_path,
             "visible_file" : False,
-            "chosen_bbs" : sid_data.chosen_bbs
+            "chosen_bbs" : chosen_bbs
         }
         file_result = files_collection.insert_one(file_document)
         print("File document inserted:", file_result.inserted_id)
@@ -807,7 +812,7 @@ def check_upload_date(today, processed_bucket, file_path, processed_bucket_name,
             "area_id": specific_document['area_id'],
             "uploaded_by_user_id" : specific_document['user_id'],
             "description_empty": True,
-            "chosen_bbs" : sid_data.chosen_bbs
+            "chosen_bbs" : chosen_bbs
         }
         edit_result = to_be_edited_collection.insert_one(edit_document)
         print("To be edited document inserted:", edit_result.inserted_id)

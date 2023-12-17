@@ -40,7 +40,6 @@ class BasicANSI:
             self.util.sid_data.startY  = 0
             for line_index in range(0, self.max_height):
                 action_value = menu_values[line_index][0]  # Assuming 'Key' field is the character.
-                print(menu_values[line_index])
                 if menu_values is not None and menu_values[line_index] is not None:
                     security_value = int(menu_values[line_index][3]) if menu_values[line_index][3] != '' else 0
                 else:

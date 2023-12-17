@@ -322,6 +322,7 @@ class Menu(BasicANSI):
         db = self.util.mongo_client["bbs"]  # You can replace "mydatabase" with the name of your database
         collection = db["menufiles"]
 
+        filename = filename.upper()
         file_data = collection.find_one({"filename": filename, "chosen_bbs" : self.sid_data.chosen_bbs})
         
         if file_data:

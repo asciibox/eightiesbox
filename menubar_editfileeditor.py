@@ -33,10 +33,11 @@ class MenuBarEditFileEditor(MenuBar):
                 db = mongo_client['bbs']
                 
                 files_collection = db['files']
+                print ("**************************************************************************************************************************");
                 print("Looking for "+str(self.file_id)+" in files")
                 # Update the document with the _id of self.file_id with the description from self.util.sid_data.input_values
                 update_result = files_collection.update_one(
-                    {'_id': self.file_id, 'chosen_bbs' : self.sid_data.chosen_bbs},  # Query for the specific document by _id
+                    {'_id': self.file_id},  # Query for the specific document by _id
                     {'$set': {'description': self.util.sid_data.input_values}}  # Set the new description
                 )
                 
@@ -49,7 +50,7 @@ class MenuBarEditFileEditor(MenuBar):
                         print("Looking for "+str(self.file_id)+" in to_be_edited['file_id']")
                         file_id_obj = ObjectId(self.file_id)
                         # Attempt to delete the document with the given file_id
-                        delete_result = to_be_edited_collection.delete_one({'file_id': file_id_obj, 'chosen_bbs' : self.sid_data.chosen_bbs})
+                        delete_result = to_be_edited_collection.delete_one({'file_id': file_id_obj, 'chosen_bbs' : self.util.sid_data.chosen_bbs})
                         
                         # Check if the document was deleted
                         if delete_result.deleted_count == 1:

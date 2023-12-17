@@ -44,7 +44,7 @@ class MenuBox:
         # Check if we need to apply the special formatting logic
         type_field_value = self.get_value_for_field_and_row("Type", self.current_row_index)
         if field == "Data" and (type_field_value == "00" or type_field_value == "01"):
-            value = self.util.format_filename(value)
+            value = self.util.format_filename(value, 'MNU')
         #prnt("FILENAME:"+value)
 
         key_to_insert = self.fields.index(field)

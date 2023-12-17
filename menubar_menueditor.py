@@ -138,6 +138,7 @@ class MenuBarMenuEditor(MenuBar):
 
 
     def save_file(self, entered_filename):
+        entered_filename = entered_filename.upper()
         collection = self.mongo_client.bbs.menufiles  # Replace with the actual MongoDB database and collection
 
         # Delete any existing file with the same filename

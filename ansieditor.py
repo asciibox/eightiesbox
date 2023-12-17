@@ -1,4 +1,3 @@
-from menu2ansi import *
 from menubar_ansieditor import *
 from menubar_menutexteditor import *
 from menubar_messageeditor import *

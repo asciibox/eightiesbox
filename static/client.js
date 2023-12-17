@@ -1,4 +1,5 @@
 var persistentID = "";
+var chosen_bbs = 0;
 const protocol = window.location.protocol;
 var socket = io.connect(
   protocol + "//" + document.domain + ":" + location.port,
