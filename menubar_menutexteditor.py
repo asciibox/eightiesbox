@@ -93,6 +93,7 @@ class MenuBarTextEditor(MenuBarANSIEditor):
             self.leave_menu_bar()
             self.in_sub_menu = False
             return
+        entered_filename = entered_filename.upper()
         collection = self.mongo_client.bbs.uploads_ansi  # Replace with the actual MongoDB database and collection
         
         # Look for the filename in the database

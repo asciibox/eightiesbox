@@ -437,7 +437,7 @@ def handle_keypress(data):
         siddata.edit_file.handle_key(data['key'])
         return
     elif (siddata.current_action == "wait_for_messageeditor"):
-        siddata.message_editor.handle_key(data['key'])
+        siddata.message_editor.handle_key(data['key'], [False, False, False])
         return
     elif (siddata.current_action == "wait_for_input"):
         key = data['key']
