@@ -86,7 +86,7 @@ class MenuBarMenuEditor(MenuBar):
         self.sid_data.setStartX(0)
         self.sid_data.setStartY(10)  # Assuming you are asking at the 10th line
         self.output_wrap("Please enter the filename to load: ", 6,0)
-        self.ask(11, self.load_filename_callback)  # filename_callback is the function to be called once filename is entered   
+        self.ask(12, self.load_filename_callback)  # filename_callback is the function to be called once filename is entered   
     
     def save_menu(self):
         collection = self.mongo_client.bbs.menufiles  # Replace with actual MongoDB database and collection
@@ -99,7 +99,7 @@ class MenuBarMenuEditor(MenuBar):
         self.sid_data.setStartX(0)
         self.sid_data.setStartY(10)  # Assuming you are asking at the 10th line
         self.output_wrap("Please enter the filename to save: ", 6, 0)
-        self.ask(11, self.save_filename_callback)  # filename_callback is the function to be called once filename is entered
+        self.ask(12, self.save_filename_callback)  # filename_callback is the function to be called once filename is entered
 
 
     def save_filename_callback(self, entered_filename):
@@ -134,7 +134,7 @@ class MenuBarMenuEditor(MenuBar):
             # User doesn't want to overwrite, ask for a new filename
             self.goto_next_line()
             self.output_wrap("Please enter the filename to save: ", 6, 0)
-            self.ask(11, self.save_filename_callback)
+            self.ask(12, self.save_filename_callback)
 
 
     def save_file(self, entered_filename):
@@ -270,7 +270,7 @@ class MenuBarMenuEditor(MenuBar):
             self.output_wrap("File not found!", 6, 0)
             self.goto_next_line()
             self.output_wrap("Please enter the filename to load: ", 6, 0)
-            self.ask(11, self.load_filename_callback)  # load_filename_callback is the function to be called if the filename is not found
+            self.ask(12, self.load_filename_callback)  # load_filename_callback is the function to be called if the filename is not found
 
     def delete_menu(self):
         collection = self.mongo_client.bbs.menufiles  # Replace with the actual MongoDB database and collection
@@ -283,7 +283,7 @@ class MenuBarMenuEditor(MenuBar):
         self.sid_data.setStartX(0)
         self.sid_data.setStartY(10)  # Assuming you are asking at the 10th line
         self.output_wrap("Please enter the filename to delete: ", 6, 0)
-        self.ask(11, self.delete_filename_callback)  # delete_filename_callback is the function to be called once filename is entered
+        self.ask(12, self.delete_filename_callback)  # delete_filename_callback is the function to be called once filename is entered
 
 
     def delete_filename_callback(self, entered_filename):
@@ -312,7 +312,7 @@ class MenuBarMenuEditor(MenuBar):
             self.output_wrap("File not found!", 6, 0)
             self.goto_next_line()
             self.output_wrap("Please enter the filename to delete: ", 6, 0)
-            self.ask(11, self.delete_filename_callback)  # delete_filename_callback is the function to be called if the filename is not found
+            self.ask(12, self.delete_filename_callback)  # delete_filename_callback is the function to be called if the filename is not found
 
 
     def hide_menu_bar(self):

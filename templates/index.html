@@ -785,7 +785,7 @@
                 "&current_file_area=" +
                 current_file_area +
                 "&uploadID=" +
-                uploadID,
+                uploadID+"&chosen_bbs="+chosen_bbs,
               {
                 method: "GET",
               }
@@ -830,7 +830,7 @@
 
       async function checkUploadStatus(uploadID, attempts = 1) {
         try {
-          const response = await fetch("/checkUpload?uploadID=" + uploadID, {
+          const response = await fetch("/checkUpload?uploadID=" + uploadID+"&chosen_bbs="+chosen_bbs, {
             method: "GET",
           });
           const data = await response.json();

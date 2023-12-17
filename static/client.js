@@ -180,7 +180,9 @@ function setupSocketEventListeners(socket) {
       removeButtons();
       const canvasElements = document.getElementsByTagName("canvas");
       for (let i = 0; i < canvasElements.length; i++) {
+        if (canvasElements[i].className != "tracker") {
         canvasElements[i].style.display = "inline";
+        }
       }
     };
 
