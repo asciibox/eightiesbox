@@ -399,31 +399,51 @@ class Utils:
             return value  # returns the original value if index out of range in list2
 
     def launchMenuCallback(self):
-        self.create_main_menu()
+        self.create_main_menu("MAIN")
+        self.create_main_menu("FILEADMI")
+        self.create_main_menu("FILEBASE")
+        
         self.check_for_new_messsages()
 
 
-    def load_json_data(self):
-        with open("main.json", "r") as f:
-            return json.load(f)
+    def load_json_data(self, menu_name):
+        filename = menu_name.lower() + ".json"
+        print(f"Loading file: {filename}")
 
-    def create_main_menu(self):
+        if not os.path.exists(filename):
+            print(f"File not found: {filename}")
+            return {}
+
+        try:
+            with open(filename, "r") as f:
+                return json.load(f)
+        except json.JSONDecodeError as e:
+            print(f"Error parsing JSON in file {filename}: {e}")
+            return {}
+        except Exception as e:
+            print(f"Unexpected error while reading file {filename}: {e}")
+            return {}
+        
+    def create_main_menu(self, menu_name):
         num_rows = 42
         fields = ['Type', 'Data', 'Key', 'Sec', 'Flags']
         values = [["" for _ in fields] for _ in range(num_rows)]
 
-        json_data = self.load_json_data()
+        json_data = self.load_json_data(menu_name)
 
+        # Directly access the 'table' key from json_data
+        menu_json_data = json_data.get("table", [])
+    
         collection = self.mongo_client.bbs.menufiles  # Replace with the actual MongoDB database and collection
 
         # Check if file already exists
-        existing_file = collection.find_one({"filename": 'MAIN.MNU', "chosen_bbs" : self.sid_data.chosen_bbs})
+        existing_file = collection.find_one({"filename": f'{menu_name}.MNU', "chosen_bbs" : self.sid_data.chosen_bbs})
         if existing_file:
             return
 
         non_empty_values = [
-            {"y": index, "row_data": {str(fields.index(key)): value for key, value in row.items()}}
-            for index, row in enumerate(json_data["table"])
+            {"y": index, "row_data": {str(fields.index(key)): row[key] for key in fields if key in row}}
+            for index, row in enumerate(menu_json_data)
         ]
 
         # Save the new file
@@ -433,14 +453,15 @@ class Utils:
         }
 
         new_file_data = {
-            "filename": 'MAIN.MNU',
+            "filename": f'{menu_name}.MNU',
             "menu_box_data": menu_box_data,
-            "ansi_code_base64": json_data.get("ansi_data", ""),  # Assuming ansi_data is the field in your JSON
+            "ansi_code_base64": json_data.get("ansi_data", ""),
             "chosen_bbs" : self.sid_data.chosen_bbs
             # Add other file details here
         }
 
         collection.insert_one(new_file_data)
+
 
     def check_for_new_messsages(self):
         if self.get_all_unread_messages_addressed_to_user_count() > 0:

@@ -55,7 +55,7 @@
             "Key": "3",
             "Sec": "",
             "Flags": ""
-        },        
+        },
         {
             "Type": "95",
             "Data": "",
@@ -76,7 +76,14 @@
             "Key": "9",
             "Sec": "",
             "Flags": ""
+        },
+        {
+            "Type": "01",
+            "Data": "FILEBASE.MNU",
+            "Key": "F",
+            "Sec": "",
+            "Flags": ""
         }
     ],
-    "ansi_data": "G1swbRtbMTsySCAbWzE7MzdtG1s0MG0gG1syMjszN20bWzQwbVtBXSBNZXNzYWdlIGJhc2UgYXJlYSBjaGFuZ2UbWzBtG1syOzJIIBtbMjI7MzdtG1s0MG0gW1JdIFJlYWQgbWVzc2FnZXMbWzBtG1szOzJIIBtbMjI7MzdtG1s0MG0gW1ddIFdyaXRlIG1lc3NhZ2VzG1swbRtbNDsySCAbWzIyOzM3bRtbNDBtICAbWzBtG1s1OzJIIBtbMjI7MzdtG1s0MG0gWz9dIFdobyBpcyBvbmxpbmUbWzBtG1s2OzJIIBtbMjI7MzdtG1s0MG0gW0NdIENoYXQgYmV0d2VlbiBsaW5lcxtbMG0bWzg7MkggG1syMjszN20bWzQwbSBbMV0gU2V0dXAgbWVzc2FnZSBhcmVhcxtbMG0bWzk7MkggG1syMjszN20bWzQwbSBbMl0gTWVzc2FnZSBlZGl0b3IbWzBtG1sxMDsySCAbWzIyOzM3bRtbNDBtIFszXSBBTlNJIEVkaXRvchtbMG0bWzExOzJIIBtbMjI7MzdtG1s0MG0gWzRdIE1lbnUgZWRpdA=="
+    "ansi_data": "G1swbRtbMTsySCAbWzIyOzM3bRtbNDBtICAbWzE7MzdtG1s0MG0gICAgICBbQV0gTWVzc2FnZSBiYXNlIGFyZWEgY2hhbmdlG1swbRtbMjsySCAbWzE7MzdtG1s0MG0gICAgICAgIFtSXSBSZWFkIG1lc3NhZ2VzG1swbRtbMzsySCAbWzE7MzdtG1s0MG0gICAgICAgIFtXXSBXcml0ZSBtZXNzYWdlcxtbMG0bWzQ7MkggG1sxOzM3bRtbNDBtICAgICAgICAgG1swbRtbNTsySCAbWzE7MzdtG1s0MG0gICAgICAgIFs/XSBXaG8gaXMgb25saW5lG1swbRtbNjsySCAbWzIyOzM3bRtbNDBtICAbWzE7MzdtG1s0MG0gICAgICBbQ10gQ2hhdCBiZXR3ZWVuIGxpbmVzG1swbRtbODsySCAbWzE7MzdtG1s0MG0gICAgICAgIFsxXSBTZXR1cCBtZXNzYWdlIGFyZWFzG1swbRtbOTsySCAbWzE7MzdtG1s0MG0gG1syMjszN20bWzQwbSAgICAgICBbMl0gTWVzc2FnZSBlZGl0b3IbWzBtG1sxMDsySCAbWzIyOzM3bRtbNDBtICAgICAgICBbM10gQU5TSSBFZGl0b3IbWzBtG1sxMTsySCAbWzIyOzM3bRtbNDBtICAgICAgICBbNF0gTWVudSBlZGl0G1swbRtbMTM7MkggG1syMjszN20bWzQwbSAgICAgICAgWzldIE1PRCBFZGl0b3IbWzBtG1sxNDsySCAbWzIyOzM3bRtbNDBtICAgICAgICAbWzBtG1sxNTsySCAbWzIyOzM3bRtbNDBtICAgICAgICBbRl0gRmlsZSBiYXNlG1swbRtbMTY7MkggG1syMjszN20bWzQwbSAgICAgIA=="
 }

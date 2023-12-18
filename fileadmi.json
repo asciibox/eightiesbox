@@ -1,0 +1,47 @@
+{
+    "table": [
+        {
+            "Type": "26",
+            "Data": "",
+            "Key": "L",
+            "Sec": "",
+            "Flags": ""
+        },
+        {
+            "Type": "27",
+            "Data": "",
+            "Key": "D",
+            "Sec": "",
+            "Flags": ""
+        },
+        {
+            "Type": "28",
+            "Data": "",
+            "Key": "E",
+            "Sec": "",
+            "Flags": ""
+        },
+        {
+            "Type": "96",
+            "Data": "",
+            "Key": "U",
+            "Sec": "",
+            "Flags": ""
+        },
+        {
+            "Type": "01",
+            "Data": "FILEBASE.MNU",
+            "Key": "-",
+            "Sec": "",
+            "Flags": ""
+        },
+        {
+            "Type": "01",
+            "Data": "FILEADMI.MNU",
+            "Key": "$",
+            "Sec": "",
+            "Flags": ""
+        }
+    ],
+    "ansi_data": "G1swbRtbMTsySBtbMTszN20bWzQwbSBbTF0bWzIyOzM3bRtbNDBtIExpc3QbWzBtG1syOzJIG1sxOzM3bRtbNDBtIFtEXSBEb3dubG9hZBtbMG0bWzM7MkgbWzE7MzdtG1s0MG0gW0VdIEVyYXNlG1swbRtbNDsySBtbMTszN20bWzQwbSBbVV0gTW9kaWZ5G1swbRtbNTsySCAbWzE7MzdtG1s0MG0gICAgICAgICAgICAgG1swbRtbNjsySCAbWzBtG1s4OzJIIBtbMTszN20bWzQwbSAgICAgICAgICAgICAbWzBtG1s5OzJIG1syMjszN20bWzQwbSAbWzE7MzdtG1s0MG0gICAgICAgICAgICAgG1swbRtbMTA7MkggG1sxOzM3bRtbNDBtICAgICAgICAgICAgIBtbMG0bWzExOzJIIBtbMTszN20bWzQwbSAgICAgICAgICAgICAbWzBtG1sxMzsySCAbWzE7MzdtG1s0MG0gICAgICAgICAgICAgG1swbRtbMTQ7MkggG1sxOzM3bRtbNDBtICAgICAgICAgICAgIBtbMG0bWzE1OzJIIBtbMTszN20bWzQwbSAbWzIyOzM3bRtbNDBtICAgICAgICAgICAgG1swbRtbMTY7MkgbWzIyOzM3bRtbNDBtIFstXSBHbyBiYWNr"
+}
