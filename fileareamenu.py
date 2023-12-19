@@ -10,6 +10,7 @@ class FileAreaMenu(AreaMenu):
         self.areas = list(db['fileareas'].find({'chosen_bbs' : util.sid_data.chosen_bbs}))
         self.areas.sort(key=lambda x: x.get('order', 0))
         self.start()
+        self.util = util
         
     def create_new_file_area(self):
         """Prompt for the new name of the file area."""
@@ -48,7 +49,8 @@ class FileAreaMenu(AreaMenu):
         db['fileareas'].insert_one({
             'name': self.new_area_name,
             'min_level': 0,
-            'order': order
+            'order': order,
+            'chosen_bbs' :  self.util.sid_data.chosen_bbs
         })
 
         # Update self.areas to include new area
@@ -149,6 +151,7 @@ class FileAreaMenu(AreaMenu):
         # Check if '_id' key exists
         if '_id' not in self.areas[idx]:
             print("Key '_id' does not exist")
+            self.display_menu()
             return
 
         # If all checks pass, proceed
