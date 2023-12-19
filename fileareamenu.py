@@ -46,15 +46,18 @@ class FileAreaMenu(AreaMenu):
         # Insert new file area
         mongo_client = self.util.mongo_client
         db = mongo_client['bbs']
-        db['fileareas'].insert_one({
+        insert_result = db['fileareas'].insert_one({
             'name': self.new_area_name,
             'min_level': 0,
             'order': order,
             'chosen_bbs' :  self.util.sid_data.chosen_bbs
         })
 
-        # Update self.areas to include new area
-        self.areas.append({'name': self.new_area_name, 'min_level': 0, 'order': order})
+       # Extract the _id from the insert result
+        inserted_id = insert_result.inserted_id
+
+        # Update self.areas to include new area along with the _id
+        self.areas.append({'_id': inserted_id, 'name': self.new_area_name, 'min_level': 0, 'order': order})
 
         # Sort self.areas based on the order
         self.areas = sorted(self.areas, key=lambda k: k['order'])
@@ -149,6 +152,7 @@ class FileAreaMenu(AreaMenu):
             return
         
         # Check if '_id' key exists
+        print(self.areas)
         if '_id' not in self.areas[idx]:
             print("Key '_id' does not exist")
             self.display_menu()
