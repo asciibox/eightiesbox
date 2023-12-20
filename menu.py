@@ -64,12 +64,20 @@ class Menu(BasicANSI):
         if len(key) == 1:  # Check if it's a single character input
             print(key)
             for row_idx in range(self.num_rows):
-                print(self.values[row_idx])
-                if  self.values[row_idx][2].lower()==key:
-                    # Mimic switch statement for values "00" and "01"
+                # Remove text in brackets from self.values[row_idx][1]
+                modified_value = self.values[row_idx][1]
+                start_idx = modified_value.find("(")
+                end_idx = modified_value.find(")")
+                if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
+                    modified_value = modified_value.replace(modified_value[start_idx:end_idx+1], '')
+
+                print(self.values[row_idx])  # Optional: Print the original value for debugging
+
+                if self.values[row_idx][2].lower() == key:
+                    # Use modified_value instead of self.values[row_idx][1]
                     action_code = self.values[row_idx][0]
                     if action_code == "01":
-                        filename = self.values[row_idx][1]
+                        filename = modified_value
                         self.load_menu(filename)
                         return
                     elif action_code == "11":
@@ -194,7 +202,7 @@ class Menu(BasicANSI):
                         # Gosub menu
                         # Save current state to stack
                         self.append_gosub()
-                        filename = self.values[row_idx][1]
+                        filename = modified_value
                         self.load_menu(filename)
                         return
                     elif action_code == "95":        

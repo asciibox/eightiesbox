@@ -111,13 +111,7 @@ class MenuBox:
         """Draw a single row given its index."""
         
         # Calculate total width consumed by separators
-        separator_total_width = 3 * (len(self.fields) - 1)  # " | " is 3 chars wide
-
-        # Calculate the sum of the field lengths
-        total_field_length = sum(self.fields_length)
-
-        # Calculate individual field widths as a percentage of total width
-        field_widths = [(length / total_field_length) * (self.sid_data.xWidth - separator_total_width) for length in self.fields_length]
+        field_widths = self.get_field_widths()
 
         self.sid_data.setStartX(0)
         self.sid_data.setStartY(row_idx + 1)  # Assuming 1 line per row for example
@@ -125,6 +119,9 @@ class MenuBox:
         for field_idx, (field, width) in enumerate(zip(self.fields, field_widths)):
             value = self.get_value_for_field_and_row(field, row_idx)
             formatted_field = f"{value: <{int(width)}}"
+
+            # Cut formatted_field to width characters
+            formatted_field = formatted_field[:int(width)]
 
             if row_idx == self.current_row_index and field_idx == self.current_field_index:
                 self.output(formatted_field, 0, 14)  # Assuming 0 is black and 14 is yellow
@@ -184,6 +181,8 @@ class MenuBox:
         input_length = self.fields_length[field_idx]
         field_name = self.fields[field_idx]
         callback = self.create_update_callback(field_name)
+
+        field_widths = self.get_field_widths()
         
         if (field_idx == 0):            
 
@@ -201,8 +200,13 @@ class MenuBox:
                 self.draw_main_menu()
 
             self.sid_data.setCurrentAction("wait_for_layered_menu")
+        elif field_idx == 1:
+            width = min(int(field_widths[field_idx]), 100)  # max_input_length is a predefined maximum
+            self.ask(width, callback)
+            self.sid_data.setMaxScrollLength(100)
         else:
-            self.ask(input_length, callback)
+            width = min(int(field_widths[field_idx]), 100)
+            self.ask(width, callback)
 
     # Menu on top
     def main_arrow_up(self):

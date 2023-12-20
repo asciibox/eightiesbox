@@ -68,6 +68,7 @@ class SessionData:
         self.delete_file = None
         self.status_bar_paused = False
         self.bbschooser = None
+        self.max_scroll_length = 35
     
         
 
@@ -221,3 +222,6 @@ class SessionData:
 
     def setBBSChooser(self, value):
         self.bbschooser = value
+
+    def setMaxScrollLength(self, value):
+        self.max_scroll_length = value

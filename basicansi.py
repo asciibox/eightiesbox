@@ -34,24 +34,29 @@ class BasicANSI:
         self.color_bgarray = color_bgarray
         self.input_values = input_values
         
-        if self.sid_data.xWidth < 50 and menu_values != None:
+        if self.sid_data.xWidth < 50 and menu_values is not None:
             self.util.clear_screen()
             self.util.sid_data.startX  = 0
             self.util.sid_data.startY  = 0
             for line_index in range(0, self.max_height):
-                action_value = menu_values[line_index][0]  # Assuming 'Key' field is the character.
-                if menu_values is not None and menu_values[line_index] is not None:
+                if menu_values[line_index] is not None:
+                    action_value = menu_values[line_index][0]  # Assuming 'Key' field is the character.
+                    comment_value = menu_values[line_index][1]
                     security_value = int(menu_values[line_index][3]) if menu_values[line_index][3] != '' else 0
-                else:
-                    # Handle the case when menu_values[line_index] is None, perhaps defaulting security_value to 0 or some other action.
-                    security_value = 0
 
-                if len(str(action_value))==2 and security_value <=self.sid_data.user_document['user_level']:
-                    char_value = menu_values[line_index][2]  # Assuming 'Key' field is the character.
-                    self.util.output(char_value, 6, 0)
-                    self.util.output(" ", 6,0)
-                    self.display_menu_name(int(action_value[0]), int(action_value[1]), self.util.menu_structure)
-                    self.util.goto_next_line()
+                    # Check for text in brackets in the comment
+                    start_idx = comment_value.find("(")
+                    end_idx = comment_value.find(")")
+                    if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
+                        display_text = comment_value[start_idx+1:end_idx]  # Extract text within brackets
+                    else:
+                        display_text = action_value if len(str(action_value))==2 and security_value <=self.sid_data.user_document['user_level'] else ''
+
+                    if display_text:
+                        self.util.output(display_text, 6, 0)
+                        self.util.output(" ", 6, 0)
+                        self.display_menu_name(int(action_value[0]), int(action_value[1]), self.util.menu_structure)
+                        self.util.goto_next_line()
 
         else:
             for idx in range(0, self.max_height):
