@@ -78,7 +78,7 @@ class MessageEditor(ANSIEditor):
     # Assume you've connected to MongoDB and got the users_collection object
     # client = MongoClient("mongodb://localhost:27017/")
     # users_collection = client.my_database.users
-        if response == 'All':
+        if response.upper() == 'ALL':
             self.sid_data.message_data["To"] = response
             self.ask_subject()
             return
@@ -120,6 +120,9 @@ class MessageEditor(ANSIEditor):
 
         # Callback method after receiving the input for "Subject:"
         def subject_input_callback(response):
+            self.util.sid_data.setStartX(0)
+            self.util.sid_data.setStartY(3)
+            self.output("Press ESC and use cursor keys (< and >) to save", 6, 0)    
             self.sid_data.message_data["Subject"] = response
             self.util.sid_data.setStartX(0)
             self.util.sid_data.setStartY(4)
