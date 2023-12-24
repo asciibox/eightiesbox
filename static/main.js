@@ -514,12 +514,8 @@ function writeAsciiHTMLPos(ascii_codes, currentColor, backgroundColor, x, y) {
 function writeAsciiToStatusBar(ascii_codes, currentColor, backgroundColor) {
   if (typeof bglayer == "undefined") return;
   return new Promise((resolve, reject) => {
-    let y;
-    if (VISIBLE_WIDTH_CHARACTERS > 50) {
-      y = VISIBLE_HEIGHT_CHARACTERS - 1 + removedYChars;
-    } else {
-      y = VISIBLE_HEIGHT_CHARACTERS + 1 + removedYChars;
-    }
+    let y = VISIBLE_HEIGHT_CHARACTERS - 1 + removedYChars;
+   
 
     try {
       var charIndex = getCharIndex(backgroundColor, 219);

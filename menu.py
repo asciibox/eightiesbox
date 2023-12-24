@@ -330,10 +330,14 @@ class Menu(BasicANSI):
         db = self.util.mongo_client["bbs"]  # You can replace "mydatabase" with the name of your database
         collection = db["menufiles"]
 
-        filename = filename.upper()
+        filename = filename.split()[0].upper()
         file_data = collection.find_one({"filename": filename, "chosen_bbs" : self.sid_data.chosen_bbs})
-        
+        print("LOADED")
+        print(file_data)
+        print("LOADED2")
         if file_data:
+            self.values = {}  # Or initialize it to the desired default structure
+
             # Clear the existing values in MenuBox
             # self.sid_data.menu_box.values = [["" for _ in self.sid_data.menu_box.fields] for _ in range(self.sid_data.menu_box.num_rows)]
             

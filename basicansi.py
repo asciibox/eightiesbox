@@ -27,7 +27,13 @@ class BasicANSI:
         self.color_array = color_array
         self.color_bgarray = color_bgarray
         self.input_values = input_values
-        
+
+   
+       
+    def count_menu_length(self, menu_values):
+        if menu_values is None:
+            return 0
+        return len(menu_values)
 
     def display_editor(self, color_array, color_bgarray, input_values, menu_values):
         self.color_array = color_array
@@ -36,13 +42,16 @@ class BasicANSI:
         
         if self.sid_data.xWidth < 50 and menu_values is not None:
             self.util.clear_screen()
-            self.util.sid_data.startX  = 0
-            self.util.sid_data.startY  = 0
-            for line_index in range(0, len(menu_values)):
-            # Rest of your code for processing each line
+            self.util.sid_data.startX = 0
+            self.util.sid_data.startY = 0
+            print("menu_values")
+            print(menu_values)
+            for line_index in range(0, self.count_menu_length(menu_values)):
+                # Rest of your code for processing each line
 
                 if menu_values[line_index] is not None:
                     action_value = menu_values[line_index][0]  # Assuming 'Key' field is the character.
+                    key_value = menu_values[line_index][2]
                     comment_value = menu_values[line_index][1]
                     security_value = int(menu_values[line_index][3]) if menu_values[line_index][3] != '' else 0
 
@@ -50,18 +59,21 @@ class BasicANSI:
                     start_idx = comment_value.find("(")
                     end_idx = comment_value.find(")")
                     if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
-                        display_text = comment_value[start_idx+1:end_idx]  # Extract text within brackets
+                        display_text = key_value + " " + comment_value[start_idx+1:end_idx]  # Include key_value before the extracted text
                     else:
-                        display_text = action_value if len(str(action_value))==2 and security_value <=self.sid_data.user_document['user_level'] else ''
+                        display_text = key_value if len(str(action_value))==2 and security_value <= self.sid_data.user_document['user_level'] else ''
 
                     if display_text:
                         self.util.output(display_text, 6, 0)
                         self.util.output(" ", 6, 0)
-                        self.display_menu_name(int(action_value[0]), int(action_value[1]), self.util.menu_structure)
+                        # Call display_menu_name only when the condition for not showing the menu name is not met
+                        if not (start_idx != -1 and end_idx != -1 and end_idx > start_idx):
+                            self.display_menu_name(int(action_value[0]), int(action_value[1]), self.util.menu_structure)
                         self.util.goto_next_line()
 
+
         else:
-            for idx in range(0, len(menu_values)):
+            for idx in range(0, self.count_menu_length(menu_values)):
                 # Check if idx is within the range of menu_values before accessing it
                 if menu_values is not None and idx < len(menu_values) and menu_values[idx] is not None:
                     security_value = int(menu_values[idx][3]) if menu_values[idx][3] != '' else 0
@@ -73,6 +85,7 @@ class BasicANSI:
                     self.draw_line(idx)
             self.emit_gotoXY(0, 1)
 
+
     def display_menu_name(self, first_field, second_field, menu_structure):
         # Validate first_field and second_field
         menu_keys = list(menu_structure.keys())
@@ -81,6 +94,7 @@ class BasicANSI:
             return
 
         menu_name = menu_keys[first_field]
+        
         submenu = menu_structure[menu_name]
 
         second_field = second_field - 1
