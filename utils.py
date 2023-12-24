@@ -33,7 +33,7 @@ class Utils:
         self.passwordRetries = 0
         self.request_id = request_id
         self.menu_structure = menu_structure
-        
+
     def askinput(self, mylen, callback, accept_keys):
         if self.sid_data.startX + mylen >= self.sid_data.xWidth:
             self.sid_data.setStartY(self.sid_data.startY + 1)  # Move to the next line
@@ -42,6 +42,7 @@ class Utils:
         self.sid_data.setCurrentAction("wait_for_input")
         self.sid_data.setCurrentPos(0)
         self.sid_data.setMaxLength(mylen)
+        self.sid_data.setMaxScrollLength(mylen)
         self.sid_data.setLocalInput("")
         self.sid_data.setAcceptKeys(accept_keys)
         self.sid_data.setCallback(callback)
@@ -635,8 +636,12 @@ class Utils:
         if len(self.sid_data.accept_keys) > 0 and key.upper() not in self.sid_data.accept_keys:
             return 
 
-        if len(self.sid_data.localinput) >= self.sid_data.maxLength and self.sid_data.maxLength > 1:
-            return
+        if len(self.sid_data.localinput) >= self.sid_data.max_scroll_length and self.sid_data.max_scroll_length > 1:
+             return
+        
+        if self.sid_data.currentPos - self.sid_data.view_start == self.sid_data.maxLength:
+            if self.sid_data.view_start < self.sid_data.max_scroll_length:
+                self.sid_data.view_start += 1
 
         # Appending new character or updating existing one
         if self.sid_data.localinput == '':

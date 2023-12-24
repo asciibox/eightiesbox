@@ -38,7 +38,9 @@ class BasicANSI:
             self.util.clear_screen()
             self.util.sid_data.startX  = 0
             self.util.sid_data.startY  = 0
-            for line_index in range(0, self.max_height):
+            for line_index in range(0, len(menu_values)):
+            # Rest of your code for processing each line
+
                 if menu_values[line_index] is not None:
                     action_value = menu_values[line_index][0]  # Assuming 'Key' field is the character.
                     comment_value = menu_values[line_index][1]
@@ -59,7 +61,7 @@ class BasicANSI:
                         self.util.goto_next_line()
 
         else:
-            for idx in range(0, self.max_height):
+            for idx in range(0, len(menu_values)):
                 # Check if idx is within the range of menu_values before accessing it
                 if menu_values is not None and idx < len(menu_values) and menu_values[idx] is not None:
                     security_value = int(menu_values[idx][3]) if menu_values[idx][3] != '' else 0
