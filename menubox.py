@@ -43,12 +43,24 @@ class MenuBox:
         
         # Check if we need to apply the special formatting logic
         type_field_value = self.get_value_for_field_and_row("Type", self.current_row_index)
+        
         if field == "Data" and (type_field_value == "00" or type_field_value == "01"):
-            # Split the value to get the first string as filename
-            filename = value.split()[0]
-            # Format the filename and keep the rest of the value intact
+            # Ensure that value is not empty and contains spaces before splitting
+            if value and " " in value:
+                # Split the value to get the first string as filename
+                parts = value.split(maxsplit=1)
+                filename = parts[0]
+                rest_of_value = parts[1] if len(parts) > 1 else ""
+            else:
+                # Handle the case where value does not contain spaces
+                filename = value
+                rest_of_value = ""
+
+            # Format the filename
             formatted_filename = self.util.format_filename(filename, 'MNU')
-            value = formatted_filename + value[len(filename):]
+
+            # Construct the new value with the formatted filename and the rest of the original value
+            value = formatted_filename + ' ' + rest_of_value
 
         key_to_insert = self.fields.index(field)
 
@@ -63,7 +75,7 @@ class MenuBox:
 
         # Draw the row
         self.draw_row(self.current_row_index)
-        
+    
         
     def get_field_widths(self):
         separator_total_width = 3 * (len(self.fields) - 1)  # " | " is 3 chars wide
