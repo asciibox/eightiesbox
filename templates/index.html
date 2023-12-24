@@ -708,29 +708,7 @@
       }
 
       document.addEventListener("DOMContentLoaded", function () {
-        setTimeout(function () {
-          const canvasElements = document.getElementsByTagName("canvas");
-          for (let i = 0; i < canvasElements.length; i++) {
-            if (canvasElements[i].className != "tracker") {
-              canvasElements[i].addEventListener("click", function () {
-                window.open(
-                  "https://github.com/asciibox/eightiesbox",
-                  "_blank"
-                );
-              });
-              canvasElements[i].addEventListener("touchend", function () {
-                window.open(
-                  "https://github.com/asciibox/eightiesbox",
-                  "_blank"
-                );
-              });
-            } else {
-              canvasElements[i].style.display = "none";
-            }
-          }
-        }, 2000);
-
-        addClickListeners();
+       addClickListeners();
       });
 
       Dropzone.options.uploadFormFile = {

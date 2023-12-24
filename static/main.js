@@ -13,7 +13,6 @@ let LIMIT_TO_VISIBLE_WIDTH;
 let baseWidth;
 let baseHeight;
 let enableTrackerKeyboard = false;
-let copyTrackerToBBSCanvas = false;
 
 let initCalled = false;
 
@@ -302,7 +301,24 @@ function create() {
 
   socket.emit("onload", { x: TOTAL_WIDTH, y: TOTAL_HEIGHT_CHARACTERS });
 
+  
   this.input.on("pointerdown", function (pointer) {
+
+     // Check for click in the last 20px of the screen
+    if (pointer.y >= baseHeight - 32) {
+      // Action to perform when the bottom-right 20px area is clicked
+      toggleKeyboard();
+    } else {
+
+    window.open(
+      "https://github.com/asciibox/eightiesbox",
+      "_blank"
+    );
+
+    }
+
+    return;
+
     // Check if clicked within the vertical thumb
     if (
       pointer.x >= baseWidth - 5 &&

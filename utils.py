@@ -133,16 +133,19 @@ class Utils:
         
     def get_status_content(self):
         # Generate the status bar content based on pending_requests
-        status_bar = "Incoming Requests: "+str(len(self.sid_data.incoming_requests))
-        # random_number = random.randint(1, 100)  # This will add a random number between 1 and 100
-        # status_bar = str(random_number) + " - " + status_bar
-        if self.sid_data.xWidth > 50:
-            status_bar += " - Press F10 for more"
-        else:
-            status_bar += " F10"
 
-        status_bar+="   Remaining time: "+self.format_seconds_to_hh_mm_ss(self.get_remaining_time())+" F12 keyboard F1 help"
-        
+        if (self.sid_data.user_name==''):
+            status_bar = "Tap here to toggle the keyboard"
+        else:            
+            status_bar = "Incoming Requests: "+str(len(self.sid_data.incoming_requests))
+            # random_number = random.randint(1, 100)  # This will add a random number between 1 and 100
+            # status_bar = str(random_number) + " - " + status_bar
+            if self.sid_data.xWidth > 50:
+                status_bar += " - Press F10 for more"
+            else:
+                status_bar += " F10"
+
+            status_bar+="   Remaining time: "+self.format_seconds_to_hh_mm_ss(self.get_remaining_time())+" F12 keyboard F1 help"            
 
         status_content = status_bar+" "*(self.sid_data.xWidth-len(status_bar))
         return status_content

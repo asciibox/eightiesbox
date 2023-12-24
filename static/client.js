@@ -16,6 +16,22 @@ var inited = false;
 
 let drawing = false;
 
+function toggleKeyboard() {
+
+  var verticalScale;
+  if (document.getElementById("simple-keyboard").style.display == "none") {
+    document.getElementById("simple-keyboard").style.display = "inline";
+    verticalScale = (window.innerHeight - 320) / baseHeight;
+  } else {
+    document.getElementById("simple-keyboard").style.display = "none";
+    verticalScale = window.innerHeight / baseHeight;
+  }
+  if (verticalScale > 1) verticalScale = 1;
+  var canvasElement = document.querySelector("#game-container canvas");
+  canvasElement.style.height = baseHeight * verticalScale + "px";
+
+}
+
 window.addEventListener("beforeunload", function (event) {
   socket.emit("disconnect_by_window_listener", {});
 });
@@ -80,17 +96,7 @@ function setupSocketEventListeners(socket) {
   });
 
   socket.on("toggle_keyboard", () => {
-    var verticalScale;
-    if (document.getElementById("simple-keyboard").style.display == "none") {
-      document.getElementById("simple-keyboard").style.display = "inline";
-      verticalScale = (window.innerHeight - 320) / baseHeight;
-    } else {
-      document.getElementById("simple-keyboard").style.display = "none";
-      verticalScale = window.innerHeight / baseHeight;
-    }
-    if (verticalScale > 1) verticalScale = 1;
-    var canvasElement = document.querySelector("#game-container canvas");
-    canvasElement.style.height = baseHeight * verticalScale + "px";
+    toggleKeyboard();
   });
 
   socket.on("uploadFile", (data) => {
