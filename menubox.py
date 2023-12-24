@@ -184,6 +184,7 @@ class MenuBox:
         return callback
 
     def edit_field(self):
+        ''' Gets called when pressing ENTER on a menu item for editing the field '''
         field_idx = self.current_field_index
         row_idx = self.current_row_index
         start_field_idx = self.field_startX[field_idx]  # Retrieve startX from stored list
@@ -216,7 +217,7 @@ class MenuBox:
             self.sid_data.setCurrentAction("wait_for_layered_menu")
         elif field_idx == 1:
             width = min(int(field_widths[field_idx]), 100)  # max_input_length is a predefined maximum
-            self.ask(width, callback)
+            self.ask(width, callback, [], self.values[self.current_row_index][1])
             self.sid_data.setMaxScrollLength(100)
         else:
             width = min(int(field_widths[field_idx]), 100)

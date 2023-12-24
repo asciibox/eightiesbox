@@ -332,9 +332,6 @@ class Menu(BasicANSI):
 
         filename = filename.split()[0].upper()
         file_data = collection.find_one({"filename": filename, "chosen_bbs" : self.sid_data.chosen_bbs})
-        print("LOADED")
-        print(file_data)
-        print("LOADED2")
         if file_data:
             self.values = {}  # Or initialize it to the desired default structure
 

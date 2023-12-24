@@ -34,29 +34,53 @@ class Utils:
         self.request_id = request_id
         self.menu_structure = menu_structure
 
-    def askinput(self, mylen, callback, accept_keys):
+    def askinput(self, mylen, callback, accept_keys, default_value=''):
         if self.sid_data.startX + mylen >= self.sid_data.xWidth:
             self.sid_data.setStartY(self.sid_data.startY + 1)  # Move to the next line
             self.sid_data.setStartX(0)  # Reset the X coordinate for the new line
 
         self.sid_data.setCurrentAction("wait_for_input")
-        self.sid_data.setCurrentPos(0)
         self.sid_data.setMaxLength(mylen)
         self.sid_data.setMaxScrollLength(mylen)
-        self.sid_data.setLocalInput("")
         self.sid_data.setAcceptKeys(accept_keys)
         self.sid_data.setCallback(callback)
-        self.sid_data.setViewStart(0)
-        mystr = " "*(mylen)
-        self.emit_current_string(mystr, 14, 4, False, self.sid_data.startX, self.sid_data.startY)
-        self.emit_gotoXY(self.sid_data.startX, self.sid_data.startY)
+
+        # Initialize localinput with default_value
+        self.sid_data.setLocalInput(default_value)
+
+        if default_value:
+            if len(default_value) > mylen:
+                # If default_value length exceeds mylen, adjust view_start to show the end of default_value
+                self.sid_data.setViewStart(len(default_value) - mylen)
+                self.sid_data.setCurrentPos(len(default_value))
+            else:
+                # If default_value fits within mylen, show the entire default_value
+                self.sid_data.setViewStart(0)
+                self.sid_data.setCurrentPos(len(default_value))
+        else:
+            # When there is no default_value
+            self.sid_data.setViewStart(0)
+            self.sid_data.setCurrentPos(0)
+
+        # Further code for displaying the input field...
+
+        # Calculate visible string based on view_start and maxLength
+        visible_str = self.sid_data.localinput[self.sid_data.view_start:self.sid_data.view_start + mylen]
+        # Pad the visible string with spaces to fill the background
+        padded_str = visible_str.ljust(mylen)
+
+        self.emit_current_string(padded_str, 14, 4, False, self.sid_data.startX, self.sid_data.startY)
+        self.emit_gotoXY(self.sid_data.startX + (self.sid_data.currentPos - self.sid_data.view_start), self.sid_data.startY)
+
+
+
 
     def wait_with_message(self, callback):
         self.output_wrap("Press any key to continue", 6 ,0)
         self.sid_data.setCurrentAction("wait_for_any_button")
         self.sid_data.setCallback(callback)
 
-    def ask(self, mylen, callback, accept_keys = []):
+    def ask(self, mylen, callback, accept_keys = [], default_value = ''):
 
         current_timestamp = time.time()  # Current time in seconds since the epoch
         
@@ -75,7 +99,7 @@ class Utils:
         self.sid_data.last_activity_timestamp = current_timestamp
 
         self.sid_data.setInputType("text")
-        self.askinput(mylen, callback, accept_keys)
+        self.askinput(mylen, callback, accept_keys, default_value)
         
 
     def askPassword(self, mylen, callback, accept_keys = []):
@@ -661,7 +685,7 @@ class Utils:
                 self.sid_data.localinput = key
 
         # Adjust view_start if cursor is at the end of the visible region
-        if self.sid_data.currentPos - self.sid_data.view_start == self.sid_data.maxLength:
+        if self.sid_data.currentPos - self.sid_data.view_start == self.sid_data.maxLength + 1:
             self.sid_data.view_start += 1
         # Cut the visible region from the input based on viewStart and maxLength
         if (self.sid_data.maxLength > 2):
