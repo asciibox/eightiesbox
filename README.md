@@ -24,9 +24,20 @@ The login screen, reminiscent of classic Bulletin Board Systems (BBS), embodies 
 
 In original BBS systems, the input field served as a primary method of user interaction. It was crucial because it was typically the user's gateway to the system. The text-based interface relied heavily on a user's typed commands, often requiring specific syntax or commands to navigate or perform actions. This starkly contrasts with the graphical user interfaces of today's web, where mouse movements and clickable icons dominate.
 
-### To log into this BBS:
+# Welcome to the Global BBS Gateway!
 
-You get shown a list of existing BBSes, among then the Eightiesbox headquarter. uae the cursor keys to navigate around (< and > characters on the keyboard). Press ENTER to choose the selected BBS. Alternatively, create your own BBS by pressing C and then typing in the name of your new, personal BBS.
+## Explore and Connect:
+- **Navigate through a curated collection of Bulletin Board Systems (BBS)**, including the renowned Eightiesbox Headquarters and many more!
+- Use the left (`<`) and right (`>`) arrow keys on your keyboard to effortlessly browse through the list of available BBSes.
+
+## Select and Dive In:
+- Once you've highlighted your desired BBS, simply press `ENTER` to initiate your journey into the selected community.
+
+## Create Your Own Realm:
+- Feeling creative? Press `C` to embark on the exciting adventure of crafting your own BBS!
+- After pressing `C`, type in the name of your new, personal BBS and press `ENTER`. Watch as your vision comes to life!
+
+# Login
 
 ![Login screen](./docs/login_screen.jpg)
 
