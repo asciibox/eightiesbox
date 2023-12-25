@@ -28,7 +28,7 @@ In original BBS systems, the input field served as a primary method of user inte
 
 ## Explore and Connect:
 - **Navigate through a curated collection of Bulletin Board Systems (BBS)**, including the renowned Eightiesbox Headquarters and many more!
-- Use the left (`<`) and right (`>`) arrow keys on your keyboard to effortlessly browse through the list of available BBSes.
+- Use the up (`<`) and down (`>`) arrow keys on your keyboard to effortlessly browse through the list of available BBSes.
 
 ## Select and Dive In:
 - Once you've highlighted your desired BBS, simply press `ENTER` to initiate your journey into the selected community.
