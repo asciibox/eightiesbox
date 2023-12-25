@@ -26,6 +26,8 @@ In original BBS systems, the input field served as a primary method of user inte
 
 ### To log into this BBS:
 
+You get shown a list of existing BBSes, among then the Eightiesbox headquarter. uae the cursor keys to navigate around (< and > characters on the keyboard). Press ENTER to choose the selected BBS. Alternatively, create your own BBS by pressing C and then typing in the name of your new, personal BBS.
+
 ![Login screen](./docs/login_screen.jpg)
 
 Navigate to the "Please enter your name:" prompt.
