@@ -17,6 +17,7 @@ from filelist import Filelist
 from download import Download
 from editfile import EditFile
 from deletefile import Deletefile
+from watchlines import WatchLines
 
 class Menu(BasicANSI):
     def __init__(self, util, values, num_rows, callback_on_exit):
@@ -28,6 +29,11 @@ class Menu(BasicANSI):
         self.menu_stack = []  # Initialize the menu stack
 
     def who_is_online_callback_on_exit(self):
+        self.util.sid_data.setCurrentAction("wait_for_menu")
+        self.util.clear_screen()
+        self.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values, self.values)
+
+    def watch_lines_callback_on_exit(self):
         self.util.sid_data.setCurrentAction("wait_for_menu")
         self.util.clear_screen()
         self.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values, self.values)
@@ -152,6 +158,11 @@ class Menu(BasicANSI):
                         # Display online users
                         who_is_online.display_online_users()
                         return
+                    elif action_code == "56":
+                        watch_lines = WatchLines(self.util, self.watch_lines_callback_on_exit)
+                        self.sid_data.setWatchLines(watch_lines)
+                        watch_lines.watch_lines()
+                        return
                     elif action_code == "52":
                         self.append_gosub()
                         multi_line_chat = MultilineChat(self.util)
@@ -205,6 +216,7 @@ class Menu(BasicANSI):
                         filename = modified_value
                         self.load_menu(filename)
                         return
+                    
                     elif action_code == "95":        
                         # Example usage:
                         if self.sid_data.xWidth < 50:

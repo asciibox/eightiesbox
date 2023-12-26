@@ -538,7 +538,8 @@ class Utils:
     def load_menu(self):
         db = self.mongo_client["bbs"]  # You can replace "mydatabase" with the name of your database
         collection = db["menufiles"]
-    
+        print("chosenbbs")
+        print(self.sid_data.chosen_bbs)
         file_data = collection.find_one({"filename": 'MAIN.MNU', "chosen_bbs" : self.sid_data.chosen_bbs})
             
         if file_data:
@@ -582,6 +583,7 @@ class Utils:
             self.sid_data.copy_input_values=[]
         sid = self.request_id  # Get the Session ID
         self.socketio.emit('clear', {}, room=sid)
+        self.sid_data.screen_data_list = []
 
     def clear_line(self, y):
         sid = self.request_id  # Get the Session ID
@@ -625,6 +627,9 @@ class Utils:
                     'x': x,
                     'y': y
                 }, room=sid)
+
+                self.sid_data.store_screen_data(mapped_ascii_codes, currentColor, backgroundColor, blink, x, y)
+
             else:
                 self.socketio.emit('draw', {
                     'ascii_codes': ascii_codes,
@@ -634,6 +639,7 @@ class Utils:
                     'x': x,
                     'y': y
                 }, room=sid)
+                self.sid_data.store_screen_data(ascii_codes, currentColor, backgroundColor, blink, x, y)
 
         return []
 

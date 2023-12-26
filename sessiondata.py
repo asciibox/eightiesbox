@@ -69,6 +69,8 @@ class SessionData:
         self.status_bar_paused = False
         self.bbschooser = None
         self.max_scroll_length = 35
+        self.screen_data_list = []
+        self.watchlines = None
     
         
 
@@ -225,3 +227,17 @@ class SessionData:
 
     def setMaxScrollLength(self, value):
         self.max_scroll_length = value
+
+    def store_screen_data(self, ascii_codes, currentColor, backgroundColor, blink, x, y):
+        screen_data = {
+            'ascii_codes': ascii_codes,
+            'currentColor': currentColor,
+            'backgroundColor': backgroundColor,
+            'blink': blink,
+            'x': x,
+            'y': y
+        }
+        self.screen_data_list.append(screen_data)
+
+    def setWatchLines(self, watchlines):
+        self.watchlines = watchlines

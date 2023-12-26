@@ -53,7 +53,7 @@ menu_structure = {
             'File base': ['Download files', 'Upload files', 'List visible files', 'Select file area', 'Comment uploaded files', 'List invisible files [admin]', 'Download invisible files [admin]', 'Delete files [admin]'],
             'User options': ['Change password', 'Change email', 'Change interests/hobbies'],
             'Login/Logout': ['Logout', 'Show oneliners'],
-            'Multiline options': ['Users online', 'Chat between nodes', 'Add conference', 'Join conference', 'Delete conference'],
+            'Multiline options': ['Users online', 'Chat between nodes', 'Add conference', 'Join conference', 'Delete conference', 'Watch other lines'],
             'Display text': ['Display ANS / ASC', 'Display ANS / ASC and wait'],
             'BBS List': ['Long list display', 'Short list display', 'Add BBS'],
             'MOD Editor': ['Start MOD editor in textmode', 'Start MOD editor in graphic mode'],
@@ -310,6 +310,8 @@ def handle_keypress(data):
         key = data['key']
         siddata.bbschooser.handle_key(key)
         return
+    elif siddata.current_action == "wait_for_watching_escape":
+        siddata.watchlines.stop_watching()
     elif siddata.current_action == "wait_for_menu":
         key = data['key']
         siddata.menu.handle_key(key)
