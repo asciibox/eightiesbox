@@ -577,13 +577,23 @@ class Utils:
         self.sid_data.setCursorY(y)
 
     def clear_screen(self):
-        if self.sid_data.copy_action == True:
-            self.sid_data.copy_color_bgarray=[]
-            self.sid_data.copy_color_array=[]
-            self.sid_data.copy_input_values=[]
+        if self.sid_data.copy_action:
+            self.sid_data.copy_color_bgarray = []
+            self.sid_data.copy_color_array = []
+            self.sid_data.copy_input_values = []
+
         sid = self.request_id  # Get the Session ID
+
+        # Emit the original clear command
         self.socketio.emit('clear', {}, room=sid)
+
+        # Reset the screen data list
         self.sid_data.screen_data_list = []
+
+        # Store a clear command in screen data
+        self.sid_data.store_screen_data(command='clear')
+
+
 
     def clear_line(self, y):
         sid = self.request_id  # Get the Session ID

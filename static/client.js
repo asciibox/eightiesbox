@@ -59,13 +59,18 @@ function setupSocketEventListeners(socket) {
   });
 
   socket.on("draw", async (data) => {
-    await writeAsciiHTMLPos(
-      data.ascii_codes,
-      data.currentColor,
-      data.backgroundColor,
-      data.x,
-      data.y
-    );
+    if (data.command && data.command === 'clear') {
+      clearScreen();
+    } else {
+      // Handle normal drawing operations
+      await writeAsciiHTMLPos(
+        data.ascii_codes,
+        data.currentColor,
+        data.backgroundColor,
+        data.x,
+        data.y
+      );
+    }
   });
 
   socket.on("draw_to_status_bar", async (data) => {

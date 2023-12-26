@@ -228,14 +228,15 @@ class SessionData:
     def setMaxScrollLength(self, value):
         self.max_scroll_length = value
 
-    def store_screen_data(self, ascii_codes, currentColor, backgroundColor, blink, x, y):
+    def store_screen_data(self, ascii_codes=None, currentColor=None, backgroundColor=None, blink=None, x=None, y=None, command=None):
         screen_data = {
             'ascii_codes': ascii_codes,
             'currentColor': currentColor,
             'backgroundColor': backgroundColor,
             'blink': blink,
             'x': x,
-            'y': y
+            'y': y,
+            'command': command  # New field to handle special commands like 'clear'
         }
         self.screen_data_list.append(screen_data)
 
