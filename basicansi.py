@@ -39,6 +39,7 @@ class BasicANSI:
         self.color_array = color_array
         self.color_bgarray = color_bgarray
         self.input_values = input_values
+        print(menu_values)
         
         if self.sid_data.xWidth < 50 and menu_values is not None:
             self.util.clear_screen()
@@ -73,7 +74,7 @@ class BasicANSI:
 
 
         else:
-            for idx in range(0, self.count_menu_length(menu_values)):
+            for idx in range(0, self.max_height):
                 # Check if idx is within the range of menu_values before accessing it
                 if menu_values is not None and idx < len(menu_values) and menu_values[idx] is not None:
                     security_value = int(menu_values[idx][3]) if menu_values[idx][3] != '' else 0
