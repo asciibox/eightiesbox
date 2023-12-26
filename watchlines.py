@@ -66,21 +66,25 @@ class WatchLines:
 
     def start_watching(self, chosen_sid):
         self.util.sid_data.setCurrentAction("wait_for_watching_escape")
+        self.util.sid_data.last_emitted_index = -1
         self.util.clear_screen()
         self.is_watching = True
         self.watch_thread = threading.Thread(target=self.update_screen, args=(chosen_sid,))
         self.watch_thread.start()
 
     def update_screen(self, chosen_sid):
-        last_emitted_index = -1
         while self.is_watching:
             chosen_sid_data = self.util.all_sid_data.get(chosen_sid, None)
             if chosen_sid_data:
+                if self.util.sid_data.clear_command_issued:
+                    self.util.sid_data.last_emitted_index = -1
+                    self.util.sid_data.clear_command_issued = False
+
                 for i, screen_data in enumerate(chosen_sid_data.screen_data_list):
-                    if i > last_emitted_index:
+                    if i > self.util.sid_data.last_emitted_index:
                         self.util.socketio.emit('draw', screen_data, room=self.util.request_id)
-                        last_emitted_index = i
-            time.sleep(1)
+                        self.util.sid_data.last_emitted_index = i
+            time.sleep(0.25)
 
     def stop_watching(self):
         self.is_watching = False

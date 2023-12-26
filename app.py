@@ -311,7 +311,9 @@ def handle_keypress(data):
         siddata.bbschooser.handle_key(key)
         return
     elif siddata.current_action == "wait_for_watching_escape":
-        siddata.watchlines.stop_watching()
+        key = data['key']
+        if key == 'Escape':
+            siddata.watchlines.stop_watching()
     elif siddata.current_action == "wait_for_menu":
         key = data['key']
         siddata.menu.handle_key(key)

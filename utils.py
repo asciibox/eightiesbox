@@ -587,12 +587,11 @@ class Utils:
         # Emit the original clear command
         self.socketio.emit('clear', {}, room=sid)
 
-        # Reset the screen data list
-        self.sid_data.screen_data_list = []
+        # Set the clear command flag
+        self.sid_data.clear_command_issued = True
 
         # Store a clear command in screen data
         self.sid_data.store_screen_data(command='clear')
-
 
 
     def clear_line(self, y):
@@ -637,10 +636,11 @@ class Utils:
                     'x': x,
                     'y': y
                 }, room=sid)
-
+                print(mapped_ascii_codes)
                 self.sid_data.store_screen_data(mapped_ascii_codes, currentColor, backgroundColor, blink, x, y)
 
             else:
+                print(ascii_codes)
                 self.socketio.emit('draw', {
                     'ascii_codes': ascii_codes,
                     'currentColor': currentColor,
