@@ -2,18 +2,6 @@
 
 ![Vector image of a cosmic BBS world. Planets are shaped like vintage modems, orbiting around a central terminal sun displaying an ASCII menu. Shooting stars symbolize data transfer protocols like xmodem, ymodem, and zmodem. On one of the planets, a concert is happening where music is played from mod files, visualized as colorful waves. Floating mail envelopes connected by beams of light indicate the fido network. The space is filled with a file listing, illuminated with ANSI colors.](./docs/eightiesbox.jpeg)
 
-## Introduction
-
-Ladies and gentlemen, step right up and gather 'round! Are you tired of big corporations treating your personal data like a commodity, trading it as if it's just another product on the shelf? Do you ever wonder where your data ends up, who's looking at it, or how it's being used? Well, fret no more!
-
-Today, I introduce to you a revolutionary solution - a return to the golden era of Bulletin Board Systems (BBS)! Picture this: a network of independently operated BBS, each a fortress of privacy, where your data is treated with the respect it deserves. Unlike the giants of the internet who see your information as a means to an end, BBS owners are custodians of confidentiality, guardians of your digital persona.
-
-Imagine a world where you're not just a number in a database but a valued member of a close-knit digital community. Each BBS, a unique haven, offering not just privacy but a sense of belonging and a touch of nostalgia. With BBS, you're not just another user; you're part of a family where your data is as safe as a secret kept between the closest of friends.
-
-So, I ask you, are you content with being just another data point in the vast sea of the internet? Or do you yearn for a place where your digital self is safeguarded with the utmost care? The choice is clear. Embrace the future by revisiting the past. Join the BBS revolution and take control of your data once more!
-
-Step into a world where privacy isn't just a policy, it's a promise. A world of Bulletin Board Systems awaits!
-
 ## Overview
 
 EightiesBox is an ASCII/ANSI-based web platform that mimics the vintage mailbox BBSes from the 1980s. Utilizing a JavaScript frontend powered by Phaser, a 2D game engine that employs WebGL for speedy performance, EightiesBox offers a nostalgic interface for modern web browsers.
@@ -55,7 +43,6 @@ Oneliners, though simple in concept, were the heartbeat of many BBS systems. The
 To add an oneliner to this BBS:
 
 At the prompt "Do you want to add a new oneliner? (Y/N)", type 'Y' for Yes.
-Press the ENTER key.
 You'll likely be presented with a new prompt or a blank line awaiting your input.
 Type in your oneliner - remember to keep it concise!
 Press the ENTER key to post your oneliner to the board.

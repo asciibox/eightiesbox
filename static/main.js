@@ -311,7 +311,7 @@ function create() {
     } else {
 
     window.open(
-      "https://github.com/asciibox/eightiesbox",
+      "https://documentation.eightiesbox.com/index.html",
       "_blank"
     );
 
