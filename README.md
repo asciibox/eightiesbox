@@ -165,7 +165,7 @@ On Linux Python is pre-installed, on Windows you must make sure to download the 
 2. Install the required Python packages:
 
 ```bash
-pip install ochre flask pymongo flask_socketio bcrypt google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client google-cloud-storage google-cloud-pubsub
+pip install ochre flask pymongo flask_socketio bcrypt google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client google-cloud-storage google-cloud-pubsub email_validator
 ```
 
 (Install any other missing packages as needed.)
@@ -273,7 +273,7 @@ python app.py
 
 Open the page using http://localhost:5000
 
-Make sure to have downloaded the json file from Google Clous Storage with an account:
+Make sure to have downloaded the json file from Google Cloud Storage with an account:
 
 1. Go to the Google Cloud Console:
 
