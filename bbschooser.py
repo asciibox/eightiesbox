@@ -9,7 +9,7 @@ class BBSChooser(BasicANSI):
         self.util = util
         self.util.sid_data.setCurrentAction('wait_for_bbschooser')
         self.current_page = 0
-        self.bbs_per_page = self.util.sid_data.yHeight - 9  # Adjust for frame and page indicator
+        self.bbs_per_page = self.util.sid_data.yHeight - 11  # Adjust for frame and page indicator
         self.current_selection = 0  # The currently selected BBS index on the page
 
         db = self.util.mongo_client['bbs']
@@ -46,7 +46,7 @@ class BBSChooser(BasicANSI):
         self.util.output("+", 11, 4)
 
         # Draw vertical lines
-        for y in range(1, self.sid_data.yHeight - 4):
+        for y in range(1, self.sid_data.yHeight - 6):
             self.sid_data.startX = 0
             self.sid_data.startY = y
             self.util.output("|", 11, 4)
@@ -55,7 +55,7 @@ class BBSChooser(BasicANSI):
 
         # Start with the bottom-left corner
         self.sid_data.startX = 0
-        self.sid_data.startY = self.sid_data.yHeight - 4
+        self.sid_data.startY = self.sid_data.yHeight - 6
             
         self.util.output("+", 11, 4)
 
@@ -69,6 +69,10 @@ class BBSChooser(BasicANSI):
         self.sid_data.startX = 2
         self.sid_data.startY = 2
         self.util.output("Press C to create a new BBS", 6, 0)
+
+        self.sid_data.startX = 2
+        self.sid_data.startY = self.sid_data.yHeight - 4
+        self.util.output("Impressum: Oliver Bachmann, Luisenstr. 34, 76137 Karlsruhe, Germany", 6, 0)
 
 
   

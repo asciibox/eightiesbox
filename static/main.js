@@ -15,6 +15,7 @@ let baseHeight;
 let enableTrackerKeyboard = false;
 
 let initCalled = false;
+let popupOpened = false;
 
 function updateSizes(x, y) {
   TOTAL_WIDTH = x;
@@ -310,10 +311,16 @@ function create() {
       toggleKeyboard();
     } else {
 
-    window.open(
-      "https://documentation.eightiesbox.com/index.html",
-      "_blank"
-    );
+      if (popupOpened == false) {
+
+      window.open(
+        "https://documentation.eightiesbox.com/index.html",
+        "_blank"
+      );
+
+      popupOpened = true;
+
+      }
 
     }
 
