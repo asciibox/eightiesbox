@@ -681,45 +681,59 @@ class Utils:
     def keydown(self, key):
         # Ensure key is in the accepted keys
         if key.upper() not in self.sid_data.accept_keys and len(self.sid_data.accept_keys) > 0:
-            return 
-
-        # Handling insert mode
-        if self.sid_data.insert:
-            # In insert mode, insert the character without overwriting, respecting max_scroll_length
-            if len(self.sid_data.localinput) < self.sid_data.max_scroll_length:
-                # Insert the character at the current position
-                self.sid_data.localinput = (self.sid_data.localinput[:self.sid_data.currentPos] + 
-                                            key + 
-                                            self.sid_data.localinput[self.sid_data.currentPos:])
-                self.sid_data.currentPos += 1
+            return
+        
+        if self.sid_data.maxLength == 1:
+            # If key is a valid character, update the input and adjust cursor position
+            if key.isprintable():
+                self.sid_data.localinput = key  # Replace any existing input with the new key
+                self.sid_data.currentPos = 1  # Set current position to 1 as the field is now occupied
+            elif key == 'Backspace':  # Assuming you have a way to handle backspaces
+                self.sid_data.localinput = ''  # Clear the input
+                self.sid_data.currentPos = 0  # Reset current position
+            # Update display based on the current state of localinput
+            visible_str = self.sid_data.localinput if self.sid_data.localinput else ' '  # Show cursor if input is empty
+            self.emit_current_string(visible_str, 14, 4, False, self.sid_data.startX, self.sid_data.startY)
+            self.emit_gotoXY(self.sid_data.startX+1, self.sid_data.startY)  # Cursor always returns to start position
         else:
-            # Overwrite mode
-            if self.sid_data.currentPos < self.sid_data.max_scroll_length:
-                # Replace character at current position or append at the end
-                self.sid_data.localinput = (self.sid_data.localinput[:self.sid_data.currentPos] + 
-                                            key + 
-                                            self.sid_data.localinput[self.sid_data.currentPos + 1:])
-                self.sid_data.currentPos += 1
 
-        # Update view_start based on max_scroll_length and maxLength
-        if self.sid_data.currentPos > self.sid_data.maxLength - 1:
-            self.sid_data.view_start = self.sid_data.currentPos - self.sid_data.maxLength + 1
+            # Handling insert mode
+            if self.sid_data.insert:
+                # In insert mode, insert the character without overwriting, respecting max_scroll_length
+                if len(self.sid_data.localinput) < self.sid_data.max_scroll_length:
+                    # Insert the character at the current position
+                    self.sid_data.localinput = (self.sid_data.localinput[:self.sid_data.currentPos] + 
+                                                key + 
+                                                self.sid_data.localinput[self.sid_data.currentPos:])
+                    self.sid_data.currentPos += 1
+            else:
+                # Overwrite mode
+                if self.sid_data.currentPos < self.sid_data.max_scroll_length:
+                    # Replace character at current position or append at the end
+                    self.sid_data.localinput = (self.sid_data.localinput[:self.sid_data.currentPos] + 
+                                                key + 
+                                                self.sid_data.localinput[self.sid_data.currentPos + 1:])
+                    self.sid_data.currentPos += 1
 
-        # Ensure view_start does not exceed the limit
-        self.sid_data.view_start = min(self.sid_data.view_start, self.sid_data.max_scroll_length - self.sid_data.maxLength)
+            # Update view_start based on max_scroll_length and maxLength
+            if self.sid_data.currentPos > self.sid_data.maxLength - 1:
+                self.sid_data.view_start = self.sid_data.currentPos - self.sid_data.maxLength + 1
 
-        # Cut the visible region from the input based on view_start and maxLength
-        visible_str = self.sid_data.localinput[self.sid_data.view_start:self.sid_data.view_start + self.sid_data.maxLength]
-        myoutput = visible_str if self.sid_data.inputType != 'password' else '*' * len(visible_str)
+            # Ensure view_start does not exceed the limit
+            self.sid_data.view_start = min(self.sid_data.view_start, self.sid_data.max_scroll_length - self.sid_data.maxLength)
 
-        # Emit the current string and set the cursor position
-        self.emit_current_string(myoutput, 14, 4, False, self.sid_data.startX, self.sid_data.startY)
+            # Cut the visible region from the input based on view_start and maxLength
+            visible_str = self.sid_data.localinput[self.sid_data.view_start:self.sid_data.view_start + self.sid_data.maxLength]
+            myoutput = visible_str if self.sid_data.inputType != 'password' else '*' * len(visible_str)
 
-        # Adjust cursorX based on viewStart and current position
-        adjusted_cursor_position = self.sid_data.currentPos - self.sid_data.view_start
-        adjusted_cursor_position = min(adjusted_cursor_position, self.sid_data.maxLength - 1)
-        self.sid_data.setCursorX(self.sid_data.startX + adjusted_cursor_position)
-        self.emit_gotoXY(self.sid_data.cursorX, self.sid_data.cursorY)
+            # Emit the current string and set the cursor position
+            self.emit_current_string(myoutput, 14, 4, False, self.sid_data.startX, self.sid_data.startY)
+
+            # Adjust cursorX based on viewStart and current position
+            adjusted_cursor_position = self.sid_data.currentPos - self.sid_data.view_start
+            adjusted_cursor_position = min(adjusted_cursor_position, self.sid_data.maxLength - 1)
+            self.sid_data.setCursorX(self.sid_data.startX + adjusted_cursor_position)
+            self.emit_gotoXY(self.sid_data.cursorX, self.sid_data.cursorY)
 
 
 

@@ -47,6 +47,7 @@ class WatchLines:
         all_sid_data_list = list(self.util.all_sid_data.items())  # Convert dict_items to a list
         if line_index < 0 or line_index >= len(all_sid_data_list):
             self.util.output("Invalid line number. Please try again.", 6, 0)
+            self.util.goto_next_line()
             self.util.output_wrap('Which line do you want to watch?', 6, 0)
             self.util.ask(3, self.watch_callback)
             return

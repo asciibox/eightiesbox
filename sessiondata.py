@@ -71,6 +71,8 @@ class SessionData:
         self.max_scroll_length = 35
         self.screen_data_list = []
         self.watchlines = None
+        self.last_emitted_index = -1
+        self.clear_command_issued = False
     
         
 

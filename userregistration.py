@@ -1,4 +1,4 @@
-
+from email_validator import validate_email, EmailNotValidError
 from utils import *
 from sessiondata import *
 from oneliners import *
@@ -107,6 +107,19 @@ class UserRegistration:
             self.output_wrap("Please enter your email address: ", 6, 0)
             self.ask(35, self.email_callback)
             return
+        
+        try:
+            # Validate the email and get the normalized email
+            valid_email = validate_email(input, check_deliverability=False).email
+        except EmailNotValidError as e:
+            # If the email is invalid, show the error message and ask again
+            self.goto_next_line()
+            self.output_wrap(str(e), 6, 0)
+            self.goto_next_line()
+            self.output_wrap("Please enter your email address: ", 6, 0)
+            self.ask(35, self.email_callback)
+            return
+        
         db = self.mongo_client['bbs']
         users_collection = db['users']
 
