@@ -257,23 +257,46 @@ class MessageReader :
             else:
                 self.display_unread_messages_addressed_to_user()
 
+    def word_wrap_line(self, line, max_width):
+        if len(line) <= max_width:
+            return [line]  # If the line is within the width, return it as is
+
+        wrapped_lines = []
+        words = line.split(' ')
+        current_line = ""
+
+        for word in words:
+            if len(current_line) + len(word) + 1 <= max_width:
+                current_line += (word + ' ')
+            else:
+                if current_line:
+                    wrapped_lines.append(current_line)
+                current_line = word + ' '
+
+        # Add the last line if it's not empty
+        if current_line:
+            wrapped_lines.append(current_line)
+
+        return wrapped_lines
+
     def display_message_content(self):
-        yHeight_limit = self.util.sid_data.yHeight - 3  # Define a limit, adjust based on your needs
+        yHeight_limit = self.util.sid_data.yHeight - 3
 
         for i in range(self.current_message_line_index, len(self.current_message_content_lines)):
-            line = self.current_message_content_lines[i]
+            original_line = self.current_message_content_lines[i]
+            wrapped_lines = self.word_wrap_line(original_line, self.util.sid_data.xWidth)
 
-            # Check if you're at the end of the screen
-            if self.util.sid_data.startY >= yHeight_limit:
-                self.current_message_line_index = i  # Save current index
-                self.util.output_wrap("Press any key for next page...", 7, 0)
-                self.util.wait_with_message(self.continue_displaying_message)
-                return  # Exit the loop and wait for user action
+            for line in wrapped_lines:
+                # Check if you're at the end of the screen
+                if self.util.sid_data.startY >= yHeight_limit:
+                    self.current_message_line_index = i
+                    self.util.output_wrap("Press any key for next page...", 7, 0)
+                    self.util.wait_with_message(self.continue_displaying_message)
+                    return
 
-            self.util.output(line, 7, 0)
-            self.util.goto_next_line()
+                self.util.output(line, 7, 0)
+                self.util.goto_next_line()
 
-        # Display prompt only after the entire message has been read
         self.show_next_message_prompt()
 
     def continue_displaying_message(self):
