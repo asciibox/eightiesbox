@@ -45,7 +45,6 @@ class MessageEditor(ANSIEditor):
             self.current_line_index = 3  # For navigating vertically among characters
             self.current_line_x = 0
 
-            print("DISPLY EDITOR FINISHED")
             for idx in range(3, self.max_height):
                 self.draw_line(idx)
             self.emit_gotoXY(0, 4)

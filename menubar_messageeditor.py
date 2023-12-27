@@ -15,7 +15,11 @@ class MenuBarMessageEditor(MenuBarANSIEditor):
         # Add ANSI-specific methods here if needed
     def leave_menu_bar(self):
         self.sid_data.setCurrentAction("wait_for_messageeditor")
-        self.clear_text()
+        self.util.clear_screen()
+
+        # Optionally, redraw the editor to reflect these changes on the screen
+        self.sid_data.message_editor.display_editor()
+
 
     def choose_field(self):
         if self.in_sub_menu:
@@ -50,9 +54,15 @@ class MenuBarMessageEditor(MenuBarANSIEditor):
 
         # Clear the background color array
         self.sid_data.color_bgarray = []
+        
+        self.util.clear_screen()
+
+        self.sid_data.message_editor.set_text_values([], [], [],[])
 
         # Optionally, redraw the editor to reflect these changes on the screen
-        self.sid_data.message_editor.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values)
+        self.sid_data.message_editor.display_editor()
+
+        self.leave_menu_bar()
 
     def send_message(self):
 
