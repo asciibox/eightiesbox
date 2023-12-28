@@ -630,16 +630,16 @@
           default: [
             "^ 1 2 3 4 5 6 7 8 9 0 - = {bksp}",
             "{tab} q w e r t y u i o p ] [ \\",
-            "{lock} a s d f g h j k l : ' {enter}",
-            "{shift} z x c v b n m , . / {shift}",
-            "{escape} @ {space}",
+            "{lock} a s d f g h j k l {arrowup} ' {enter}",
+            "{shift} z x c v b n m {arrowleft} {arrowright} . {shift}",
+            "{escape} @ {arrowdown} {space}",
           ],
           shift: [
-            "~ ! @ # $ % ^ & * ( ) _ + {bksp}",
+            "~ ! @ # $ % ; & * ( ) _ + {bksp}",
             "{tab} Q W E R T Y U I O P { } |",
             '{lock} A S D F G H J K L : " {enter}',
-            "{shift} Z X C V B N M < > ? {shift}",
-            "{escape} @ {space}",
+            "{shift} Z X C V B N M , / ? {shift}",
+            "< > {escape} @ {space}",
           ],
         },
         onKeyPress: (button) => onKeyPress(button),
@@ -654,8 +654,10 @@
           "{enter}": "Enter",
           "{space}": " ",
           "{escape}": "Escape",
-          ">": "ArrowDown",
-          "<": "ArrowUp",
+          "{arrowdown}": "ArrowDown",
+          "{arrowup}": "ArrowUp",
+          "{arrowleft}": "ArrowLeft",
+          "{arrowright}": "ArrowRight",
         };
         var readableButton = buttonMap[button] || button;
         handleKeyCode(readableButton);
