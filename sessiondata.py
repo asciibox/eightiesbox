@@ -73,6 +73,7 @@ class SessionData:
         self.watchlines = None
         self.last_emitted_index = -1
         self.clear_command_issued = False
+        self.group_editor = None
     
         
 
@@ -244,3 +245,6 @@ class SessionData:
 
     def setWatchLines(self, watchlines):
         self.watchlines = watchlines
+
+    def setGroupEditor(self, value):
+        self.group_editor = value

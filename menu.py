@@ -18,6 +18,7 @@ from download import Download
 from editfile import EditFile
 from deletefile import Deletefile
 from watchlines import WatchLines
+from groupeditor import GroupEditor
 
 class Menu(BasicANSI):
     def __init__(self, util, values, num_rows, callback_on_exit):
@@ -39,6 +40,11 @@ class Menu(BasicANSI):
         self.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values, self.values)
 
     def message_menu_callback_on_exit(self):
+        self.util.sid_data.setCurrentAction("wait_for_menu")
+        self.util.clear_screen()
+        self.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values, self.values)
+
+    def group_editor_callback_on_exit(self):
         self.util.sid_data.setCurrentAction("wait_for_menu")
         self.util.clear_screen()
         self.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values, self.values)
@@ -208,6 +214,13 @@ class Menu(BasicANSI):
                             self.sid_data.color_array = []
                             self.sid_data.color_bgarray = []
                             self.sid_data.ansi_editor.start()
+                        return
+                    elif action_code == "98":
+                        # Gosub menu
+                        # Save current state to stack
+                        self.append_gosub()
+                        self.sid_data.setGroupEditor(GroupEditor(self.util, self.group_editor_callback_on_exit))
+                        self.sid_data.group_editor.display_menu()
                         return
                     elif action_code == "02":
                         # Gosub menu

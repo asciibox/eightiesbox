@@ -17,8 +17,8 @@ class MenuBox:
         self.in_sub_menu = False  # Flag to determine if in sub-menu
         self.current_row_index = 0  # To keep track of the current row
         self.current_field_index = 0  # To keep track of the field within a row
-        self.fields = ['Type', 'Data', 'Key', 'Sec', 'Flags']
-        self.fields_length = [3, 20, 4, 6, 36]
+        self.fields = ['Type', 'Data', 'Key', 'Sec', 'Groups', 'HideOnSec']
+        self.fields_length = [3, 20, 4, 6, 36, 3]
 
         self.mongo_client = util.mongo_client
         self.goto_next_line = util.goto_next_line

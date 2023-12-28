@@ -57,7 +57,7 @@ menu_structure = {
             'Display text': ['Display ANS / ASC', 'Display ANS / ASC and wait'],
             'BBS List': ['Long list display', 'Short list display', 'Add BBS'],
             'MOD Editor': ['Start MOD editor in textmode', 'Start MOD editor in graphic mode'],
-            'Administration': ['Setup message areas', 'Setup file base', 'User editor', 'ANSI Editor', 'Menu editor', 'Edit uploaded files', 'Delete file']
+            'Administration': ['Setup message areas', 'Setup file base', 'User editor', 'ANSI Editor', 'Menu editor', 'Edit uploaded files', 'Delete file', 'Group editor']
         }
 
 
