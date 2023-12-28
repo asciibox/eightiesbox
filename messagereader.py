@@ -158,6 +158,13 @@ class MessageReader :
             self.util.output_wrap(f"Subject: {next_message['subject']}", 7, 0)
             self.util.goto_next_line()
 
+            # Display the timestamp
+            timestamp = next_message.get('timestamp')
+            if timestamp:
+                self.util.output(f"Date: {timestamp}", 7, 0)
+            else:
+                self.util.output("Date: Timestamp not available", 7, 0)
+
             # Set up the content lines and index
             self.current_message_content_lines = next_message['content'].split('\n')
             self.current_message_line_index = 0
@@ -219,6 +226,13 @@ class MessageReader :
             self.util.goto_next_line()
             self.util.output_wrap(f"Subject: {next_message['subject']}", 7, 0)
             self.util.goto_next_line()
+
+            # Display the timestamp
+            timestamp = next_message.get('timestamp')
+            if timestamp:
+                self.util.output(f"Date: {timestamp}", 7, 0)
+            else:
+                self.util.output("Date: Timestamp not available", 7, 0)
 
             # Display the message content
             self.current_message_content_lines = next_message['content'].split('\n')

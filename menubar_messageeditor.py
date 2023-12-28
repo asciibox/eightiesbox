@@ -1,3 +1,4 @@
+from datetime import datetime
 from pymongo import MongoClient
 from menubar import MenuBar
 from menubar_ansieditor import MenuBarANSIEditor
@@ -83,12 +84,13 @@ class MenuBarMessageEditor(MenuBarANSIEditor):
 
         # Prepare the message data
         message_data = {
-            "from": self.sid_data.user_name,  # Replace with the actual sender's user ID or name
-            "to": self.sid_data.message_data['To'],  # Replace with the actual recipient's user ID or name
-            "subject": self.sid_data.message_data['Subject'],  # Replace with the actual recipient's user ID or name
-            "area": current_area['name'],  # Message area
-            "area_id" : current_area['_id'],
-            "content": message_content,
+            "from": self.sid_data.user_name,  # Existing sender's user ID or name
+            "to": self.sid_data.message_data['To'],  # Existing recipient's user ID or name
+            "subject": self.sid_data.message_data['Subject'],  # Existing subject
+            "area": current_area['name'],  # Existing message area
+            "area_id": current_area['_id'],  # Existing area ID
+            "content": message_content,  # Existing message content
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # Current date and time
         }
 
         # Insert the message into the MongoDB database
