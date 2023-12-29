@@ -54,7 +54,7 @@ menu_structure = {
             'User options': ['Change password', 'Change email', 'Change interests/hobbies'],
             'Login/Logout': ['Logout', 'Show oneliners'],
             'Multiline options': ['Users online', 'Chat between nodes', 'Add conference', 'Join conference', 'Delete conference', 'Watch other lines'],
-            'Display text': ['Display ANS / ASC', 'Display ANS / ASC and wait'],
+            'Display text': ['Display ANS / ASC', 'Display ANS / ASC and wait', 'Display text from Data and wait'],
             'BBS List': ['Long list display', 'Short list display', 'Add BBS'],
             'MOD Editor': ['Start MOD editor in textmode', 'Start MOD editor in graphic mode'],
             'Administration': ['Setup message areas', 'Setup file base', 'User editor', 'ANSI Editor', 'Menu editor', 'Edit uploaded files', 'Delete file', 'Group editor']
@@ -153,9 +153,6 @@ def upload_file():
     filename = data.get('filename')  # Retrieve the filename here
     chosen_bbs = data.get('chosen_bbs')
 
-    print("***********chosen_bbs****************:");
-    print(chosen_bbs);
-
     if not base64_string or not filename or not chosen_bbs:
         return jsonify({"error": "Missing file data or filename or no chosen_bbs"}), 400
 
@@ -203,7 +200,6 @@ def generate_unique_filename(filename, chosen_bbs):
 @socketio.on('download_close')
 def download_close(data):
     global sid_data
-    print("DOWNLOAD_CLOSE")
     siddata = sid_data[request.sid]
     siddata.menu.return_from_gosub()
     siddata.setCurrentAction("wait_for_menu")
@@ -721,14 +717,11 @@ def check_upload_and_process():
 
 
 def check_upload_date(today, processed_bucket, file_path, processed_bucket_name, specific_document):
-    print("*CHECK_UPLOAD_DATE*")
     chosen_bbs = request.args.get('chosen_bbs', default=None, type=str)
     status = False
     # Check if there's a directory for the current day in the "processed" bucket
     daily_directory = None
-    print("BLOBS")
     blobs = processed_bucket.list_blobs(prefix=today)
-    print("BLOBS2")
     for b in blobs:
         if b.name.startswith(today) and '/' in b.name:
             daily_directory = b.name.split('/')[0]
@@ -783,14 +776,12 @@ def check_upload_date(today, processed_bucket, file_path, processed_bucket_name,
     else:
         # If no timestamp is found, we keep the original structure
         new_file_path = f"{daily_directory}/{base_directory_name}/{original_filename}"
-    print("*CHECKING "+new_file_path)
     incoming_bucket = storage_client.bucket(processed_bucket_name)
     blob = incoming_bucket.blob(new_file_path)
 
     # Check if the file exists in the incoming bucket
     if blob.exists():
         status = True
-        print(f"File {new_file_path} exists in the bucket.")
         # Get the file size
         blob.reload()  # Reload the blob properties
         file_size = blob.size
@@ -810,7 +801,6 @@ def check_upload_date(today, processed_bucket, file_path, processed_bucket_name,
             "chosen_bbs" : chosen_bbs
         }
         file_result = files_collection.insert_one(file_document)
-        print("File document inserted:", file_result.inserted_id)
         
         # Insert into 'to_be_edited' collection
         edit_document = {
@@ -823,8 +813,6 @@ def check_upload_date(today, processed_bucket, file_path, processed_bucket_name,
             "chosen_bbs" : chosen_bbs
         }
         edit_result = to_be_edited_collection.insert_one(edit_document)
-        print("To be edited document inserted:", edit_result.inserted_id)
-        
     else:
         print(f"File {new_file_path} does not exist in the bucket.")
     return status

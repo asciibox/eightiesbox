@@ -551,8 +551,6 @@ class Utils:
     def load_menu(self):
         db = self.mongo_client["bbs"]  # You can replace "mydatabase" with the name of your database
         collection = db["menufiles"]
-        print("chosenbbs")
-        print(self.sid_data.chosen_bbs)
         file_data = collection.find_one({"filename": 'MAIN.MNU', "chosen_bbs" : self.sid_data.chosen_bbs})
             
         if file_data:
@@ -649,11 +647,9 @@ class Utils:
                     'x': x,
                     'y': y
                 }, room=sid)
-                print(mapped_ascii_codes)
                 self.sid_data.store_screen_data(mapped_ascii_codes, currentColor, backgroundColor, blink, x, y)
 
             else:
-                print(ascii_codes)
                 self.socketio.emit('draw', {
                     'ascii_codes': ascii_codes,
                     'currentColor': currentColor,
@@ -1138,8 +1134,6 @@ class Utils:
             return filename[:8]+"."+extension
 
     def choose_bbs(self, data):
-        print("choose bbs")
-        print(data)
         self.sid_data.setBBSChooser(BBSChooser(self))
         return
     

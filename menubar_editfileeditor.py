@@ -33,8 +33,6 @@ class MenuBarEditFileEditor(MenuBar):
                 db = mongo_client['bbs']
                 
                 files_collection = db['files']
-                print ("**************************************************************************************************************************");
-                print("Looking for "+str(self.file_id)+" in files")
                 # Update the document with the _id of self.file_id with the description from self.util.sid_data.input_values
                 update_result = files_collection.update_one(
                     {'_id': self.file_id},  # Query for the specific document by _id

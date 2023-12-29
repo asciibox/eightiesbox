@@ -74,8 +74,12 @@ class Menu(BasicANSI):
             
         key = key.lower()
         if len(key) == 1:  # Check if it's a single character input
-            print(key)
+
             for row_idx in range(self.num_rows):
+
+                if row_idx not in self.values:
+                    continue
+
                 # Remove text in brackets from self.values[row_idx][1]
                 modified_value = self.values[row_idx][1]
                 start_idx = modified_value.find("(")
@@ -178,6 +182,12 @@ class Menu(BasicANSI):
                     elif action_code == "81":
                         self.append_gosub()
                         self.util.emit_ansi_mod_editor();
+                        return
+                    elif action_code == "63":
+                        text = modified_value
+                        self.util.output(text, 6, 0)
+                        self.util.goto_next_line()
+                        self.util.wait_with_message(self.set_wait)
                         return
                     elif action_code == "82":
                         self.append_gosub()
