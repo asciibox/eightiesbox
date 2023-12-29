@@ -10,7 +10,6 @@ class BasicANSI:
         self.foregroundColor = 7
         self.backgroundColor = 0
         
-        self.max_height = util.sid_data.sauceHeight # len(self.editor_values)
         self.sid_data = util.sid_data
         self.emit_gotoXY = util.emit_gotoXY
         self.util = util
@@ -39,14 +38,13 @@ class BasicANSI:
         self.color_array = color_array
         self.color_bgarray = color_bgarray
         self.input_values = input_values
-        print(menu_values)
+        self.max_height = self.util.sid_data.sauceHeight # len(self.editor_values)
+       
         
         if self.sid_data.xWidth < 50 and menu_values is not None:
             self.util.clear_screen()
             self.util.sid_data.startX = 0
             self.util.sid_data.startY = 0
-            print("menu_values")
-            print(menu_values)
             for line_index in range(0, self.count_menu_length(menu_values)):
                 # Rest of your code for processing each line
 
@@ -76,11 +74,8 @@ class BasicANSI:
         else:
             for idx in range(0, self.max_height):
 
-                if idx not in menu_values:
-                    continue
-
                 # Check if idx is within the range of menu_values before accessing it
-                if menu_values is not None and idx < len(menu_values) and menu_values[idx] is not None:
+                if menu_values is not None and idx < len(menu_values) and idx in menu_values:
                     security_value = int(menu_values[idx][3]) if menu_values[idx][3] != '' else 0
                 else:
                     # Handle the case when menu_values is None or idx is out of range
@@ -175,6 +170,7 @@ class BasicANSI:
     def display_ansi(self):
         print("self.input_values")
         print(self.input_values)
+        self.max_height = self.util.sid_data.sauceHeight # len(self.editor_values)
         self.ansi_string = ""
         self.current_color = 7
         self.current_bgcolor = 0

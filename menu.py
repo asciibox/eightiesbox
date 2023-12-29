@@ -74,11 +74,8 @@ class Menu(BasicANSI):
             
         key = key.lower()
         if len(key) == 1:  # Check if it's a single character input
-
+            print(self.num_rows)
             for row_idx in range(self.num_rows):
-
-                if row_idx not in self.values:
-                    continue
 
                 # Remove text in brackets from self.values[row_idx][1]
                 modified_value = self.values[row_idx][1]

@@ -43,9 +43,13 @@ class MenuBarMenuEditor(MenuBar):
             self.draw_sub_menu()
 
     def simulate_text(self):
+        print("SIMULATE_TEXT")
+        print(self.util.sid_data.sauceHeight)
         self.util.sid_data.setCurrentAction("wait_for_menu")
         self.sid_data.menu_box.callback_on_exit = self.simulate_callback_on_exit
         self.sid_data.menu_box.menu_stack = []  # Initialize the menu stack
+
+        self.util.sid_data.sauceHeight = 50
 
         self.util.clear_screen()
         self.sid_data.menu.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values, self.util.sid_data.menu_box.values)
