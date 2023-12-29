@@ -1,4 +1,5 @@
 from basicansi import BasicANSI
+from groupchooser import GroupChooser
 
 class UserEditor(BasicANSI):
     def __init__(self, util,  callback_on_exit):
@@ -20,6 +21,7 @@ class UserEditor(BasicANSI):
         self.callback_on_exit = callback_on_exit
 
         self.old_username = None  # Initialize with None or the current username if needed
+        self.entered_username = None
 
         # Display the user editor menu for the first time
         self.display_menu()
@@ -52,6 +54,8 @@ class UserEditor(BasicANSI):
         self.util.goto_next_line()
         self.util.output_wrap("3. Delete user", 6, 0)
         self.util.goto_next_line()
+        self.util.output_wrap("4. Change user groups", 6, 0)
+        self.util.goto_next_line()
         self.util.output_wrap("X. Exit to main menu", 6, 0)
         self.util.goto_next_line()
 
@@ -73,6 +77,8 @@ class UserEditor(BasicANSI):
                 self.change_user_level()
             elif choice_idx == 3:
                 self.delete_user()
+            elif choice_idx == 4:
+                self.change_user_group()
             else:
                 self.util.goto_next_line()
                 self.util.output_wrap("Invalid choice. Please try again.", 6,0)
@@ -252,3 +258,49 @@ class UserEditor(BasicANSI):
         
         self.util.goto_next_line()
         self.display_menu()
+
+    def change_user_group(self):
+        """Ask for existing username before changing user group."""
+        self.util.goto_next_line()
+        self.util.output_wrap("Enter username to change user group:", 6, 0)
+        self.util.ask(35, self.ask_new_group)
+
+
+    def get_user_groups(self, user_name):
+        for user in self.users:
+            if user.get('username') == user_name:  # Assuming the key for the user name is 'username'
+                # Return 'groups' property if it exists
+                return user.get('groups', '')  # Returns empty string if 'groups' key is not found
+        return ''  # Return empty string if user is not found
+
+    def ask_new_group(self, user_name):
+        # Get groups property for the specific user
+        self.entered_username = user_name
+        groups = self.get_user_groups(user_name)
+
+        # Initialize GroupChooser with the user's groups
+        self.sid_data.setGroupChooser(GroupChooser(self.util, self.group_chooser_callback, groups))
+        self.sid_data.group_chooser.draw_groups()
+        self.sid_data.setCurrentAction("wait_for_group_chooser")
+
+    def group_chooser_callback(self, new_groups):
+        # Assuming 'user_name' is available in self.sid_data or passed to this function
+
+        # Find the user in the self.users list
+        for user in self.users:
+            if user.get('username') == self.entered_username:
+                # Update the 'groups' property of the user
+                user['groups'] = new_groups
+
+                # Assuming you have a method to update the user in the database
+                self.update_user_record(user)
+                break
+
+    def update_user_record(self, updated_user):
+        # Code to update the user record in the database
+        mongo_client = self.util.mongo_client
+        db = mongo_client['bbs']
+        # This might involve calling a database update function with the user's ID and the updated data
+        db['users'].update_one({'_id': updated_user['_id']}, {'$set': updated_user})
+        self.display_menu()
+
