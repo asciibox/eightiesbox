@@ -72,7 +72,13 @@ class BBSChooser(BasicANSI):
 
         self.sid_data.startX = 2
         self.sid_data.startY = self.sid_data.yHeight - 4
-        self.util.output("Impressum: Oliver Bachmann, Luisenstr. 34, 76137 Karlsruhe, Germany", 6, 0)
+        if (self.sid_data.yHeight>50):
+            self.util.output("Impressum: Oliver Bachmann, Luisenstr. 34, 76137 Karlsruhe, Germany", 6, 0)
+        else:
+            self.util.output("Oliver Bachmann, Luisenstr. 34", 6, 0)
+            self.sid_data.startX = 2
+            self.sid_data.startY = self.sid_data.yHeight - 3
+            self.util.output("76137 Karlsruhe, Germany", 6,0 )
 
 
   
