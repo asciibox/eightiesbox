@@ -74,201 +74,224 @@ class Menu(BasicANSI):
             
         key = key.lower()
         if len(key) == 1:  # Check if it's a single character input
-            print(self.num_rows)
-            for row_idx in range(self.num_rows):
+            
+            if isinstance(self.values, list):
+                for row_idx in range(self.num_rows):
+                    if row_idx >= len(self.values):  # Check if row_idx is out of bounds
+                        print(f"Row {row_idx} is out of range of self.values")
+                        continue
 
-                # Remove text in brackets from self.values[row_idx][1]
-                modified_value = self.values[row_idx][1]
-                start_idx = modified_value.find("(")
-                end_idx = modified_value.find(")")
-                if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
-                    modified_value = modified_value.replace(modified_value[start_idx:end_idx+1], '')
+                    element = self.values[row_idx]
+                    # Process element which is either a dictionary or a list
+                    self.handle_element(element, key)
 
-                print(self.values[row_idx])  # Optional: Print the original value for debugging
+            elif isinstance(self.values, dict):
+                for row_idx in range(self.num_rows):
+                    if row_idx not in self.values:  # Check if row_idx exists in the dictionary
+                        print(f"Row {row_idx} not found in values")
+                        continue
 
-                if self.values[row_idx][2].lower() == key:
-                    # Use modified_value instead of self.values[row_idx][1]
-                    action_code = self.values[row_idx][0]
-                    if action_code == "01":
-                        filename = modified_value
-                        self.load_menu(filename)
-                        return
-                    elif action_code == "11":
-                        self.append_gosub()
-                        if self.sid_data.current_message_area is None:
-                            self.sid_data.setMessageAreaChange(MessageAreaChange(self.util, self.on_message_area_selected_11))
-                            self.sid_data.message_area_change.show_message_areas()
-                            return
-                        else:
-                            self.execute_action_11()
-                    elif action_code == "12":
-                        self.append_gosub()
-                        if self.sid_data.current_message_area is None:
-                            self.sid_data.setMessageAreaChange(MessageAreaChange(self.util, self.on_message_area_selected_12))
-                            self.sid_data.message_area_change.show_message_areas()
-                            return
-                        else:
-                            self.execute_action_12()
-                    elif action_code == "13":
-                        self.append_gosub()
-                        self.sid_data.setMessageAreaChange(MessageAreaChange(self.util))
-                        self.sid_data.message_area_change.show_message_areas()
-                        return
-                    elif action_code == "21":
-                        self.append_gosub()
-                        self.sid_data.setDownload(Download(self.util, False))
-                        self.sid_data.download.query_file_by_id()
-                        return
-                    elif action_code == "22":  # upload file
-                        self.append_gosub()
-                        if (self.sid_data.current_file_area == None):
-                            self.sid_data.setFileAreaChange(FileAreaChange(self.util, self.on_file_area_selected_22))
-                            self.sid_data.file_area_change.show_file_areas()
-                            return
-                        self.util.emit_uploadFile()
-                        return
-                    elif action_code == "23":
-                        self.append_gosub()
-                        self.sid_data.setFilelist(Filelist(self.util))
-                        self.sid_data.filelist.show_file_listing(True)
-                        return
-                    elif action_code == "24":
-                        self.append_gosub()
-                        self.sid_data.setFileAreaChange(FileAreaChange(self.util))
-                        self.sid_data.file_area_change.show_file_areas()
-                        return
-                    elif action_code == "25":
-                        self.append_gosub()
-                        self.sid_data.setCurrentAction("wait_for_uploadeditor")
-                        self.sid_data.setUploadEditor(UploadEditor(self.util))
-                        self.sid_data.upload_editor.start()
-                        return
-                    elif action_code == "26":
-                        self.append_gosub()
-                        self.sid_data.setFilelist(Filelist(self.util))
-                        self.sid_data.filelist.show_file_listing(False)
-                        return
-                    elif action_code == "27":
-                        self.append_gosub()
-                        self.sid_data.setDownload(Download(self.util, True))
-                        self.sid_data.download.query_file_by_id()
-                        return
-                    elif action_code == "28":
-                        self.append_gosub()
-                        self.sid_data.setDeletefile(Deletefile(self.util))
-                        self.sid_data.delete_file.query_file_by_id()
-                        return
-                    elif action_code == "51":
-                        
-                        who_is_online = WhoIsOnline(self.util, self.who_is_online_callback_on_exit)
-                        self.sid_data.setWhoIsOnline(who_is_online)
-                        # Display online users
-                        who_is_online.display_online_users()
-                        return
-                    elif action_code == "56":
-                        watch_lines = WatchLines(self.util, self.watch_lines_callback_on_exit)
-                        self.sid_data.setWatchLines(watch_lines)
-                        watch_lines.watch_lines()
-                        return
-                    elif action_code == "52":
-                        self.append_gosub()
-                        multi_line_chat = MultilineChat(self.util)
-                        self.sid_data.setMultilineChat(multi_line_chat)
-                        self.sid_data.multi_line_chat.ask_username()
-                        return
-                    elif action_code == "81":
-                        self.append_gosub()
-                        self.util.emit_ansi_mod_editor();
-                        return
-                    elif action_code == "63":
-                        text = modified_value
-                        self.util.output(text, 6, 0)
-                        self.util.goto_next_line()
-                        self.util.wait_with_message(self.set_wait)
-                        return
-                    elif action_code == "82":
-                        self.append_gosub()
-                        self.util.emit_graphic_mod_editor();
-                        
-                        return
-                    elif action_code == "91":
-                        
-                        self.sid_data.setMessageAreaMenu(MessageAreaMenu(self.util, self.message_menu_callback_on_exit))
-                        return
-                    elif action_code == "92":
-                        
-                        self.sid_data.setFileAreaMenu(FileAreaMenu(self.util, self.message_menu_callback_on_exit))
-                        return
-                    elif action_code == "93":                        
-                        # Example usage:
-                        # Replace 'util' with your actual utility object
-                        self.sid_data.setUserEditor(UserEditor(self.util, self.user_editor_callback_on_exit))
-                        return
-                    elif action_code == "94":         
-                        # Example usage:
-                        # Replace 'util' with your actual utility object
-                        if self.sid_data.xWidth < 50:
-                            self.util.output("Your screen resolution is too low", 1, 0)
-                            self.util.goto_next_line()
-                            self.util.wait_with_message(self.set_wait)
-                        else:
-                            self.append_gosub()
-                            self.sid_data.setANSIEditor(ANSIEditor(self.util))
+                    element = self.values[row_idx]
+                    # Process element which should be a value corresponding to the key in the dictionary
+                    self.handle_element(element, key)
+            else:
+                print("self.values is neither a list nor a dictionary.")
 
-                            self.sid_data.setCurrentAction("wait_for_ansieditor")
-                            # Clear the editor
-                            self.sid_data.input_values = []
-                            self.sid_data.color_array = []
-                            self.sid_data.color_bgarray = []
-                            self.sid_data.ansi_editor.start()
-                        return
-                    elif action_code == "98":
-                        # Gosub menu
-                        # Save current state to stack
-                        self.append_gosub()
-                        self.sid_data.setGroupEditor(GroupEditor(self.util, self.group_editor_callback_on_exit))
-                        self.sid_data.group_editor.display_menu()
-                        return
-                    elif action_code == "02":
-                        # Gosub menu
-                        # Save current state to stack
-                        self.append_gosub()
-                        filename = modified_value
-                        self.load_menu(filename)
-                        return
-                    
-                    elif action_code == "95":        
-                        # Example usage:
-                        if self.sid_data.xWidth < 50:
-                            self.util.output("Your screen resolution is too low", 1,0)
-                            self.util.goto_next_line()
-                            self.util.wait_with_message(self.set_wait)
-                        else:
-                            # Replace 'util' with your actual utility object
-                            self.sid_data.setMenuBox(MenuBox(self.util))
-                            self.sid_data.setCurrentAction("wait_for_menubox")
-                            #self.sid_data.menu_box.clear_screen()
-                            #self.sid_data.menu_box.draw_all_rows()
-                        return
 
-                    # Gosub menu
-                    elif action_code == "96":
-                        
-                        self.append_gosub()
-                        self.sid_data.setEditFile(EditFile(self.util))
-                        self.sid_data.edit_file.query_file_by_id()
 
-                        return
-                    elif action_code == "03":
-                        # Return from Gosub
-                        if self.menu_stack:
-                            # Restore state from stack
-                            self.return_from_gosub()
-                            return
-                        else:
-                            print("No menu to return to.")
-                    else:
-                        print(f"Unhandled action code: {action_code}")
+    # Remove text in brackets from self.values[row_idx][1]
+    def handle_element(self, element, key):
+        modified_value = element[1]
+        start_idx = modified_value.find("(")
+        end_idx = modified_value.find(")")
+        if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
+            modified_value = modified_value.replace(modified_value[start_idx:end_idx+1], '')
+
+        print(element)  # Optional: Print the original value for debugging
+
+        if element[2].lower() == key:
+            # Use modified_value instead of element[1]
+            action_code = element[0]
+            if action_code == "01":
+                filename = modified_value
+                self.load_menu(filename)
+                return
+            elif action_code == "11":
+                self.append_gosub()
+                if self.sid_data.current_message_area is None:
+                    self.sid_data.setMessageAreaChange(MessageAreaChange(self.util, self.on_message_area_selected_11))
+                    self.sid_data.message_area_change.show_message_areas()
+                    return
+                else:
+                    self.execute_action_11()
+            elif action_code == "12":
+                self.append_gosub()
+                if self.sid_data.current_message_area is None:
+                    self.sid_data.setMessageAreaChange(MessageAreaChange(self.util, self.on_message_area_selected_12))
+                    self.sid_data.message_area_change.show_message_areas()
+                    return
+                else:
+                    self.execute_action_12()
+            elif action_code == "13":
+                self.append_gosub()
+                self.sid_data.setMessageAreaChange(MessageAreaChange(self.util))
+                self.sid_data.message_area_change.show_message_areas()
+                return
+            elif action_code == "21":
+                self.append_gosub()
+                self.sid_data.setDownload(Download(self.util, False))
+                self.sid_data.download.query_file_by_id()
+                return
+            elif action_code == "22":  # upload file
+                self.append_gosub()
+                if (self.sid_data.current_file_area == None):
+                    self.sid_data.setFileAreaChange(FileAreaChange(self.util, self.on_file_area_selected_22))
+                    self.sid_data.file_area_change.show_file_areas()
+                    return
+                self.util.emit_uploadFile()
+                return
+            elif action_code == "23":
+                self.append_gosub()
+                self.sid_data.setFilelist(Filelist(self.util))
+                self.sid_data.filelist.show_file_listing(True)
+                return
+            elif action_code == "24":
+                self.append_gosub()
+                self.sid_data.setFileAreaChange(FileAreaChange(self.util))
+                self.sid_data.file_area_change.show_file_areas()
+                return
+            elif action_code == "25":
+                self.append_gosub()
+                self.sid_data.setCurrentAction("wait_for_uploadeditor")
+                self.sid_data.setUploadEditor(UploadEditor(self.util))
+                self.sid_data.upload_editor.start()
+                return
+            elif action_code == "26":
+                self.append_gosub()
+                self.sid_data.setFilelist(Filelist(self.util))
+                self.sid_data.filelist.show_file_listing(False)
+                return
+            elif action_code == "27":
+                self.append_gosub()
+                self.sid_data.setDownload(Download(self.util, True))
+                self.sid_data.download.query_file_by_id()
+                return
+            elif action_code == "28":
+                self.append_gosub()
+                self.sid_data.setDeletefile(Deletefile(self.util))
+                self.sid_data.delete_file.query_file_by_id()
+                return
+            elif action_code == "51":
+                
+                who_is_online = WhoIsOnline(self.util, self.who_is_online_callback_on_exit)
+                self.sid_data.setWhoIsOnline(who_is_online)
+                # Display online users
+                who_is_online.display_online_users()
+                return
+            elif action_code == "56":
+                watch_lines = WatchLines(self.util, self.watch_lines_callback_on_exit)
+                self.sid_data.setWatchLines(watch_lines)
+                watch_lines.watch_lines()
+                return
+            elif action_code == "52":
+                self.append_gosub()
+                multi_line_chat = MultilineChat(self.util)
+                self.sid_data.setMultilineChat(multi_line_chat)
+                self.sid_data.multi_line_chat.ask_username()
+                return
+            elif action_code == "81":
+                self.append_gosub()
+                self.util.emit_ansi_mod_editor();
+                return
+            elif action_code == "63":
+                text = modified_value
+                self.util.output(text, 6, 0)
+                self.util.goto_next_line()
+                self.util.wait_with_message(self.set_wait)
+                return
+            elif action_code == "82":
+                self.append_gosub()
+                self.util.emit_graphic_mod_editor();
+                
+                return
+            elif action_code == "91":
+                
+                self.sid_data.setMessageAreaMenu(MessageAreaMenu(self.util, self.message_menu_callback_on_exit))
+                return
+            elif action_code == "92":
+                
+                self.sid_data.setFileAreaMenu(FileAreaMenu(self.util, self.message_menu_callback_on_exit))
+                return
+            elif action_code == "93":                        
+                # Example usage:
+                # Replace 'util' with your actual utility object
+                self.sid_data.setUserEditor(UserEditor(self.util, self.user_editor_callback_on_exit))
+                return
+            elif action_code == "94":         
+                # Example usage:
+                # Replace 'util' with your actual utility object
+                if self.sid_data.xWidth < 50:
+                    self.util.output("Your screen resolution is too low", 1, 0)
+                    self.util.goto_next_line()
+                    self.util.wait_with_message(self.set_wait)
+                else:
+                    self.append_gosub()
+                    self.sid_data.setANSIEditor(ANSIEditor(self.util))
+
+                    self.sid_data.setCurrentAction("wait_for_ansieditor")
+                    # Clear the editor
+                    self.sid_data.input_values = []
+                    self.sid_data.color_array = []
+                    self.sid_data.color_bgarray = []
+                    self.sid_data.ansi_editor.start()
+                return
+            elif action_code == "98":
+                # Gosub menu
+                # Save current state to stack
+                self.append_gosub()
+                self.sid_data.setGroupEditor(GroupEditor(self.util, self.group_editor_callback_on_exit))
+                self.sid_data.group_editor.display_menu()
+                return
+            elif action_code == "02":
+                # Gosub menu
+                # Save current state to stack
+                self.append_gosub()
+                filename = modified_value
+                self.load_menu(filename)
+                return
+            
+            elif action_code == "95":        
+                # Example usage:
+                if self.sid_data.xWidth < 50:
+                    self.util.output("Your screen resolution is too low", 1,0)
+                    self.util.goto_next_line()
+                    self.util.wait_with_message(self.set_wait)
+                else:
+                    # Replace 'util' with your actual utility object
+                    self.sid_data.setMenuBox(MenuBox(self.util))
+                    self.sid_data.setCurrentAction("wait_for_menubox")
+                    #self.sid_data.menu_box.clear_screen()
+                    #self.sid_data.menu_box.draw_all_rows()
+                return
+
+            # Gosub menu
+            elif action_code == "96":
+                
+                self.append_gosub()
+                self.sid_data.setEditFile(EditFile(self.util))
+                self.sid_data.edit_file.query_file_by_id()
+
+                return
+            elif action_code == "03":
+                # Return from Gosub
+                if self.menu_stack:
+                    # Restore state from stack
+                    self.return_from_gosub()
+                    return
+                else:
+                    print("No menu to return to.")
+            else:
+                print(f"Unhandled action code: {action_code}")
 
     def on_message_area_selected_12(self):
             self.execute_action_12()

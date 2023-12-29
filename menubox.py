@@ -238,6 +238,12 @@ class MenuBox:
             self.sid_data.setGroupChooser(GroupChooser(self.util, self.group_chooser_callback, self.values[self.current_row_index][4]))
             self.sid_data.group_chooser.draw_groups()
             self.sid_data.setCurrentAction("wait_for_group_chooser")
+        elif field_idx == 5:
+            if self.values[self.current_row_index][5] == None or self.values[self.current_row_index][5] == '':
+                self.values[self.current_row_index][5] = 'y'
+            else:
+                self.values[self.current_row_index][5] = ''
+            self.draw_row(self.current_row_index)
         else:
             width = min(int(field_widths[field_idx]), 100)
             self.ask(width, callback)
