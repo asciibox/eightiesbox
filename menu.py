@@ -78,7 +78,7 @@ class Menu(BasicANSI):
             if isinstance(self.values, list):
                 for row_idx in range(self.num_rows):
                     if row_idx >= len(self.values):  # Check if row_idx is out of bounds
-                        print(f"Row {row_idx} is out of range of self.values")
+                        # print(f"Row {row_idx} is out of range of self.values")
                         continue
 
                     element = self.values[row_idx]
@@ -88,32 +88,60 @@ class Menu(BasicANSI):
             elif isinstance(self.values, dict):
                 for row_idx in range(self.num_rows):
                     if row_idx not in self.values:  # Check if row_idx exists in the dictionary
-                        print(f"Row {row_idx} not found in values")
+                        # print(f"Row {row_idx} not found in values")
                         continue
 
                     element = self.values[row_idx]
                     # Process element which should be a value corresponding to the key in the dictionary
                     self.handle_element(element, key)
             else:
-                print("self.values is neither a list nor a dictionary.")
+                pass # print("self.values is neither a list nor a dictionary.")
 
+    def is_user_in_required_groups(self, user_groups, required_groups):
+        """
+        Check if the user is a member of at least one of the required groups.
 
+        :param user_groups: List of groups the user belongs to.
+        :param required_groups: List of required groups for a specific action.
+        :return: True if the user is in any of the required groups, False otherwise.
+        """
+        if not required_groups:
+            return True
+
+        for required_group in required_groups:
+            if required_group in user_groups:
+                return True
+
+        return False
 
     # Remove text in brackets from self.values[row_idx][1]
     def handle_element(self, element, key):
-        modified_value = element[1]
-        start_idx = modified_value.find("(")
-        end_idx = modified_value.find(")")
-        if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
-            modified_value = modified_value.replace(modified_value[start_idx:end_idx+1], '')
-
-        print(element)  # Optional: Print the original value for debugging
-
+        
         if element[2].lower() == key:
+            key_value = element[1]
+            action_value = element[0]
+            comment_value = element[2]
+            security_value = int(element[3]) if element[3] != '' else 0
+
+            # Check if element has enough items for index 4
+            required_groups = element[4].split(',') if len(element) > 4 and element[4] != '' else []
+            user_groups = self.sid_data.user_document['groups'].split(',')
+
+            # Check for user's security level
+            if security_value > self.sid_data.user_document['user_level']:
+                return
+            elif not self.is_user_in_required_groups(user_groups, required_groups):
+                return
+            
+            start_idx = key_value.find("(")
+            end_idx = key_value.find(")", start_idx)
+            if start_idx != -1 and end_idx != -1:
+                key_value = key_value[:start_idx] + key_value[end_idx+1:]
+
             # Use modified_value instead of element[1]
             action_code = element[0]
             if action_code == "01":
-                filename = modified_value
+                filename = key_value
                 self.load_menu(filename)
                 return
             elif action_code == "11":
@@ -204,7 +232,7 @@ class Menu(BasicANSI):
                 self.util.emit_ansi_mod_editor();
                 return
             elif action_code == "63":
-                text = modified_value
+                text = key_value
                 self.util.output(text, 6, 0)
                 self.util.goto_next_line()
                 self.util.wait_with_message(self.set_wait)
@@ -256,7 +284,7 @@ class Menu(BasicANSI):
                 # Gosub menu
                 # Save current state to stack
                 self.append_gosub()
-                filename = modified_value
+                filename = key_value
                 self.load_menu(filename)
                 return
             
