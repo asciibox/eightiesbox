@@ -74,6 +74,7 @@ class SessionData:
         self.last_emitted_index = -1
         self.clear_command_issued = False
         self.group_editor = None
+        self.group_chooser = None
     
         
 
@@ -230,6 +231,9 @@ class SessionData:
 
     def setMaxScrollLength(self, value):
         self.max_scroll_length = value
+
+    def setGroupChooser(self, value):
+        self.group_chooser = value
 
     def store_screen_data(self, ascii_codes=None, currentColor=None, backgroundColor=None, blink=None, x=None, y=None, command=None):
         screen_data = {

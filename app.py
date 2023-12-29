@@ -318,6 +318,10 @@ def handle_keypress(data):
         key = data['key']
         siddata.menu.handle_key(key)
         return
+    elif siddata.current_action == "wait_for_group_chooser":
+        key = data['key']
+        siddata.group_chooser.handle_key(key)
+        return
     elif siddata.current_action == "wait_for_layered_menu":
         key = data['key']
         if siddata.menu_box.in_sub_menu:  # in_sub_menu is a new attribute to check if you're in a sub-menu

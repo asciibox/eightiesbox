@@ -458,7 +458,7 @@ class Utils:
         
     def create_main_menu(self, menu_name):
         num_rows = 42
-        fields = ['Type', 'Data', 'Key', 'Sec', 'Flags']
+        fields = ['Type', 'Data', 'Key', 'Sec', 'Groups', 'HideOnSec']
         values = [["" for _ in fields] for _ in range(num_rows)]
 
         json_data = self.load_json_data(menu_name)
@@ -543,7 +543,7 @@ class Utils:
         file_data = collection.find_one({"filename": 'MAIN.MNU', "chosen_bbs" : self.sid_data.chosen_bbs})
             
         if file_data:
-            self.sid_data.setMenu(Menu(self, [["" for _ in ['Type', 'Data', 'Key', 'Sec', 'Flags']] for _ in range(50)], 50, None))
+            self.sid_data.setMenu(Menu(self, [["" for _ in ['Type', 'Data', 'Key', 'Sec', 'Groups', 'HideOnSec']] for _ in range(50)], 50, None))
             self.sid_data.menu.load_menu('MAIN.MNU')
         else:
             self.goto_next_line()
@@ -551,7 +551,7 @@ class Utils:
 
     def menuCallback(self, input):
         if input=='Y' or input=='y':
-            self.sid_data.setMenu(Menu(self, [["" for _ in ['Type', 'Data', 'Key', 'Sec', 'Flags']] for _ in range(50)], 50, None)) 
+            self.sid_data.setMenu(Menu(self, [["" for _ in ['Type', 'Data', 'Key', 'Sec', 'Groups', 'HideOnSec']] for _ in range(50)], 50, None)) 
             self.sid_data.setMenuBox(MenuBox(self))
         else:
             self.sid_data.setANSIEditor(ANSIEditor(self))

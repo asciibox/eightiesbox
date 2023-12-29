@@ -4,78 +4,67 @@
             "Type": "13",
             "Data": "",
             "Key": "A",
-            "Sec": "",
-            "Flags": ""
+            "Sec": ""
         },
         {
             "Type": "11",
             "Data": "",
             "Key": "R",
-            "Sec": "",
-            "Flags": ""
+            "Sec": ""
         },
         {
             "Type": "12",
             "Data": "",
             "Key": "W",
-            "Sec": "",
-            "Flags": ""
+            "Sec": ""
         },
         {
             "Type": "51",
             "Data": "",
             "Key": "?",
-            "Sec": "",
-            "Flags": ""
+            "Sec": ""
         },
         {
             "Type": "52",
             "Data": "",
             "Key": "C",
-            "Sec": "",
-            "Flags": ""
+            "Sec": ""
         },
         {
             "Type": "91",
             "Data": "",
             "Key": "1",
-            "Sec": "",
-            "Flags": ""
+            "Sec": ""
         },
         {
             "Type": "93",
             "Data": "",
             "Key": "2",
-            "Sec": "",
-            "Flags": ""
+            "Sec": ""
         },
         {
             "Type": "94",
             "Data": "",
             "Key": "3",
-            "Sec": "",
-            "Flags": ""
+            "Sec": ""
         },
         {
             "Type": "95",
             "Data": "",
             "Key": "4",
-            "Sec": "",
-            "Flags": ""
+            "Sec": ""
         },
         {
             "Type": "82",
             "Data": "",
             "Key": "9",
-            "Sec": "",
-            "Flags": ""
+            "Sec": ""
         },
         {
             "Type": "01",
             "Data": "FILEBASE.MNU",
             "Key": "F",
-            "Sec": "",
-            "Flags": ""
+            "Sec": ""
         }
     ],
     "ansi_data": "G1swbRtbMTsySCAbWzE7MzdtG1s0MG0gG1syMjszN20bWzQwbSAgG1sxOzM3bRtbNDBtICAgICAgW0FdIE1lc3NhZ2UgYmFzZSBhcmVhIGNoYW5nZRtbMG0bWzI7MkggG1sxOzM3bRtbNDBtICAgICAgICAgW1JdIFJlYWQgbWVzc2FnZXMbWzBtG1szOzJIIBtbMTszN20bWzQwbSAgICAgICAgIFtXXSBXcml0ZSBtZXNzYWdlcxtbMG0bWzQ7MkggG1sxOzM3bRtbNDBtICAgICAgICAgIBtbMG0bWzU7MkggG1sxOzM3bRtbNDBtICAgICAgICAgWz9dIFdobyBpcyBvbmxpbmUbWzBtG1s2OzJIIBtbMTszN20bWzQwbSAbWzIyOzM3bRtbNDBtICAbWzE7MzdtG1s0MG0gICAgICBbQ10gQ2hhdCBiZXR3ZWVuIGxpbmVzG1swbRtbODsySCAbWzE7MzdtG1s0MG0gICAgICAgICBbMV0gU2V0dXAgbWVzc2FnZSBhcmVhcxtbMG0bWzk7MkggG1sxOzM3bRtbNDBtICAgICAgICAgWzJdIBtbMjI7MzdtG1s0MG1Vc2UbWzE7MzdtG1s0MG1yIGVkaXRvchtbMG0bWzEwOzJIIBtbMTszN20bWzQwbSAbWzIyOzM3bRtbNDBtICAgICAgICBbM10gQU5TSSBFZGl0b3IbWzBtG1sxMTsySCAbWzIyOzM3bRtbNDBtICAgICAgICAgWzRdIE1lbnUgZWRpdBtbMG0bWzEzOzJIIBtbMjI7MzdtG1s0MG0gICAgICAgICBbOV0gTU9EIEVkaXRvchtbMG0bWzE0OzJIIBtbMjI7MzdtG1s0MG0gICAgICAgICAbWzBtG1sxNTsySCAbWzIyOzM3bRtbNDBtICAgICAgICAgW0ZdIEZpbGUgYmFzZRtbMG0bWzE2OzJIIBtbMjI7MzdtG1s0MG0gICAgICAg"

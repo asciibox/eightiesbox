@@ -1,5 +1,6 @@
 from menubar_menueditor import MenuBarMenuEditor
 from menutexteditor import MenuTextEditor
+from groupchooser import GroupChooser
 import json
 import base64
 
@@ -117,8 +118,22 @@ class MenuBox:
 
 
     def get_value_for_field_and_row(self, field, row_idx):
+        # Check if the field is in self.fields
+        if field not in self.fields:
+            return ""  # Return an empty string if the field does not exist
+
         field_idx = self.fields.index(field)
+
+        # Check if row_idx is within the range of self.values
+        if row_idx < 0 or row_idx >= len(self.values):
+            return ""  # Return an empty string if row_idx is out of bounds
+
+        # Check if field_idx is within the range of the sublist at self.values[row_idx]
+        if field_idx < 0 or field_idx >= len(self.values[row_idx]):
+            return ""  # Return an empty string if field_idx is out of bounds
+
         return self.values[row_idx][field_idx]
+
 
 
     def draw_row(self, row_idx):
@@ -219,6 +234,10 @@ class MenuBox:
             width = min(int(field_widths[field_idx]), 100)  # max_input_length is a predefined maximum
             self.ask(width, callback, [], self.values[self.current_row_index][1])
             self.sid_data.setMaxScrollLength(100)
+        elif field_idx == 4:
+            self.sid_data.setGroupChooser(GroupChooser(self.util, self.draw_all_rows))
+            self.sid_data.group_chooser.draw_groups()
+            self.sid_data.setCurrentAction("wait_for_group_chooser")
         else:
             width = min(int(field_widths[field_idx]), 100)
             self.ask(width, callback)
@@ -327,7 +346,7 @@ class MenuBox:
         self.draw_row(self.current_row_index)  # Redraw the updated row
         self.draw_all_rows()
 
-    
+       
     def draw_all_rows_and_output_json(self):
         """Draw all rows and output relevant JSON."""
       
