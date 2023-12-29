@@ -1,5 +1,5 @@
 class GroupChooser:
-    def __init__(self, util, callback):
+    def __init__(self, util, callback, turned_on_group_string):
         self.util = util
         self.mongo_client = util.mongo_client
         self.db = self.mongo_client['bbs']
@@ -8,6 +8,13 @@ class GroupChooser:
         self.current_selection = 0
         self.selected_groups = set()
         self.callback = callback
+
+        # Populate selected_groups with the groups from turned_on_group_string
+        turned_on_groups = turned_on_group_string.split(',')
+        for group_name in turned_on_groups:
+            group_name = group_name.strip()
+            if any(group['name'] == group_name for group in self.groups):
+                self.selected_groups.add(group_name)
 
     def load_groups(self):
         self.groups = list(self.groups_collection.find({'chosen_bbs': self.util.sid_data.chosen_bbs}))
@@ -54,7 +61,7 @@ class GroupChooser:
             self.toggle_group()
         elif key == 'Escape':
             self.util.sid_data.setCurrentAction("wait_for_menubox")
-            self.callback()
+            self.callback(self.get_selected_groups_string())
 
 
     def get_selected_groups_string(self):

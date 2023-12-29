@@ -235,12 +235,16 @@ class MenuBox:
             self.ask(width, callback, [], self.values[self.current_row_index][1])
             self.sid_data.setMaxScrollLength(100)
         elif field_idx == 4:
-            self.sid_data.setGroupChooser(GroupChooser(self.util, self.draw_all_rows))
+            self.sid_data.setGroupChooser(GroupChooser(self.util, self.group_chooser_callback, self.values[self.current_row_index][4]))
             self.sid_data.group_chooser.draw_groups()
             self.sid_data.setCurrentAction("wait_for_group_chooser")
         else:
             width = min(int(field_widths[field_idx]), 100)
             self.ask(width, callback)
+
+    def group_chooser_callback(self, new_string):
+        self.update_item('Groups', new_string)
+        self.draw_all_rows()
 
     # Menu on top
     def main_arrow_up(self):
