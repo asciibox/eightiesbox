@@ -75,6 +75,10 @@ class BasicANSI:
 
         else:
             for idx in range(0, self.max_height):
+
+                if idx not in menu_values:
+                    continue
+
                 # Check if idx is within the range of menu_values before accessing it
                 if menu_values is not None and idx < len(menu_values) and menu_values[idx] is not None:
                     security_value = int(menu_values[idx][3]) if menu_values[idx][3] != '' else 0
