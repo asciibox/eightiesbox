@@ -242,6 +242,7 @@ class Utils:
     def passwordCallback(self, input):
         db = self.mongo_client['bbs']
         users_collection = db['users']
+       
         
         # Retrieve the user document based on the username saved in self.sid_data
 
@@ -266,29 +267,9 @@ class Utils:
                                     'status': 'received',
                                     'sid_data': other_sid_data  # Store the sid_data of the request sender
                                 })
-                    my_upload_token = str(uuid.uuid4())
-                    self.sid_data.setUploadToken(my_upload_token)
+                    
 
-                    upload_token_collection = db['upload_token']
-
-                    # Assume 'user_document' is a document you've retrieved from the 'users' collection
-                    user_id = user_document['_id']
-
-                    # Now, create the document to insert
-                    token_document = {
-                        "token": my_upload_token,
-                        "user_id": user_id,
-                        "timestamp" : int(time.time())
-                    }
-
-                    # Insert the document into the collection
-                    result = upload_token_collection.insert_one(token_document)
-
-                    # 'result' will contain information about the insertion
-                    if result.acknowledged:
-                        print("Upload token inserted successfully. Document ID:", result.inserted_id)
-                    else:
-                        print("Failed to insert upload token.")
+                    self.create_defaults(user_document['_id'], db)
 
                     # Now proceed to initialize OnelinerBBS
                     bbs = OnelinerBBS(self)
@@ -345,6 +326,38 @@ class Utils:
         self.socketio.emit('set_chosen_bbs', {'chosen_bbs': str(self.sid_data.chosen_bbs)})
 
         self.usernameCallback("")
+
+    def create_defaults(self, user_id, db):
+
+        my_upload_token = str(uuid.uuid4())
+        self.sid_data.setUploadToken(my_upload_token)
+
+        upload_token_collection = db['upload_token']
+
+        # Assume 'user_document' is a document you've retrieved from the 'users' collection
+        # user_id = user_document['_id']
+
+        # Now, create the document to insert
+        token_document = {
+            "token": my_upload_token,
+            "user_id": user_id,
+            "timestamp" : int(time.time())
+        }
+
+        # Insert the document into the collection
+        result = upload_token_collection.insert_one(token_document)
+
+        # 'result' will contain information about the insertion
+        if result.acknowledged:
+            print("Upload token inserted successfully. Document ID:", result.inserted_id)
+        else:
+            print("Failed to insert upload token.")
+
+        groups_collection = db['groups']
+        if groups_collection.count_documents({}) == 0:
+            default_groups = ["Guest", "New user", "Full user", "File admin", "Message admin", "Sysop"]
+            for group_name in default_groups:
+                groups_collection.insert_one({"name": group_name, 'chosen_bbs': self.sid_data.chosen_bbs})
 
 
     def usernameCallback(self, input):

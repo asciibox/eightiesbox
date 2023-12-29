@@ -195,6 +195,8 @@ class UserRegistration:
                 # Update self.sid_data.user_document to include the new _id
                 self.sid_data.user_document = {**self.userdata, "_id": new_user_id}
                 
+                self.util.create_defaults(new_user_id, db)
+
                 self.goto_next_line()
                 self.output("User created successfully.", 6, 0)
                 bbs = OnelinerBBS(self.util)
@@ -204,7 +206,7 @@ class UserRegistration:
                 self.output_wrap("Another user has just take this username. Please choose another.", 6, 0)
                 self.goto_next_line()
                 self.output_wrap("Please enter your new username: ", 6, 0)
-                self.ask(35, username_exists_callback)
+                self.ask(35, self.username_exists_callback)
 
         pass
 
