@@ -33,6 +33,23 @@ class BasicANSI:
         if menu_values is None:
             return 0
         return len(menu_values)
+    
+    def is_user_in_required_groups(self, user_groups, required_groups):
+        """
+        Check if the user is a member of at least one of the required groups.
+
+        :param user_groups: List of groups the user belongs to.
+        :param required_groups: List of required groups for a specific action.
+        :return: True if the user is in any of the required groups, False otherwise.
+        """
+        if not required_groups:
+            return True
+
+        for required_group in required_groups:
+            if required_group in user_groups:
+                return True
+
+        return False
 
     def display_editor(self, color_array, color_bgarray, input_values, menu_values):
         self.color_array = color_array
@@ -54,37 +71,66 @@ class BasicANSI:
                     comment_value = menu_values[line_index][1]
                     security_value = int(menu_values[line_index][3]) if menu_values[line_index][3] != '' else 0
 
-                    # Check for text in brackets in the comment
-                    start_idx = comment_value.find("(")
-                    end_idx = comment_value.find(")")
-                    if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
-                        display_text = key_value + " " + comment_value[start_idx+1:end_idx]  # Include key_value before the extracted text
-                    else:
-                        display_text = key_value if len(str(action_value))==2 and security_value <= self.sid_data.user_document['user_level'] else ''
+                    required_groups = menu_values[line_index][4].split(',') if len(menu_values[line_index]) > 4 and menu_values[line_index][4] != '' else []
+                    user_groups = self.sid_data.user_document['groups'].split(',')
 
-                    if display_text:
-                        self.util.output(display_text, 6, 0)
-                        self.util.output(" ", 6, 0)
-                        # Call display_menu_name only when the condition for not showing the menu name is not met
-                        if not (start_idx != -1 and end_idx != -1 and end_idx > start_idx):
-                            self.display_menu_name(int(action_value[0]), int(action_value[1]), self.util.menu_structure)
-                        self.util.goto_next_line()
+                    # Check for user's security level and group membership
+                    if security_value <= self.sid_data.user_document['user_level'] and self.is_user_in_required_groups(user_groups, required_groups):
+
+                        # Check for text in brackets in the comment
+                        start_idx = comment_value.find("(")
+                        end_idx = comment_value.find(")")
+                        if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
+                            display_text = key_value + " " + comment_value[start_idx+1:end_idx]  # Include key_value before the extracted text
+                        else:
+                            display_text = key_value
+
+                        if display_text:
+                            self.util.output(display_text, 6, 0)
+                            self.util.output(" ", 6, 0)
+                            # Call display_menu_name only when the condition for not showing the menu name is not met
+                            if not (start_idx != -1 and end_idx != -1 and end_idx > start_idx):
+                                self.display_menu_name(int(action_value[0]), int(action_value[1]), self.util.menu_structure)
+                            self.util.goto_next_line()
 
 
         else:
-            for idx in range(0, self.max_height):
+            if isinstance(self.values, list):
+                self.process_values(self.values, self.max_height, -1)
 
-                # Check if idx is within the range of menu_values before accessing it
-                if menu_values is not None and idx < len(menu_values) and idx in menu_values:
-                    security_value = int(menu_values[idx][3]) if menu_values[idx][3] != '' else 0
-                else:
-                    # Handle the case when menu_values is None or idx is out of range
-                    security_value = 0
+            elif isinstance(self.values, dict):
+                for idx in range(self.max_height):
+                    if idx in self.values:
+                        # Only process the idx if it exists in the dictionary
+                        self.process_values([self.values[idx]], 1, idx)
 
-                if menu_values == None or security_value <= self.sid_data.user_document['user_level']:
+            else:
+                pass  # Handle the case when self.values is neither a list nor a dictionary.
+
+
+    def process_values(self, values, num_rows, idx2):
+        for idx in range(num_rows):
+
+            # Initialize variables
+            security_value = 0
+            required_groups = []
+
+            # Check if idx is within the range of values
+            if values is not None and idx < len(values):
+                security_value = int(values[idx][3]) if values[idx][3] != '' else 0
+
+                # Check if element has enough items for index 4
+                required_groups = values[idx][4].split(',') if len(values[idx]) > 4 and values[idx][4] != '' else []
+
+            user_groups = self.sid_data.user_document['groups'].split(',')
+
+            # Check for user's security level and group membership
+            if (values is None or security_value <= self.sid_data.user_document['user_level']) and self.is_user_in_required_groups(user_groups, required_groups):
+                if idx2 == -1:
                     self.draw_line(idx)
-            self.emit_gotoXY(0, 1)
-
+                else:
+                    self.draw_line(idx2)
+        self.emit_gotoXY(0, 1)
 
     def display_menu_name(self, first_field, second_field, menu_structure):
         # Validate first_field and second_field
