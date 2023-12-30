@@ -67,7 +67,7 @@ class ANSIEditor(BasicANSI):
     def start(self):
         self.clear_screen()
         self.update_first_line()
-        self.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values, None )
+        self.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values, self.util.sid_data.menu_box.values )
 
     def check_key_by_subclass(self, key):
         return

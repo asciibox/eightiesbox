@@ -30,9 +30,9 @@ class BasicANSI:
    
        
     def count_menu_length(self, menu_values):
-        if menu_values is None:
+        if menu_values is None or not isinstance(menu_values, dict):
             return 0
-        return len(menu_values)
+        return max(menu_values.keys())+1 if menu_values else 0
     
     def is_user_in_required_groups(self, user_groups, required_groups):
         """
@@ -52,6 +52,7 @@ class BasicANSI:
         return False
 
     def display_editor(self, color_array, color_bgarray, input_values, menu_values):
+        
         self.color_array = color_array
         self.color_bgarray = color_bgarray
         self.input_values = input_values
@@ -59,53 +60,21 @@ class BasicANSI:
        
         
         if self.sid_data.xWidth < 50 and menu_values is not None:
-            self.util.clear_screen()
-            self.util.sid_data.startX = 0
-            self.util.sid_data.startY = 0
-            for line_index in range(0, self.count_menu_length(menu_values)):
-                # Rest of your code for processing each line
-
-                if menu_values[line_index] is not None:
-                    action_value = menu_values[line_index][0]  # Assuming 'Key' field is the character.
-                    key_value = menu_values[line_index][2]
-                    comment_value = menu_values[line_index][1]
-                    security_value = int(menu_values[line_index][3]) if menu_values[line_index][3] != '' else 0
-
-                    required_groups = menu_values[line_index][4].split(',') if len(menu_values[line_index]) > 4 and menu_values[line_index][4] != '' else []
-                    user_groups = self.sid_data.user_document['groups'].split(',')
-
-                    # Check for user's security level and group membership
-                    if security_value <= self.sid_data.user_document['user_level'] and self.is_user_in_required_groups(user_groups, required_groups):
-
-                        # Check for text in brackets in the comment
-                        start_idx = comment_value.find("(")
-                        end_idx = comment_value.find(")")
-                        if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
-                            display_text = key_value + " " + comment_value[start_idx+1:end_idx]  # Include key_value before the extracted text
-                        else:
-                            display_text = key_value
-
-                        if display_text:
-                            self.util.output(display_text, 6, 0)
-                            self.util.output(" ", 6, 0)
-                            # Call display_menu_name only when the condition for not showing the menu name is not met
-                            if not (start_idx != -1 and end_idx != -1 and end_idx > start_idx):
-                                self.display_menu_name(int(action_value[0]), int(action_value[1]), self.util.menu_structure)
-                            self.util.goto_next_line()
+            self.process_small_menu_values(menu_values)
 
 
         else:
-            if isinstance(self.values, list):
-                self.process_values(self.values, self.max_height, -1)
+            if isinstance(menu_values, list):
+                self.process_values(menu_values, self.max_height, None)
 
-            elif isinstance(self.values, dict):
+            elif isinstance(menu_values, dict):
                 for idx in range(self.max_height):
-                    if idx in self.values:
+                    if idx in menu_values:
                         # Only process the idx if it exists in the dictionary
-                        self.process_values([self.values[idx]], 1, idx)
+                        self.process_values([menu_values[idx]], 1, idx)
 
             else:
-                pass  # Handle the case when self.values is neither a list nor a dictionary.
+                pass  # Handle the case when menu_values is neither a list nor a dictionary.
 
 
     def process_values(self, values, num_rows, idx2):
@@ -123,14 +92,68 @@ class BasicANSI:
                 required_groups = values[idx][4].split(',') if len(values[idx]) > 4 and values[idx][4] != '' else []
 
             user_groups = self.sid_data.user_document['groups'].split(',')
-
-            # Check for user's security level and group membership
-            if (values is None or security_value <= self.sid_data.user_document['user_level']) and self.is_user_in_required_groups(user_groups, required_groups):
-                if idx2 == -1:
-                    self.draw_line(idx)
+            if not hasattr(self, 'draw_hotkeys'):
+                # Check for user's security level and group membership
+                if (values is None or security_value <= self.sid_data.user_document['user_level']) and self.is_user_in_required_groups(user_groups, required_groups):
+                    if idx2 == None:
+                        self.draw_line(idx)
+                    else:
+                        self.draw_line(idx2)
+            else:
+                if idx2 == None:
+                        self.draw_line(idx)
                 else:
                     self.draw_line(idx2)
         self.emit_gotoXY(0, 1)
+
+    def process_small_menu_values(self, menu_values):
+        self.util.clear_screen()
+        self.util.sid_data.startX = 0
+        self.util.sid_data.startY = 0
+
+        #if isinstance(menu_values, list):
+        #    for line_index in range(0, self.count_menu_length(menu_values)):
+        #        self.process_line(menu_values, line_index)
+        #elif isinstance(menu_values, dict):
+        counter = 0
+        for line_index in range(0, self.count_menu_length(menu_values)):
+            
+            if line_index not in menu_values:  # Check if row_idx exists in the dictionary
+                    print(f"Row {line_index} not found in menu_values")
+                    continue
+            self.process_line(menu_values, line_index, counter)
+            counter += 1
+
+    def process_line(self, menu_values, line_index, counter):
+        self.util.sid_data.startX = 0
+        self.util.sid_data.startY = counter
+        action_value = menu_values[line_index][0]  # Assuming 'Key' field is the character.
+        key_value = menu_values[line_index][2]
+        comment_value = menu_values[line_index][1]
+        security_value = int(menu_values[line_index][3]) if menu_values[line_index][3] != '' else 0
+
+        required_groups = menu_values[line_index][4].split(',') if len(menu_values[line_index]) > 4 and menu_values[line_index][4] != '' else []
+        user_groups = self.sid_data.user_document['groups'].split(',')
+        # Check if self is not an instance of MenuTextEditor
+        if not hasattr(self, 'draw_hotkeys'):
+            # Check for user's security level and group membership
+            if security_value <= self.sid_data.user_document['user_level'] and self.is_user_in_required_groups(user_groups, required_groups):
+
+                # Check for text in brackets in the comment
+                start_idx = comment_value.find("(")
+                end_idx = comment_value.find(")")
+                if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
+                    display_text = key_value + " " + comment_value[start_idx+1:end_idx]  # Include key_value before the extracted text
+                else:
+                    display_text = key_value
+
+                if display_text:
+                    self.util.output(display_text, 6, 0)
+                    self.util.output(" ", 6, 0)
+                    # Call display_menu_name only when the condition for not showing the menu name is not met
+                    if not (start_idx != -1 and end_idx != -1 and end_idx > start_idx):
+                        self.display_menu_name(int(action_value[0]), int(action_value[1]), self.util.menu_structure)
+                    self.util.goto_next_line()
 
     def display_menu_name(self, first_field, second_field, menu_structure):
         # Validate first_field and second_field
