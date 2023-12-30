@@ -70,7 +70,7 @@ class BasicANSI:
         self.color_bgarray = color_bgarray
         self.input_values = input_values
         self.max_height = self.util.sid_data.sauceHeight # len(self.editor_values)
-       
+        print(self.max_height)
         
         if self.sid_data.xWidth < 50 and menu_values is not None:
             self.process_small_menu_values(menu_values)
@@ -81,10 +81,17 @@ class BasicANSI:
                 self.process_values(menu_values, self.max_height, None)
 
             elif isinstance(menu_values, dict):
+                print(menu_values)
+                counter = 0
                 for idx in range(self.max_height):
                     if idx in menu_values:
                         # Only process the idx if it exists in the dictionary
-                        self.process_values([menu_values[idx]], 1, idx)
+                        print(menu_values[idx])
+                        print("countr:"+str(counter))
+                        self.process_values([menu_values[idx]], 1, counter)
+                    else:
+                        self.draw_line(idx)
+                    counter += 1
 
             else:
                 pass  # Handle the case when menu_values is neither a list nor a dictionary.
@@ -116,14 +123,18 @@ class BasicANSI:
                 # Check for user's security level and combined condition
                 if (values is None or security_value <= self.sid_data.user_document['user_level']) and is_user_in_groups:
                     if idx2 is None:
+                        print("Drawing line1 "+str(idx))
                         self.draw_line(idx)
                     else:
+                        print("Drawing line2 "+str(idx2))
                         self.draw_line(idx2)
             else:
                 if is_user_in_groups:
                     if idx2 is None:
+                        print("Drawing line3 "+str(idx))
                         self.draw_line(idx)
                     else:
+                        print("Drawing line4 "+str(idx2))
                         self.draw_line(idx2)
         self.emit_gotoXY(0, 1)
 

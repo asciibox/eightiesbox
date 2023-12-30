@@ -182,6 +182,7 @@ class UserRegistration:
             users_collection = db['users']
             self.userdata['user_level'] = 0
             self.userdata['chosen_bbs'] = self.sid_data.chosen_bbs
+            self.userdata['groups'] = 'New user'
 
             existing_user = users_collection.find_one({"username": self.userdata["username"], "chosen_bbs" : self.sid_data.chosen_bbs})
             # If username does not exist, insert the new user data
