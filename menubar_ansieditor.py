@@ -223,13 +223,18 @@ class MenuBarANSIEditor(MenuBar):
             self.ask(20, self.load_filename_callback)  # load_filename_callback is the function to be called if the filename is not found
 
     def display_ansi_file(self):
+        print("DISPLAY ANSI FILE")
         self.sid_data.ansi_editor.max_height = len(self.sid_data.input_values)
         self.sid_data.ansi_editor.clear_screen()
         self.sid_data.ansi_editor.update_first_line()
-        self.sid_data.ansi_editor.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values, None)
+        print("CALLING DISPLAY_EDITOR")
+        print(self.sid_data.ansi_editor.display_editor)
+        self.sid_data.ansi_editor.display_editor_for_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values, None)
+        print("CALLED")
         self.sid_data.setCurrentAction("wait_for_ansieditor")
         self.sid_data.ansi_editor.current_line_x=0
         self.sid_data.ansi_editor.current_line_index=0
+        print("FINISHED")
 
     def delete_ansi(self):
         collection = self.mongo_client.bbs.ansifiles  # Replace with the actual MongoDB database and collection

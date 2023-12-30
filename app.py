@@ -54,7 +54,7 @@ menu_structure = {
             'User options': ['Change password', 'Change email', 'Change interests/hobbies'],
             'Login/Logout': ['Logout', 'Show oneliners'],
             'Multiline options': ['Users online', 'Chat between nodes', 'Add conference', 'Join conference', 'Delete conference', 'Watch other lines'],
-            'Display text': ['Display ANS / ASC', 'Display ANS / ASC and wait', 'Display text from Data and wait'],
+            'Text': ['Display ANS / ASC', 'Display ANS / ASC and wait', 'Display text from Data and wait', 'Modify start ANSI [admin]'],
             'BBS List': ['Long list display', 'Short list display', 'Add BBS'],
             'MOD Editor': ['Start MOD editor in textmode', 'Start MOD editor in graphic mode'],
             'Administration': ['Setup message areas', 'Setup file base', 'User editor', 'ANSI Editor', 'Menu editor', 'Edit uploaded files', 'Delete file', 'Group editor']

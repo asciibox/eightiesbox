@@ -237,6 +237,9 @@ class Menu(BasicANSI):
                 self.util.goto_next_line()
                 self.util.wait_with_message(self.set_wait)
                 return
+            elif action_code == "64":
+                self.choose_start_ansi()
+                return
             elif action_code == "82":
                 self.append_gosub()
                 self.util.emit_graphic_mod_editor();
@@ -466,3 +469,91 @@ class Menu(BasicANSI):
         else:
             self.util.goto_next_line()
             self.util.output_wrap("File "+filename+" not found!", 6, 0)
+
+    def show_filenames(self, filenames):
+        # Display filenames
+        display_filenames = [doc['filename'][:11] for doc in filenames]  # Limit filenames to 11 characters
+
+        for y in range(0, 7):
+            for x in range(0, 7):
+                idx = y * 7 + x
+                if idx < len(display_filenames):
+                    self.util.sid_data.setStartX(x * 12)  # Assuming each entry takes up 12 spaces
+                    self.util.sid_data.setStartY(y + 3)  # Start from the 3rd line
+                    self.util.output(display_filenames[idx], 6, 0)
+
+    def choose_start_ansi(self):
+        collection = self.util.mongo_client.bbs.ansifiles  # Replace with actual MongoDB database and collection
+        filenames = collection.find({'chosen_bbs': self.sid_data.chosen_bbs}, {'filename': 1})  # Query MongoDB for filenames
+        
+        self.util.clear_screen()
+        self.show_filenames(filenames)
+
+        self.util.sid_data.setStartX(0)
+        self.util.sid_data.setStartY(10)  # Assuming you are asking at the 10th line
+        self.util.output_wrap("Please enter the filename for the small screen (x=36): ", 6, 0)
+        self.util.ask(20, self.load_filename_callback_small_screen)  # Ask for small screen filename
+
+    def check_filename_and_ask_again(self, filename, callback_method, repeat_string):
+        if not filename.strip():
+            # Repeat if empty string is entered
+            self.util.sid_data.setCurrentAction("wait_for_menu")
+            self.util.clear_screen()
+            self.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values, self.values)
+            return False
+
+        # Check if the file exists in the database
+        collection = self.util.mongo_client.bbs.ansifiles  # Replace with actual MongoDB collection
+        file_data = collection.find_one({"filename": filename, "chosen_bbs": self.sid_data.chosen_bbs})
+
+        if not file_data:
+            self.util.goto_next_line()
+            self.util.output_wrap("File not found!", 6, 0)
+            self.util.goto_next_line()
+            self.util.output_wrap(repeat_string, 6, 0)
+            self.util.ask(20, callback_method)
+            return False
+
+        return True
+
+        
+
+    def load_filename_callback_small_screen(self, filename_small):
+        if self.check_filename_and_ask_again(filename_small, self.load_filename_callback_small_screen, 'Please enter the filename for the small screen (x=36): '):
+            self.filename_small = filename_small
+            self.util.goto_next_line()
+            self.util.output_wrap("Please enter the filename for the medium screen: (x=50)", 6, 0)
+            self.util.ask(20, self.load_filename_callback_medium_screen)
+
+    def load_filename_callback_medium_screen(self, filename_medium):
+        if self.check_filename_and_ask_again(filename_medium, self.load_filename_callback_medium_screen, "Please enter the filename for the medium screen: (x=50)"):
+            self.filename_medium = filename_medium
+            self.util.goto_next_line()
+            self.util.output_wrap("Please enter the filename for the large screen: (x=50)", 6, 0)
+            self.util.ask(20, self.load_filename_callback_large_screen)
+
+    def load_filename_callback_large_screen(self, filename_large):
+        if self.check_filename_and_ask_again(filename_large, self.load_filename_callback_large_screen, "Please enter the filename for the large screen: (x=50)"):
+            self.filename_large = filename_large
+
+            # Define the fields to update
+            updated_fields = {
+                "start_filename_small": self.filename_small,
+                "start_filename_medium": self.filename_medium,
+                "start_filename_large": self.filename_large
+            }
+
+            # Access the MongoDB config collection
+            config_collection = self.util.mongo_client.bbs.config  # Replace with actual MongoDB database and collection
+
+            # Define a query for finding the existing document (if any)
+            # This assumes there is a unique identifier for the config, such as a specific 'config_id' or similar field
+            query = {"config_id": "start_filenames"}
+
+            # Update the existing document or insert a new one if it doesn't exist, while keeping other fields unchanged
+            config_collection.update_one(query, {"$set": updated_fields}, upsert=True)
+
+            self.util.sid_data.setCurrentAction("wait_for_menu")
+            self.util.clear_screen()
+            self.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values, self.values)
+

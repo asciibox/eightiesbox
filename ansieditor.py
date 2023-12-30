@@ -67,7 +67,12 @@ class ANSIEditor(BasicANSI):
     def start(self):
         self.clear_screen()
         self.update_first_line()
-        self.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values, self.util.sid_data.menu_box.values )
+        self.display_editor(
+            self.util.sid_data.color_array,
+            self.util.sid_data.color_bgarray,
+            self.util.sid_data.input_values,
+            self.util.sid_data.menu_box.values if self.util.sid_data.menu_box is not None else None
+        )
 
     def check_key_by_subclass(self, key):
         return
@@ -254,7 +259,7 @@ class ANSIEditor(BasicANSI):
              self.emit_gotoXY(self.current_line_x, self.current_line_index + 1)
              return
 
-        elif key == 'F12':
+        elif key == 'F11':
             if self.sid_data.current_action != "wait_for_ansieditor":
                 return
             self.util.clear_screen()
@@ -451,7 +456,7 @@ class ANSIEditor(BasicANSI):
         padded_characterSet = str(self.characterSet+1).zfill(2)
         self.output(padded_characterSet, 6, 0)
 
-        self.output(" x="+str(self.sid_data.sauceWidth)+" y="+str(self.sid_data.sauceHeight)+" (F12)", 4, 0)
+        self.output(" x="+str(self.sid_data.sauceWidth)+" y="+str(self.sid_data.sauceHeight)+" (F11)", 4, 0)
         
         # You may want to reset the cursor to its original position after updating the line
         # Assuming self.sid_data.cursorX and self.sid_data.cursorY store the original cursor position

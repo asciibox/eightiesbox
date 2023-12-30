@@ -50,6 +50,19 @@ class BasicANSI:
                 return True
 
         return False
+    
+    def display_editor_for_editor(self, color_array, color_bgarray, input_values, menu_values):
+        
+        self.color_array = color_array
+        self.color_bgarray = color_bgarray
+        self.input_values = input_values
+        self.max_height = self.util.sid_data.sauceHeight # len(self.editor_values)
+       
+        for idx in range(self.max_height):
+                # Only process the idx if it exists in the dictionary
+                self.draw_line(idx)
+
+
 
     def display_editor(self, color_array, color_bgarray, input_values, menu_values):
         
