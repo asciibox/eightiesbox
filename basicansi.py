@@ -79,32 +79,42 @@ class BasicANSI:
 
     def process_values(self, values, num_rows, idx2):
         for idx in range(num_rows):
-
             # Initialize variables
             security_value = 0
             required_groups = []
+            value_y_condition = False  # Condition for values[idx][5] being "y"
 
             # Check if idx is within the range of values
             if values is not None and idx < len(values):
                 security_value = int(values[idx][3]) if values[idx][3] != '' else 0
 
-                # Check if element has enough items for index 4
-                required_groups = values[idx][4].split(',') if len(values[idx]) > 4 and values[idx][4] != '' else []
+                # Check if element has enough items for index 4 and 5
+                if len(values[idx]) > 4 and values[idx][4] != '':
+                    required_groups = values[idx][4].split(',')
+                if len(values[idx]) > 5:
+                    value_y_condition = values[idx][5] == "y"
 
             user_groups = self.sid_data.user_document['groups'].split(',')
+
+            # Condition to check group membership if value_y_condition is "y"
+            is_user_in_groups = self.is_user_in_required_groups(user_groups, required_groups) if value_y_condition else True
+
             if not hasattr(self, 'draw_hotkeys'):
-                # Check for user's security level and group membership
-                if (values is None or security_value <= self.sid_data.user_document['user_level']) and self.is_user_in_required_groups(user_groups, required_groups):
-                    if idx2 == None:
+                # Check for user's security level and combined condition
+                if (values is None or security_value <= self.sid_data.user_document['user_level']) and is_user_in_groups:
+                    if idx2 is None:
                         self.draw_line(idx)
                     else:
                         self.draw_line(idx2)
             else:
-                if idx2 == None:
+                if is_user_in_groups:
+                    if idx2 is None:
                         self.draw_line(idx)
-                else:
-                    self.draw_line(idx2)
+                    else:
+                        self.draw_line(idx2)
         self.emit_gotoXY(0, 1)
+
+
 
     def process_small_menu_values(self, menu_values):
         self.util.clear_screen()
