@@ -144,10 +144,18 @@ class BasicANSI:
 
         required_groups = menu_values[line_index][4].split(',') if len(menu_values[line_index]) > 4 and menu_values[line_index][4] != '' else []
         user_groups = self.sid_data.user_document['groups'].split(',')
-        # Check if self is not an instance of MenuTextEditor
+
+        # Check if menu_values has the sixth element and set value_y_condition
+        value_y_condition = False
+        if len(menu_values[line_index]) > 5:
+            value_y_condition = menu_values[line_index][5] == "y"
+
+        # Check group membership if value_y_condition is "y"
+        is_user_in_groups = self.is_user_in_required_groups(user_groups, required_groups) if value_y_condition else True
+
         if not hasattr(self, 'draw_hotkeys'):
-            # Check for user's security level and group membership
-            if security_value <= self.sid_data.user_document['user_level'] and self.is_user_in_required_groups(user_groups, required_groups):
+            # Draw line based on security level and combined condition
+            if security_value <= self.sid_data.user_document['user_level'] and is_user_in_groups:
 
                 # Check for text in brackets in the comment
                 start_idx = comment_value.find("(")
