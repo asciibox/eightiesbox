@@ -455,7 +455,7 @@ def handle_keypress(data):
     elif (siddata.current_action == "wait_for_messageeditor"):
         siddata.message_editor.handle_key(data['key'], [False, False, False])
         return
-    elif (siddata.current_action == "wait_for_input"):
+    elif (siddata.current_action == "wait_for_input") or (siddata.current_action == "wait_for_profile_renderer"):
         key = data['key']
 
         if key == "ä":

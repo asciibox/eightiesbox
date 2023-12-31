@@ -3,12 +3,15 @@ import dukpy
 
 
 class ProfileRenderer:
-    def __init__(self, util, callback_function):
+    def __init__(self, util, return_function):
         self.util = util
         self.element_positions = {}  # Store element positions
         self.onclick_events = {}
         self.soup = None
-        self.callback_function = callback_function
+        self.return_function = return_function
+        self.input_values = {}  # Dictionary to store input values for each element
+        self.active_callback = None
+        self.previous_element_id = None
         self.js_code = """
             function $(elementId) {
                 // Simulate jQuery-like behavior
@@ -135,17 +138,39 @@ class ProfileRenderer:
         matched_element_position = self.element_positions.get(element_id)
         if matched_element_position:
             start, _ = matched_element_position
-            # Assuming you have a way to get the element's width
-            width = self.extract_width_for_id(element_id)  
+            width = self.extract_width_for_id(element_id)
             self.util.sid_data.startX = start[0]
             self.util.sid_data.startY = start[1]
-            self.util.askinput(width, self.callback_function, [], '')
+            self.util.sid_data.setInputType("text")
+            print("element_id:" + element_id)
 
-    def callback_function(self):
-        pass
+            # If there was a previously focused element, save its current input value
+            if self.previous_element_id is not None:
+                self.input_values[self.previous_element_id] = self.util.sid_data.localinput
+
+            # Set the default value for the new element
+            default_value = self.input_values.get(element_id, "")
+
+            # Nested function for callback
+            def callback_with_element_id(input_data):
+                # Update the value for the element that was active when the input was provided
+                self.input_values[element_id] = input_data
+
+            # Update the active callback
+            self.active_callback = callback_with_element_id
+
+            # Update the previous element ID
+            self.previous_element_id = element_id
+
+            # Ask for input with the default value for the current element
+            self.util.askinput(width, self.active_callback, [], default_value)
+
+    def callback_function(self, input_data, element_id):
+        # Store the input value for this element ID
+        self.input_values[element_id] = input_data
 
     def submit_function(self):
-        self.callback_function()
+        self.return_function()
         pass
     
     def extract_width_for_id(self, element_id):
