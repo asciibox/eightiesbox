@@ -25,6 +25,7 @@ class ProfileRenderer:
             """
 
     def render_profile(self):
+        first_input_element = None
         with open("html/profile.html", "r") as file:
             html_content = file.read()
 
@@ -33,7 +34,8 @@ class ProfileRenderer:
         elements = self.soup.find_all(["div", "input", "button", "submit"])  # Add more tags as needed
 
         for element in elements:
-
+            if first_input_element == None and element.name == 'input':
+                first_input_element = element
             onclick = element.get('onclick')
             if onclick:
                 element_id = element.get('id', None)
@@ -82,7 +84,9 @@ class ProfileRenderer:
                 self.util.sid_data.startX = left
                 self.util.sid_data.startY = top
                 self.util.output(width_spaces, 6, 4)
-
+        ele_id = first_input_element.get('id', None)
+        print('focusing '+ele_id)
+        self.focus_on_element(ele_id)
         self.util.sid_data.setCurrentAction("wait_for_profile_renderer")
 
     def extract_element_for_id(self, element_id):
@@ -137,6 +141,7 @@ class ProfileRenderer:
     def focus_on_element(self, element_id):
         matched_element_position = self.element_positions.get(element_id)
         if matched_element_position:
+            print("matched_element_position")
             start, _ = matched_element_position
             width = self.extract_width_for_id(element_id)
             self.util.sid_data.startX = start[0]
@@ -161,7 +166,7 @@ class ProfileRenderer:
 
             # Update the previous element ID
             self.previous_element_id = element_id
-
+            print("self.askinput")
             # Ask for input with the default value for the current element
             self.util.askinput(width, self.active_callback, [], default_value)
 
