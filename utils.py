@@ -1137,4 +1137,6 @@ class Utils:
         self.sid_data.setBBSChooser(BBSChooser(self))
         return
     
-
+    def pointerdown(self, x, y):
+        print(x)
+        print(y)

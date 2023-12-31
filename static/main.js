@@ -305,11 +305,15 @@ function create() {
   
   this.input.on("pointerdown", function (pointer) {
 
-     // Check for click in the last 20px of the screen
-    if (pointer.y >= baseHeight - 32) {
+     // Check for click in the last 16px of the screen
+    if (pointer.y >= baseHeight - 16) {
       // Action to perform when the bottom-right 20px area is clicked
       toggleKeyboard();
     } else {
+
+     let tileX = Math.floor(pointer.x / scaleX / 8);
+     let tileY = Math.floor(pointer.y / scaleY / 16);
+     socket.emit("pointerdown", { x: tileX, y: tileY });
 
       if (popupOpened == false) {
 

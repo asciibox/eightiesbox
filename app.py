@@ -128,6 +128,15 @@ def onload(data):
     sid_data[request.sid].util.choose_bbs(data)
     return
 
+@socketio.on('pointerdown')
+def pointerdown(data):
+    #login(data)
+    x = data.get('x')
+    y = data.get('y')
+    sid_data[request.sid].util.pointerdown(x, y)
+    return
+
+
 
 
 @socketio.on('disconnect')
