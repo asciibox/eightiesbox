@@ -131,9 +131,12 @@ def onload(data):
 @socketio.on('pointerdown')
 def pointerdown(data):
     #login(data)
+    global sid_data
+    siddata = sid_data[request.sid]
     x = data.get('x')
     y = data.get('y')
-    sid_data[request.sid].util.pointerdown(x, y)
+    if (siddata.current_action=='wait_for_profile_renderer'):
+        siddata.profile_renderer.handle_click(x, y)
     return
 
 
