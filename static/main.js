@@ -311,8 +311,8 @@ function create() {
       toggleKeyboard();
     } else {
 
-     let tileX = Math.floor(pointer.x / scaleX / 8);
-     let tileY = Math.floor(pointer.y / scaleY / 16);
+     let tileX = Math.floor(pointer.x /  8) + 1;
+     let tileY = Math.floor(pointer.y / 16) + 1;
      socket.emit("pointerdown", { x: tileX, y: tileY });
 
       if (popupOpened == false) {

@@ -39,7 +39,6 @@ class Utils:
             self.sid_data.setStartY(self.sid_data.startY + 1)  # Move to the next line
             self.sid_data.setStartX(0)  # Reset the X coordinate for the new line
 
-        self.sid_data.setCurrentAction("wait_for_input")
         self.sid_data.setMaxLength(mylen)
         self.sid_data.setMaxScrollLength(mylen)
         self.sid_data.setAcceptKeys(accept_keys)
@@ -103,11 +102,13 @@ class Utils:
         self.sid_data.last_activity_timestamp = current_timestamp
 
         self.sid_data.setInputType("text")
+        self.sid_data.setCurrentAction("wait_for_input")
         self.askinput(mylen, callback, accept_keys, default_value)
         
 
     def askPassword(self, mylen, callback, accept_keys = []):
         self.sid_data.setInputType("password")
+        self.sid_data.setCurrentAction("wait_for_input")
         self.askinput(mylen, callback, accept_keys)
 
     def askYesNo(self, question, callback):
