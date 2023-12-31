@@ -51,7 +51,7 @@ menu_structure = {
             'Goto & Gosub': ['Goto new menu', 'Gosub new menu', 'Return from gosub'],
             'Message base': ['Read message', 'Write message', 'Area change'],
             'File base': ['Download files', 'Upload files', 'List visible files', 'Select file area', 'Comment uploaded files', 'List invisible files [admin]', 'Download invisible files [admin]', 'Delete files [admin]'],
-            'User options': ['Change password', 'Change email', 'Change interests/hobbies'],
+            'Other options': ['Change profile'],
             'Login/Logout': ['Logout', 'Show oneliners'],
             'Multiline options': ['Users online', 'Chat between nodes', 'Add conference', 'Join conference', 'Delete conference', 'Watch other lines'],
             'Text': ['Display ANS / ASC', 'Display ANS / ASC and wait', 'Display text from Data and wait', 'Modify start ANSI [admin]'],

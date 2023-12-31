@@ -19,6 +19,7 @@ from editfile import EditFile
 from deletefile import Deletefile
 from watchlines import WatchLines
 from groupeditor import GroupEditor
+from pycode.profilerenderer import ProfileRenderer
 
 class Menu(BasicANSI):
     def __init__(self, util, values, num_rows, callback_on_exit):
@@ -208,6 +209,11 @@ class Menu(BasicANSI):
                 self.append_gosub()
                 self.sid_data.setDeletefile(Deletefile(self.util))
                 self.sid_data.delete_file.query_file_by_id()
+                return
+            elif action_code == "31":
+                self.append_gosub()
+                self.sid_data.setProfileRenderer(ProfileRenderer(self.util))
+                self.sid_data.profile_renderer.render_profile()
                 return
             elif action_code == "51":
                 
