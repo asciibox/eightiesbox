@@ -30,6 +30,12 @@ class Menu(BasicANSI):
         self.callback_on_exit = callback_on_exit
         self.menu_stack = []  # Initialize the menu stack
 
+    def profilerenderer_callback_on_exit(self):
+        self.util.sid_data.setCurrentAction("wait_for_menu")
+        self.util.clear_screen()
+        self.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values, self.values)
+
+
     def who_is_online_callback_on_exit(self):
         self.util.sid_data.setCurrentAction("wait_for_menu")
         self.util.clear_screen()
@@ -212,7 +218,7 @@ class Menu(BasicANSI):
                 return
             elif action_code == "31":
                 self.append_gosub()
-                self.sid_data.setProfileRenderer(ProfileRenderer(self.util))
+                self.sid_data.setProfileRenderer(ProfileRenderer(self.util, self.profilerenderer_callback_on_exit))
                 self.sid_data.profile_renderer.render_profile()
                 return
             elif action_code == "51":

@@ -3,10 +3,12 @@ import dukpy
 
 
 class ProfileRenderer:
-    def __init__(self, util):
+    def __init__(self, util, callback_function):
         self.util = util
         self.element_positions = {}  # Store element positions
         self.onclick_events = {}
+        self.soup = None
+        self.callback_function = callback_function
         self.js_code = """
             function $(elementId) {
                 // Simulate jQuery-like behavior
@@ -24,8 +26,8 @@ class ProfileRenderer:
             html_content = file.read()
 
         self.util.clear_screen()
-        soup = BeautifulSoup(html_content, "html.parser")
-        elements = soup.find_all(["div", "input", "button"])  # Add more tags as needed
+        self.soup = BeautifulSoup(html_content, "html.parser")
+        elements = self.soup.find_all(["div", "input", "button", "submit"])  # Add more tags as needed
 
         for element in elements:
 
@@ -64,8 +66,14 @@ class ProfileRenderer:
                 self.util.sid_data.startX = left
                 self.util.sid_data.startY = top
                 self.util.output(element.text, 6, 0)
-            elif element.name in ['input', 'button']:
+            elif element.name == 'button' or element.name=='submit':
+                self.util.sid_data.startX = left
+                self.util.sid_data.startY = top
+                width = self.extract_width(style, default_width=35 if element.name == 'input' else 35)
+                centered_text = self.center_text(element.text, width)
+                self.util.output(centered_text, 14, 6)
 
+            elif element.name == 'input':
                 width = self.extract_width(style, default_width=35 if element.name == 'input' else 35)
                 width_spaces = ' ' * width
                 self.util.sid_data.startX = left
@@ -73,7 +81,15 @@ class ProfileRenderer:
                 self.util.output(width_spaces, 6, 4)
 
         self.util.sid_data.setCurrentAction("wait_for_profile_renderer")
-        print("FINISHED")
+
+    def extract_element_for_id(self, element_id):
+        # Assuming self.soup is already a BeautifulSoup object of your HTML content
+        element = self.soup.find(id=element_id)
+        if element:
+            # Process the element as needed, e.g., extract text or attributes
+            return element
+        else:
+            return None
 
     def is_inside_box(self, x, y, element):
         start, end = self.element_positions.get(element, [(0, 0), (0, 0)])
@@ -105,31 +121,31 @@ class ProfileRenderer:
             self.focus_on_element(element_id_to_focus)
 
     def handle_click(self, x, y):
-        print("CLICK:")
-        print(x)
-        print(y)
         for element_id, (start, end) in self.element_positions.items():
+            
             if start[0] <= x <= end[0] and start[1] <= y <= end[1]:
                 if element_id in self.onclick_events:
                     self.handle_event_with_dukpy(self.onclick_events[element_id])
 
+                my_element = self.extract_element_for_id(element_id)
+                if my_element and my_element.name == 'button' and my_element.get('type') == 'submit':
+                    self.submit_function()
+
     def focus_on_element(self, element_id):
-        print("FOCUS ON ELEMENT")
-        print(element_id)
         matched_element_position = self.element_positions.get(element_id)
-        print(matched_element_position)
-        print(self.element_positions)
         if matched_element_position:
             start, _ = matched_element_position
             # Assuming you have a way to get the element's width
             width = self.extract_width_for_id(element_id)  
             self.util.sid_data.startX = start[0]
             self.util.sid_data.startY = start[1]
-            print("ASK")
             self.util.askinput(width, self.callback_function, [], '')
 
     def callback_function(self):
-        print("Hallo")
+        pass
+
+    def submit_function(self):
+        self.callback_function()
         pass
     
     def extract_width_for_id(self, element_id):
@@ -145,3 +161,13 @@ class ProfileRenderer:
         else:
             # Return a default width if the element or its position data is not found
             return 35  # Or any other appropriate default value
+        
+        
+    def center_text(self, text, width):
+        # Truncate the text if it's longer than the width
+        if len(text) > width:
+            return text[:width]
+        
+        # Calculate the padding needed on each side
+        padding = (width - len(text)) // 2
+        return ' ' * padding + text + ' ' * (width - len(text) - padding)
