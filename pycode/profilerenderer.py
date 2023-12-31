@@ -50,10 +50,15 @@ class ProfileRenderer:
             color = self.extract_color(style)
 
             width = self.extract_width(style)
-            height = self.extract_style_value(style, 'height', 1)  # Assuming a default height
+            height = self.extract_style_value(style, 'height', 1)
             end_x = left + width
             end_y = top + height
-            self.element_positions[element] = [(left, top), (end_x, end_y)]
+
+            # Store positions using the element's ID
+            element_id = element.get('id')
+            if element_id:
+                self.element_positions[element_id] = [(left, top), (end_x, end_y)]
+
 
             if element.name == 'div':
                 self.util.sid_data.startX = left
@@ -92,25 +97,51 @@ class ProfileRenderer:
 
     def handle_event_with_dukpy(self, js_code):
         # Here, you need to modify the JavaScript logic to identify which element needs focus
+        print(self.js_code + ' ' + js_code)
         js_result = dukpy.evaljs(self.js_code + ' ' + js_code)
         # Assuming js_result contains the element ID that needs focus
-        element_id_to_focus = js_result.get('focusElementId')
+        element_id_to_focus = js_result.get('focusElementId')[1:]
         if element_id_to_focus:
             self.focus_on_element(element_id_to_focus)
 
     def handle_click(self, x, y):
-        for element, (start, end) in self.element_positions.items():
+        print("CLICK:")
+        print(x)
+        print(y)
+        for element_id, (start, end) in self.element_positions.items():
             if start[0] <= x <= end[0] and start[1] <= y <= end[1]:
-                element_id = element.get('id', None)
-                if element_id and element_id in self.onclick_events:
+                if element_id in self.onclick_events:
                     self.handle_event_with_dukpy(self.onclick_events[element_id])
 
     def focus_on_element(self, element_id):
-        # Find the element by ID and get its position and width
-        element = next((el for el, pos in self.element_positions.items() if el.get('id') == element_id), None)
-        if element:
-            start, _ = self.element_positions[element]
-            width = self.extract_width(element.get('style', ''))
-            self.util.startX = start[0]
-            self.util.startY = start[1]
-            self.util.ask(width, your_callback_function)
+        print("FOCUS ON ELEMENT")
+        print(element_id)
+        matched_element_position = self.element_positions.get(element_id)
+        print(matched_element_position)
+        print(self.element_positions)
+        if matched_element_position:
+            start, _ = matched_element_position
+            # Assuming you have a way to get the element's width
+            width = self.extract_width_for_id(element_id)  
+            self.util.sid_data.startX = start[0]
+            self.util.sid_data.startY = start[1]
+            print("ASK")
+            self.util.askinput(width, self.callback_function, [], '')
+
+    def callback_function(self):
+        print("Hallo")
+        pass
+    
+    def extract_width_for_id(self, element_id):
+        # Retrieve the position data for the specified element
+        position_data = self.element_positions.get(element_id)
+
+        if position_data:
+            # Position data is in the format [(left, top), (end_x, end_y)]
+            start, end = position_data
+            # Calculate width as the difference between end_x and left
+            width = end[0] - start[0]
+            return width
+        else:
+            # Return a default width if the element or its position data is not found
+            return 35  # Or any other appropriate default value
