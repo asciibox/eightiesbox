@@ -441,5 +441,8 @@ class ProfileRenderer:
         element_id = self.element_order[self.current_focus_index]
 
         my_element = self.extract_element_for_id(element_id)
-        if my_element and my_element.name == 'button' and my_element.get('type') == 'submit':
-            self.submit_function()
+        if my_element:
+            if my_element.name == 'button' and my_element.get('type') == 'submit':
+                self.submit_function()
+            elif my_element.name == 'input':
+                self.focus_next_element()

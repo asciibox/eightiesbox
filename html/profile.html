@@ -20,10 +20,10 @@
     <input id="interests"  type="text" value="{userdata.interests}" style="position: absolute; top: 19px; left: 0px; width: 35px;" onclick="return $('#interests').focus();">
 
     <div style="position: absolute; top: 21px; left: 0px;">Password:</div>
-    <input id="password" type="text" value="" style="position: absolute; top: 22px; left: 0px; width: 35px;" onclick="return $('#password').focus();">
+    <input id="password" type="password" value="" style="position: absolute; top: 22px; left: 0px; width: 35px;" onclick="return $('#password').focus();">
 
     <div style="position: absolute; top: 24px; left: 0px;">Password repetition:</div>
-    <input id="password_repetition" value="" type="text" style="position: absolute; top: 25px; left: 0px; width: 35px;" onclick="return $('#password_repetition').focus();">
+    <input id="password_repetition" value="" type="password" style="position: absolute; top: 25px; left: 0px; width: 35px;" onclick="return $('#password_repetition').focus();">
 
     <button id="submit_button" type="submit" value="Submit" style="position: absolute; top: 27px; left: 6px; width: 20px;" onclick="if ($('#password_repetition').val() != $('#password').val()) { alert('Passwords do not match'); return false; } return true;">Submit</button>
 
