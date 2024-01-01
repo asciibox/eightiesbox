@@ -67,6 +67,7 @@ class ProfileRenderer:
         self.util.clear_screen()
         self.soup = BeautifulSoup(html_content, "html.parser")
         elements = self.soup.find_all(["div", "input", "button", "submit"])  # Add more tags as needed
+        self.element_order = [e.get('id') for e in self.soup.find_all(["div", "input", "button", "submit"]) if e.get('id')]
 
         for element in elements:
             if self.first_input_element == None and element.name == 'input':
@@ -126,7 +127,7 @@ class ProfileRenderer:
                 self.util.sid_data.startY = top
                 self.util.output(padded_element_value, 6, 4)
         ele_id = self.first_input_element.get('id', None)
-        self.focus_on_element(ele_id)
+        self.focus_on_element(ele_id, False)
         self.util.sid_data.setCurrentAction("wait_for_profile_renderer")
 
     def extract_element_for_id(self, element_id):
@@ -202,7 +203,7 @@ class ProfileRenderer:
                         # Handle focused element
                         element_id_to_focus = onClickResult.get('focusElementId')
                         if element_id_to_focus:
-                            self.focus_on_element(element_id_to_focus[1:])
+                            self.focus_on_element(element_id_to_focus[1:], True)
                         
                         # Handle alert message
                         alert_message = onClickResult.get('alertMessage')
@@ -231,7 +232,7 @@ class ProfileRenderer:
 
 
 
-    def focus_on_element(self, element_id):
+    def focus_on_element(self, element_id, using_mouse):
         self.update_previous_element()
         matched_element_position = self.element_positions.get(element_id)
         if matched_element_position:
@@ -252,6 +253,25 @@ class ProfileRenderer:
             def callback_with_element_id(input_data):
                 # Re-fetch the currently focused element
                 focused_element = self.extract_element_for_id(self.previous_element_id)
+
+
+                if using_mouse:
+        # Find the index of the next input element
+                    next_input_index = None
+                    self.element_order = [e.get('id') for e in self.soup.find_all(["div", "input", "button", "submit"]) if e.get('id')]
+                    for i, el_id in enumerate(self.element_order):
+                        print(el_id+"=="+element_id)
+                        if el_id == element_id:
+                            next_input_index = i
+
+                    # If an input element is found, update the current focus index
+                    if next_input_index is not None:
+                        self.current_focus_index = next_input_index
+                        print("found "+str(next_input_index))
+                    else:
+                        # If no next input is found, optionally reset focus to start
+                        self.current_focus_index = 1
+
                 if focused_element.name == 'input':
                     self.input_values[element_id] = input_data
                 elif focused_element.name == 'button':
@@ -384,12 +404,32 @@ class ProfileRenderer:
         self.current_focus_index += 1
 
         # Wrap around if the end of the list is reached
-        if self.current_focus_index >= len(self.element_order):
+        if self.current_focus_index > len(self.element_order)-1:
             self.current_focus_index = 0
+
+        print("going down to "+str(self.current_focus_index))
 
         # Get the ID of the next element to focus
         next_element_id = self.element_order[self.current_focus_index]
-
+        print("focus_on_element")
         # Call the existing focus function
-        self.focus_on_element(next_element_id)
+        self.focus_on_element(next_element_id, False)
     
+    def focus_previous_element(self):
+    # Check if the elements list and current focus index are initialized
+        if not hasattr(self, 'element_order'):
+            self.element_order = [e.get('id') for e in self.soup.find_all(["div", "input", "button", "submit"]) if e.get('id')]
+            
+        # Move to the previous element in the list
+        self.current_focus_index -= 1
+
+        # Wrap around if the beginning of the list is reached
+        if self.current_focus_index < 0:
+            self.current_focus_index = len(self.element_order) - 1
+
+        print("going up to "+str(self.current_focus_index))
+        # Get the ID of the previous element to focus
+        previous_element_id = self.element_order[self.current_focus_index]
+        print("focus_on_element")
+        # Call the existing focus function
+        self.focus_on_element(previous_element_id, False)
