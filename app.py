@@ -466,6 +466,10 @@ def handle_keypress(data):
                 siddata.profile_renderer.focus_next_element()
             else:
                 siddata.profile_renderer.focus_previous_element()
+            return
+        elif key == 'Enter' and siddata.current_action == "wait_for_profile_renderer":
+            siddata.profile_renderer.enter()
+            return
         elif key == "ä":
             # Handle ä
             siddata.util.keydown(chr(132))

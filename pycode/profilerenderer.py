@@ -433,3 +433,13 @@ class ProfileRenderer:
         print("focus_on_element")
         # Call the existing focus function
         self.focus_on_element(previous_element_id, False)
+
+    def enter(self):
+        if not hasattr(self, 'element_order'):
+            self.element_order = [e.get('id') for e in self.soup.find_all(["div", "input", "button", "submit"]) if e.get('id')]
+            
+        element_id = self.element_order[self.current_focus_index]
+
+        my_element = self.extract_element_for_id(element_id)
+        if my_element and my_element.name == 'button' and my_element.get('type') == 'submit':
+            self.submit_function()
