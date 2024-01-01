@@ -193,7 +193,30 @@ class ProfileRenderer:
                     onAlertMessage = js_result.get('onAlert')
                     
                     if isinstance(onClickResult, bool) and not onClickResult:
-                        print("Alert:", onAlertMessage)  # Print alert message if available
+                        # Calculate box width
+                        boxWidth = len(onAlertMessage) + 2
+                        some_y_coordinate = 0
+                        # Top border
+                        self.util.sid_data.setStartX(0)
+                        self.util.sid_data.setStartY(some_y_coordinate)  # Replace with the appropriate Y coordinate
+                        self.util.output("+", 11, 4)
+                        for i in range(1, boxWidth - 1):
+                            self.util.output("-", 11, 4)
+                        self.util.output("+", 11, 4)
+
+                        # Output message
+                        self.util.sid_data.setStartX(0)
+                        self.util.sid_data.setStartY(some_y_coordinate + 1)  # Adjust Y coordinate as needed
+                        self.util.output("|" + onAlertMessage + "|", 11, 4)
+
+                        # Bottom border
+                        self.util.sid_data.setStartX(0)
+                        self.util.sid_data.setStartY(some_y_coordinate + 2)  # Adjust Y coordinate as needed
+                        self.util.output("+", 11, 4)
+                        for i in range(1, boxWidth - 1):
+                            self.util.output("-", 11, 4)
+                        self.util.output("+", 11, 4)
+                        self.util.wait(self.alert_callback)
                         return  # Stop if JavaScript returns false
 
                     # Check if onClickResult is an object and handle it
@@ -217,6 +240,12 @@ class ProfileRenderer:
                 my_element = self.extract_element_for_id(element_id)
                 if my_element and my_element.name == 'button' and my_element.get('type') == 'submit':
                     self.submit_function()
+
+    def alert_callback(self):
+        self.util.clear_screen()
+        self.util.sid_data.startX = 0
+        self.util.sid_data.startY = 0
+        self.render_profile()
 
     def update_previous_element(self):
         print("Updating previous element:", self.previous_element_id)
