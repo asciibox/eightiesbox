@@ -303,6 +303,10 @@ class ProfileRenderer:
     def handle_input_element(self, element_id, width, default_value):
         # Code to handle input element
         focused_element = self.extract_element_for_id(element_id)
+        if focused_element.get('type') == 'text':
+            self.util.sid_data.setInputType("text")
+        else:
+            self.util.sid_data.setInputType("password")
         self.util.askinput(width, self.active_callback, [], default_value)
 
     def reset_button_style(self, button_element):
@@ -348,9 +352,6 @@ class ProfileRenderer:
             "website": self.input_values.get("website", ""),
             "hobbies": self.input_values.get("interests", ""),  # Mapping 'interests' to 'hobbies'
         }
-
-        self.return_function()
-        return
 
         # Only hash and set new password if mypassword is not empty
         if mypassword:

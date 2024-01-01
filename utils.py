@@ -62,7 +62,11 @@ class Utils:
             self.sid_data.setCurrentPos(0)
 
         # Calculate visible string based on view_start and maxLength
-        visible_str = self.sid_data.localinput[self.sid_data.view_start:self.sid_data.view_start + mylen - 1]
+            
+        if self.sid_data.inputType=="text":
+            visible_str = self.sid_data.localinput[self.sid_data.view_start:self.sid_data.view_start + mylen - 1]
+        else:
+            visible_str = '*' * len(self.sid_data.localinput[self.sid_data.view_start:self.sid_data.view_start + mylen - 1])
         # Pad the visible string with spaces to fill the background
         padded_str = visible_str.ljust(mylen )
 
