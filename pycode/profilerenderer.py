@@ -1,10 +1,11 @@
 from bs4 import BeautifulSoup
 import dukpy
-
+import re
 
 class ProfileRenderer:
     def __init__(self, util, return_function):
         self.util = util
+        self.first_input_element = None
         self.element_positions = {}  # Store element positions
         self.onclick_events = {}
         self.soup = None
@@ -25,17 +26,34 @@ class ProfileRenderer:
             """
 
     def render_profile(self):
-        first_input_element = None
+        # Fetch user data from the database
+        # Assuming 'self.util.sid_data.user_document['_id']' contains the current user's ID
+        db = self.util.mongo_client['bbs']
+        users_collection = db['users']
+        user_data = users_collection.find_one({"_id": self.util.sid_data.user_document['_id']})
+
+        # Read the HTML template
         with open("html/profile.html", "r") as file:
             html_content = file.read()
+
+        # Replace placeholders with actual user data or remove them if not present
+        all_placeholders = re.findall(r'\{userdata\.\w+\}', html_content)
+        for placeholder in all_placeholders:
+            field = placeholder.strip('{}').split('.')[1]
+            if field in user_data and user_data[field] is not None:
+                html_content = html_content.replace(placeholder, str(user_data[field]))
+            else:
+                html_content = html_content.replace(placeholder, '')
+
+        print(html_content)
 
         self.util.clear_screen()
         self.soup = BeautifulSoup(html_content, "html.parser")
         elements = self.soup.find_all(["div", "input", "button", "submit"])  # Add more tags as needed
 
         for element in elements:
-            if first_input_element == None and element.name == 'input':
-                first_input_element = element
+            if self.first_input_element == None and element.name == 'input':
+                self.first_input_element = element
             onclick = element.get('onclick')
             if onclick:
                 element_id = element.get('id', None)
@@ -66,6 +84,9 @@ class ProfileRenderer:
             if element_id:
                 self.element_positions[element_id] = [(left, top), (end_x, end_y)]
 
+            element_value = element.get('value')
+            if element_value:
+                self.input_values[element_id] = element_value
 
             if element.name == 'div':
                 self.util.sid_data.startX = left
@@ -80,11 +101,13 @@ class ProfileRenderer:
 
             elif element.name == 'input':
                 width = self.extract_width(style, default_width=35 if element.name == 'input' else 35)
-                width_spaces = ' ' * width
+                # Pad the element_value to match the width
+                padded_element_value = element_value.ljust(width)
+                
                 self.util.sid_data.startX = left
                 self.util.sid_data.startY = top
-                self.util.output(width_spaces, 6, 4)
-        ele_id = first_input_element.get('id', None)
+                self.util.output(padded_element_value, 6, 4)
+        ele_id = self.first_input_element.get('id', None)
         print('focusing '+ele_id)
         self.focus_on_element(ele_id)
         self.util.sid_data.setCurrentAction("wait_for_profile_renderer")
@@ -175,6 +198,31 @@ class ProfileRenderer:
         self.input_values[element_id] = input_data
 
     def submit_function(self):
+
+        hashed_password = bcrypt.hashpw(self.input_values.get("password", "").encode('utf-8'), bcrypt.gensalt())
+        
+        # User data to be updated
+        user_data = {
+            "username": self.input_values.get("username", ""),
+            "email": self.input_values.get("email", ""),
+            "sex": self.input_values.get("sex", ""),
+            "social_media_1": self.input_values.get("social_media_1", ""),
+            "social_media_2": self.input_values.get("social_media_2", ""),
+            "website": self.input_values.get("website", ""),
+            "hobbies": self.input_values.get("interests", ""),  # Mapping 'interests' to 'hobbies'
+            "password": hashed_password.decode('utf-8'),  # Assuming you want to store this
+        }
+
+        # Connect to MongoDB
+        db = self.util.mongo_client['bbs']
+        users_collection = db['users']
+
+        # User ID to update
+        user_id = self.util.sid_data.user_document['_id']
+
+        # Update the user document
+        users_collection.update_one({"_id": user_id}, {"$set": user_data})
+
         self.return_function()
         pass
     
