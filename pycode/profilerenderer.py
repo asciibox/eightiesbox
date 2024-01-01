@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 import dukpy
 import re
+import bcrypt
 
 class ProfileRenderer:
     def __init__(self, util, return_function):
@@ -13,6 +14,7 @@ class ProfileRenderer:
         self.input_values = {}  # Dictionary to store input values for each element
         self.active_callback = None
         self.previous_element_id = None
+        self.current_focus_index = 0
         self.js_code = """
             function $(elementId) {
                 // Simulate jQuery-like behavior
@@ -44,8 +46,6 @@ class ProfileRenderer:
                 html_content = html_content.replace(placeholder, str(user_data[field]))
             else:
                 html_content = html_content.replace(placeholder, '')
-
-        print(html_content)
 
         self.util.clear_screen()
         self.soup = BeautifulSoup(html_content, "html.parser")
@@ -108,7 +108,6 @@ class ProfileRenderer:
                 self.util.sid_data.startY = top
                 self.util.output(padded_element_value, 6, 4)
         ele_id = self.first_input_element.get('id', None)
-        print('focusing '+ele_id)
         self.focus_on_element(ele_id)
         self.util.sid_data.setCurrentAction("wait_for_profile_renderer")
 
@@ -161,16 +160,29 @@ class ProfileRenderer:
                 if my_element and my_element.name == 'button' and my_element.get('type') == 'submit':
                     self.submit_function()
 
+    def update_previous_element(self):
+        print("Updating previous element:", self.previous_element_id)
+        if self.previous_element_id is not None:
+            previous_element = self.extract_element_for_id(self.previous_element_id)
+            if previous_element:
+                print(previous_element.name)
+                if previous_element.name == 'input':
+                    self.input_values[self.previous_element_id] = self.util.sid_data.localinput
+                elif previous_element.name == 'button':
+                    # Code to reset the button style
+                    self.reset_button_style(previous_element)
+
+
+
     def focus_on_element(self, element_id):
+        self.update_previous_element()
         matched_element_position = self.element_positions.get(element_id)
         if matched_element_position:
-            print("matched_element_position")
             start, _ = matched_element_position
             width = self.extract_width_for_id(element_id)
             self.util.sid_data.startX = start[0]
             self.util.sid_data.startY = start[1]
             self.util.sid_data.setInputType("text")
-            print("element_id:" + element_id)
 
             # If there was a previously focused element, save its current input value
             if self.previous_element_id is not None:
@@ -181,27 +193,74 @@ class ProfileRenderer:
 
             # Nested function for callback
             def callback_with_element_id(input_data):
-                # Update the value for the element that was active when the input was provided
-                self.input_values[element_id] = input_data
+                # Re-fetch the currently focused element
+                focused_element = self.extract_element_for_id(self.previous_element_id)
+                if focused_element.name == 'input':
+                    self.input_values[element_id] = input_data
+                elif focused_element.name == 'button':
+                    style = focused_element.get('style', '')
+                    top, left = self.extract_position(style)
+                    width = self.extract_width(style, 35)
+                    element_value = focused_element.get('value')
+                    
+                    centered_text = self.center_text(focused_element.text, width)
+
+                    self.util.sid_data.startX = left
+                    self.util.sid_data.startY = top
+                    self.util.output(centered_text, 14, 1)
 
             # Update the active callback
             self.active_callback = callback_with_element_id
 
             # Update the previous element ID
             self.previous_element_id = element_id
-            print("self.askinput")
-            # Ask for input with the default value for the current element
-            self.util.askinput(width, self.active_callback, [], default_value)
 
-    def callback_function(self, input_data, element_id):
-        # Store the input value for this element ID
-        self.input_values[element_id] = input_data
+            focused_element = self.extract_element_for_id(element_id)
+            if (focused_element.name == 'input'):
+                # Ask for input with the default value for the current element
+                self.handle_input_element(element_id, width, default_value)
+            else:
+                self.handle_button_element(element_id)
+
+    def handle_input_element(self, element_id, width, default_value):
+        # Code to handle input element
+        focused_element = self.extract_element_for_id(element_id)
+        self.util.askinput(width, self.active_callback, [], default_value)
+
+    def reset_button_style(self, button_element):
+        # Reset the style of the button to its non-focused state
+        # You might change the color, text style, etc.
+        # Example:
+        style = button_element.get('style', '')
+        top, left = self.extract_position(style)
+        width = self.extract_width(style, 35)
+        # Pad the element_value to match the width
+        element_value = button_element.get('value')
+        
+        centered_text = self.center_text(button_element.text, width)
+
+        self.util.sid_data.startX = left
+        self.util.sid_data.startY = top
+        self.util.output(centered_text, 14, 6)
+
+    def handle_button_element(self, element_id):
+        # Code to handle button element
+        button_element = self.extract_element_for_id(element_id)
+        style = button_element.get('style', '')
+        top, left = self.extract_position(style)
+        width = self.extract_width(style, 35)
+        # Pad the element_value to match the width
+        element_value = button_element.get('value')
+        
+        centered_text = self.center_text(button_element.text, width)
+
+        self.util.sid_data.startX = left
+        self.util.sid_data.startY = top
+        self.util.output(centered_text, 14, 1)
 
     def submit_function(self):
-
-        hashed_password = bcrypt.hashpw(self.input_values.get("password", "").encode('utf-8'), bcrypt.gensalt())
-        
-        # User data to be updated
+        # Retrieve user input values
+        mypassword = self.input_values.get("password", "")
         user_data = {
             "username": self.input_values.get("username", ""),
             "email": self.input_values.get("email", ""),
@@ -210,8 +269,13 @@ class ProfileRenderer:
             "social_media_2": self.input_values.get("social_media_2", ""),
             "website": self.input_values.get("website", ""),
             "hobbies": self.input_values.get("interests", ""),  # Mapping 'interests' to 'hobbies'
-            "password": hashed_password.decode('utf-8'),  # Assuming you want to store this
         }
+
+        # Only hash and set new password if mypassword is not empty
+        if mypassword:
+            hashed_password = bcrypt.hashpw(mypassword.encode('utf-8'), bcrypt.gensalt())
+            new_password = hashed_password.decode('utf-8')
+            user_data["password"] = new_password
 
         # Connect to MongoDB
         db = self.util.mongo_client['bbs']
@@ -249,3 +313,22 @@ class ProfileRenderer:
         # Calculate the padding needed on each side
         padding = (width - len(text)) // 2
         return ' ' * padding + text + ' ' * (width - len(text) - padding)
+    
+    def focus_next_element(self):
+        # Check if the elements list and current focus index are initialized
+        if not hasattr(self, 'element_order'):
+            self.element_order = [e.get('id') for e in self.soup.find_all(["div", "input", "button", "submit"]) if e.get('id')]
+            
+        # Move to the next element in the list
+        self.current_focus_index += 1
+
+        # Wrap around if the end of the list is reached
+        if self.current_focus_index >= len(self.element_order):
+            self.current_focus_index = 0
+
+        # Get the ID of the next element to focus
+        next_element_id = self.element_order[self.current_focus_index]
+
+        # Call the existing focus function
+        self.focus_on_element(next_element_id)
+    
