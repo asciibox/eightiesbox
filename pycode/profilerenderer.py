@@ -66,6 +66,9 @@ class ProfileRenderer:
 
         self.util.clear_screen()
         self.soup = BeautifulSoup(html_content, "html.parser")
+        self.redraw_elements(True)
+
+    def redraw_elements(self, useHTMLValues):
         elements = self.soup.find_all(["div", "input", "button", "submit"])  # Add more tags as needed
         self.element_order = [e.get('id') for e in self.soup.find_all(["div", "input", "button", "submit"]) if e.get('id')]
 
@@ -102,10 +105,14 @@ class ProfileRenderer:
             if element_id:
                 self.element_positions[element_id] = [(left, top), (end_x, end_y)]
 
-            element_value = element.get('value')
-            if element_value:
-                print("Setting "+element_id)
-                self.input_values[element_id] = element_value
+            element_value = ""
+            if useHTMLValues == True:
+                element_value = element.get('value')
+                if element_value:
+                    print("Setting "+element_id)
+                    self.input_values[element_id] = element_value
+            elif element_id != None:
+                element_value = self.input_values[element_id]
 
             if element.name == 'div':
                 self.util.sid_data.startX = left
@@ -245,7 +252,7 @@ class ProfileRenderer:
         self.util.clear_screen()
         self.util.sid_data.startX = 0
         self.util.sid_data.startY = 0
-        self.render_profile()
+        self.redraw_elements(False)
 
     def update_previous_element(self):
         print("Updating previous element:", self.previous_element_id)
