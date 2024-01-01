@@ -16,16 +16,33 @@ class ProfileRenderer:
         self.previous_element_id = None
         self.current_focus_index = 0
         self.js_code = """
+            var lastAlertMessage = ''; // Global variable to store the last alert message
+
             function $(elementId) {
                 // Simulate jQuery-like behavior
                 return {
                     focus: function() {
                         // This function prepares the data to be sent back to Python
                         return { focusElementId: elementId };
+                    },
+                    val: function(newValue) {
+                        if (newValue !== undefined) {
+                            dukpy.input_values[elementId] = newValue;
+                        }
+                        if (elementId.substring(0,1)=='#') {
+                            elementId=elementId.substring(1);
+                        }
+                        return dukpy.input_values[elementId] || '';
                     }
                 };
             }
-            """
+
+            function alert(message) {
+                lastAlertMessage = message; // Update the global variable with the new message
+                return { alertMessage: message };
+            }
+        """
+
 
     def render_profile(self):
         # Fetch user data from the database
@@ -86,6 +103,7 @@ class ProfileRenderer:
 
             element_value = element.get('value')
             if element_value:
+                print("Setting "+element_id)
                 self.input_values[element_id] = element_value
 
             if element.name == 'div':
@@ -141,21 +159,60 @@ class ProfileRenderer:
         return default_value
 
     def handle_event_with_dukpy(self, js_code):
-        # Here, you need to modify the JavaScript logic to identify which element needs focus
-        print(self.js_code + ' ' + js_code)
-        js_result = dukpy.evaljs(self.js_code + ' ' + js_code)
-        # Assuming js_result contains the element ID that needs focus
-        element_id_to_focus = js_result.get('focusElementId')[1:]
-        if element_id_to_focus:
-            self.focus_on_element(element_id_to_focus)
+        full_js_code = self.js_code + ' ' + js_code
+        print("FULL_JS_CODE")
+        print(full_js_code)
+        print("SELF.INPUT_VALUES")
+        print(self.input_values)
+        js_result = dukpy.evaljs(full_js_code, input_values=self.input_values)
+        return js_result
 
     def handle_click(self, x, y):
         for element_id, (start, end) in self.element_positions.items():
-            
             if start[0] <= x <= end[0] and start[1] <= y <= end[1]:
                 if element_id in self.onclick_events:
-                    self.handle_event_with_dukpy(self.onclick_events[element_id])
+                    onclick_code = self.onclick_events[element_id]
+                    wrapped_js = f"""
+                        function evaluateOnClick() {{
+                            var result = {{}};
+                            result.onClickResult = (function() {{ {onclick_code} }})();
+                            result.onAlert = lastAlertMessage;  // Retrieve alert message from the global variable
+                            return result;
+                        }}
+                        evaluateOnClick();
+                    """
+                    my_element = self.extract_element_for_id(element_id)
+                    if my_element and my_element.name == 'button' and my_element.get('type') == 'submit':
+                        self.update_previous_element()
+                    js_result = self.handle_event_with_dukpy(wrapped_js)
+                    print("Debug Information:", js_result.get('debugInfo'))
 
+                    # Check onClickResult and onAlert
+                    onClickResult = js_result.get('onClickResult')
+                    onAlertMessage = js_result.get('onAlert')
+                    
+                    if isinstance(onClickResult, bool) and not onClickResult:
+                        print("Alert:", onAlertMessage)  # Print alert message if available
+                        return  # Stop if JavaScript returns false
+
+                    # Check if onClickResult is an object and handle it
+                    elif isinstance(onClickResult, dict):
+                        print("onClickResult2")
+                        print(onClickResult)
+                        # Handle focused element
+                        element_id_to_focus = onClickResult.get('focusElementId')
+                        if element_id_to_focus:
+                            self.focus_on_element(element_id_to_focus[1:])
+                        
+                        # Handle alert message
+                        alert_message = onClickResult.get('alertMessage')
+                        if alert_message:
+                            print("Alert:", alert_message)
+
+                    print("onClickResult3")
+                    print(onClickResult)
+        
+                    # Other relevant code...
                 my_element = self.extract_element_for_id(element_id)
                 if my_element and my_element.name == 'button' and my_element.get('type') == 'submit':
                     self.submit_function()
@@ -198,6 +255,7 @@ class ProfileRenderer:
                 if focused_element.name == 'input':
                     self.input_values[element_id] = input_data
                 elif focused_element.name == 'button':
+                    self.input_values[element_id] = input_data
                     style = focused_element.get('style', '')
                     top, left = self.extract_position(style)
                     width = self.extract_width(style, 35)
@@ -270,6 +328,9 @@ class ProfileRenderer:
             "website": self.input_values.get("website", ""),
             "hobbies": self.input_values.get("interests", ""),  # Mapping 'interests' to 'hobbies'
         }
+
+        self.return_function()
+        return
 
         # Only hash and set new password if mypassword is not empty
         if mypassword:

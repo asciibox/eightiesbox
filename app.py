@@ -458,7 +458,12 @@ def handle_keypress(data):
     elif (siddata.current_action == "wait_for_input") or (siddata.current_action == "wait_for_profile_renderer"):
         key = data['key']
 
-        if key == "ä":
+
+        if key == 'Tab' and siddata.current_action == "wait_for_profile_renderer":
+            print("TAB")
+            siddata.callback(siddata.localinput)
+            siddata.profile_renderer.focus_next_element()
+        elif key == "ä":
             # Handle ä
             siddata.util.keydown(chr(132))
             return

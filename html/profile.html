@@ -1,31 +1,32 @@
     <div style="position: absolute; top: 0px; left: 0px;">Username:</div>
-    <input id="username" type="text" value="{userdata.username}" style="position: absolute; top: 1px; left: 0px; width: 35px;" onclick="$('#username').focus();">
+    <input id="username" type="text" value="{userdata.username}" style="position: absolute; top: 1px; left: 0px; width: 35px;" onclick="return $('#username').focus();">
 
     <div style="position: absolute; top: 3px; left: 0px;">Email:</div>
-    <input id="email"  type="text" value="{userdata.email}"  style="position: absolute; top: 4px; left: 0px; width: 35px;" onclick="$('#email').focus();">
+    <input id="email"  type="text" value="{userdata.email}"  style="position: absolute; top: 4px; left: 0px; width: 35px;" onclick="return $('#email').focus();">
 
     <div style="position: absolute; top: 6px; left: 0px;">Sex:</div>
-    <input id="sex" type="text" value="{userdata.sex}" style="position: absolute; top: 7px; left: 0px; width: 35px;" onclick="$('#sex').focus();">
+    <input id="sex" type="text" value="{userdata.sex}" style="position: absolute; top: 7px; left: 0px; width: 35px;" onclick="return $('#sex').focus();">
 
     <div style="position: absolute; top: 9px; left: 0px;">Social Media 1:</div>
-    <input  id="social_media_1" value="{userdata.social_media_1}" type="text" style="position: absolute; top: 10px; left: 0px; width: 35px;" onclick="$('#social_media_1').focus();">
+    <input  id="social_media_1" value="{userdata.social_media_1}" type="text" style="position: absolute; top: 10px; left: 0px; width: 35px;" onclick="return $('#social_media_1').focus();">
 
     <div style="position: absolute; top: 12px; left: 0px;">Social Media 2:</div>
-    <input id="social_media_2" type="text" value="{userdata.social_media_2}" style="position: absolute; top: 13px; left: 0px; width: 35px;" onclick="$('#social_media_2').focus();">
+    <input id="social_media_2" type="text" value="{userdata.social_media_2}" style="position: absolute; top: 13px; left: 0px; width: 35px;" onclick="return $('#social_media_2').focus();">
 
     <div style="position: absolute; top: 15px; left: 0px;">Website:</div>
-    <input id="website" type="text" value="{userdata.website}" style="position: absolute; top: 16px; left: 0px; width: 35px;" onclick="$('#website').focus();">
+    <input id="website" type="text" value="{userdata.website}" style="position: absolute; top: 16px; left: 0px; width: 35px;" onclick="return $('#website').focus();">
 
     <div style="position: absolute; top: 18px; left: 0px;">Interests:</div>
-    <input id="interests"  type="text" value="{userdata.interests}" style="position: absolute; top: 19px; left: 0px; width: 35px;" onclick="$('#interests').focus();">
+    <input id="interests"  type="text" value="{userdata.interests}" style="position: absolute; top: 19px; left: 0px; width: 35px;" onclick="return $('#interests').focus();">
 
     <div style="position: absolute; top: 21px; left: 0px;">Password:</div>
-    <input id="password" type="text" value="" style="position: absolute; top: 22px; left: 0px; width: 35px;" onclick="$('#password').focus();">
+    <input id="password" type="text" value="" style="position: absolute; top: 22px; left: 0px; width: 35px;" onclick="return $('#password').focus();">
 
     <div style="position: absolute; top: 24px; left: 0px;">Password repetition:</div>
-    <input id="password_repetition" value="" type="text" style="position: absolute; top: 25px; left: 0px; width: 35px;" onclick="$('#password_repetition').focus();">
+    <input id="password_repetition" value="" type="text" style="position: absolute; top: 25px; left: 0px; width: 35px;" onclick="return $('#password_repetition').focus();">
 
-    <button id="submit_button" type="submit" value="Submit" style="position: absolute; top: 27px; left: 6px; width: 20px;">Submit</button>
+    <button id="submit_button" type="submit" value="Submit" style="position: absolute; top: 27px; left: 6px; width: 20px;" onclick="if ($('#password_repetition').val() != $('#password').val()) { alert('Passwords do not match'); return false; } return true;">Submit</button>
+
 
 
 
