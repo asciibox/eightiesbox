@@ -160,7 +160,7 @@ class Renderer:
             self.util.sid_data.setCurrentAction("wait_for_profile_renderer")
 
     
-    def render_element(self, element, left, top, color = 6):
+    def render_element(self, element, left, top, color = 6, new_block=True):
         
         # Check if the element is a Tag and process it
         if isinstance(element, bs4.element.Tag):
@@ -176,7 +176,17 @@ class Renderer:
 
             # Recursively process child elements (depth-first)
             for child in element.children:
-                top, left = self.render_element(child, left, top, color)
+                if isinstance(child, bs4.element.Tag):
+                    # If the child is a Tag, recursively call render_element
+                    top, left = self.render_element(child, left, top, color, new_block=new_block)
+                    # After a tag, it's no longer the start of a new block
+                    new_block = False
+                elif isinstance(child, bs4.NavigableString):
+                    child_text = child.strip()
+                    if child_text:
+                        top, left = self.output_text(child_text, left, top, color, new_block=new_block)
+                        # After text, it's no longer the start of a new block
+                        new_block = False
 
             # Mark this Tag element as processed
             self.processed_ids.add(unique_id)
@@ -204,46 +214,46 @@ class Renderer:
 
 
 
-    def output_text(self, element, left, top, foregroundColor=6):
-    
+    def output_text(self, element, left, top, foregroundColor=6, new_block=False,):
         # Initialize left with the current startX value.
         left = self.util.sid_data.startX
 
-        if isinstance(element, str):
-            text = element
-        else:
-            text = element.get_text()  # Get all text within the element
+        # Determine if the element is a string or needs text extraction
+        text = element if isinstance(element, str) else element.get_text()
+
+        # Split the text into words
+        words = text.split()
 
         current_line = ""
         max_width = self.util.sid_data.xWidth
-        words = text.split()
 
-        for word in words:
-            # Check if adding the next word exceeds the maximum width.
-            if len(current_line) + len(word) + 1 > max_width - left:
-                # Output the current line and reset it.
+        for i, word in enumerate(words):
+            is_punctuation = word in [",", ".", ":", ";", "!", "?"]
+
+            if len(current_line) + len(word) + (0 if is_punctuation or new_block else 1) > max_width - left:
+                # Output the current line and reset it
                 self.util.sid_data.startX = left
                 self.util.sid_data.startY = top
                 self.util.output(current_line, foregroundColor, 0)
-                print("x" + current_line)
-                top += 1  # Move to the next line.
-                left = 0  # Reset left to 0 after the first line.
-                current_line = word + " "
+                top += 1
+                left = 0
+                current_line = word
             else:
-                current_line += word + " "
+                current_line += ("" if is_punctuation or new_block else " ") + word
 
-        # Output any remaining text in the current line.
+            new_block = False  # After the first word, it's no longer a new block
+
         if current_line:
             self.util.sid_data.startX = left
             self.util.sid_data.startY = top
             self.util.output(current_line, foregroundColor, 0)
-            print("x" + current_line)
 
-        # Update left and top for the next output.
         left = self.util.sid_data.startX
         top = self.util.sid_data.startY
 
         return top, left
+
+
 
     
 
