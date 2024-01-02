@@ -9,7 +9,7 @@ class BBSChooser(BasicANSI):
         self.util = util
         self.util.sid_data.setCurrentAction('wait_for_bbschooser')
         self.current_page = 0
-        self.bbs_per_page = self.util.sid_data.yHeight - 11  # Adjust for frame and page indicator
+        self.bbs_per_page = 5
         self.current_selection = 0  # The currently selected BBS index on the page
 
         db = self.util.mongo_client['bbs']
@@ -18,11 +18,20 @@ class BBSChooser(BasicANSI):
         self.ensure_default_bbs()
 
         self.total_bbs = self.mailboxes_collection.count_documents({})
-        self.total_pages = self.total_bbs // self.bbs_per_page
-        if self.total_bbs % self.bbs_per_page != 0:
-            self.total_pages += 1
 
-        self.draw_frame()
+        # Calculate the number of entries on the first and subsequent pages
+        entries_on_first_page = self.bbs_per_page
+        entries_on_other_pages = self.util.sid_data.yHeight - 10
+
+        # Calculate total pages
+        if self.total_bbs > entries_on_first_page:
+            remaining_entries = self.total_bbs - entries_on_first_page
+            additional_pages = (remaining_entries + entries_on_other_pages - 1) // entries_on_other_pages
+            self.total_pages = 1 + additional_pages
+        else:
+            self.total_pages = 1 if self.total_bbs > 0 else 0
+
+        self.draw_frame(16, 0)
         self.show_page(self.current_page)
 
     def ensure_default_bbs(self):
@@ -30,8 +39,9 @@ class BBSChooser(BasicANSI):
             self.mailboxes_collection.insert_one({"name": "EightiesBox HQ (Headquarter)"})
 
 
-    def draw_frame(self):
+    def draw_frame(self, yHeight, page):
         # Start with the top-left corner
+        
         self.sid_data.startX=0
         self.sid_data.startY=0
         self.util.output("+", 11, 4)
@@ -46,7 +56,7 @@ class BBSChooser(BasicANSI):
         self.util.output("+", 11, 4)
 
         # Draw vertical lines
-        for y in range(1, self.sid_data.yHeight - 6):
+        for y in range(1, yHeight - 6):
             self.sid_data.startX = 0
             self.sid_data.startY = y
             self.util.output("|", 11, 4)
@@ -55,7 +65,7 @@ class BBSChooser(BasicANSI):
 
         # Start with the bottom-left corner
         self.sid_data.startX = 0
-        self.sid_data.startY = self.sid_data.yHeight - 6
+        self.sid_data.startY = yHeight - 6
             
         self.util.output("+", 11, 4)
 
@@ -70,28 +80,35 @@ class BBSChooser(BasicANSI):
         self.sid_data.startY = 2
         self.util.output("Press C to create a new BBS", 6, 0)
 
-        self.sid_data.startX = 2
-        self.sid_data.startY = self.sid_data.yHeight - 4
-        if (self.sid_data.yHeight>50):
-            self.util.output("Impressum: Oliver Bachmann, Luisenstr. 34, 76137 Karlsruhe, Germany", 6, 0)
-        else:
-            self.util.output("Oliver Bachmann, Luisenstr. 34", 6, 0)
+        if page == 0:
             self.sid_data.startX = 2
-            self.sid_data.startY = self.sid_data.yHeight - 3
-            self.util.output("76137 Karlsruhe, Germany", 6,0 )
+            self.sid_data.startY = yHeight - 4
+            if (self.sid_data.yHeight>50):
+                self.util.output("Impressum: Oliver Bachmann, Luisenstr. 34, 76137 Karlsruhe, Germany", 6, 0)
+            else:
+                self.util.output("Oliver Bachmann, Luisenstr. 34", 6, 0)
+                self.sid_data.startX = 2
+                self.sid_data.startY = yHeight - 3
+                self.util.output("76137 Karlsruhe, Germany", 6,0 )
 
 
   
     def show_page(self, page_number):
       
+        if page_number == 0:
+            self.bbs_per_page = 5
+            start_index = 0
+            end_index = 5
+        else:
+            self.bbs_per_page = self.util.sid_data.yHeight - 10  # Or any other calculation for long list
+            start_index = (page_number-1) * self.bbs_per_page + 5
+            end_index = start_index + self.bbs_per_page
+        self.bbs_on_page = list(self.mailboxes_collection.find()[start_index:end_index])
+
         self.util.sid_data.setStartX(2)
         self.util.sid_data.setStartY(1)
         self.util.output(f"Page: {page_number + 1}/{self.total_pages} - Please choose the BBS you want to login to using cursor UP/DOWN (< and > arrows) and by pressing ENTER", 6, 0)
 
-
-        start_index = page_number * self.bbs_per_page
-        end_index = start_index + self.bbs_per_page
-        self.bbs_on_page = list(self.mailboxes_collection.find()[start_index:end_index])
 
         # Reset current_selection when switching pages
         self.current_selection = 0
@@ -116,15 +133,21 @@ class BBSChooser(BasicANSI):
         if key == 'ArrowRight':
             if self.current_page < self.total_pages - 1:
                 self.util.clear_screen()
-                self.draw_frame()
+                self.draw_frame(self.util.sid_data.yHeight, self.current_page - 1)
                 self.current_page += 1
                 self.show_page(self.current_page)
         elif key == 'ArrowLeft':
             if self.current_page > 0:
-                self.util.clear_screen()
-                self.draw_frame()
-                self.current_page -= 1
-                self.show_page(self.current_page)
+                if self.current_page > 1:
+                    self.util.clear_screen()
+                    self.draw_frame(self.util.sid_data.yHeight, self.current_page + 1)
+                    self.current_page -= 1
+                    self.show_page(self.current_page)
+                else:
+                    self.util.clear_screen()
+                    self.draw_frame(15, self.current_page)
+                    self.current_page -= 1
+                    self.show_page(self.current_page)
         elif key == 'ArrowDown':
             print(self.bbs_per_page )
             if self.current_selection < min(len(self.bbs_on_page) - 1, self.bbs_per_page - 1):
@@ -182,7 +205,5 @@ class BBSChooser(BasicANSI):
 
     # Usage
     def choose_bbs(self, data):
-        print("choose bbs")
-        print(data)
         self.sid_data.setBBSChooser(BBSChooser(self))
         self.sid_data.bbsChooser.draw_frame()
