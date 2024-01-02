@@ -218,8 +218,10 @@ class Menu(BasicANSI):
                 return
             elif action_code == "31":
                 self.append_gosub()
+                
+                self.util.clear_screen()
                 self.sid_data.setProfileRenderer(ProfileRenderer(self.util, self.profilerenderer_callback_on_exit))
-                self.sid_data.profile_renderer.render_profile()
+                self.sid_data.profile_renderer.render_page("html/profile.html")
                 return
             elif action_code == "51":
                 

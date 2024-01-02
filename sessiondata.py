@@ -76,6 +76,7 @@ class SessionData:
         self.group_editor = None
         self.group_chooser = None
         self.profile_renderer = None
+        self.renderer = None
     
         
 
@@ -238,6 +239,9 @@ class SessionData:
     
     def setProfileRenderer(self, value):
         self.profile_renderer = value
+
+    def setRenderer(self, value):
+        self.renderer = value
 
     def store_screen_data(self, ascii_codes=None, currentColor=None, backgroundColor=None, blink=None, x=None, y=None, command=None):
         screen_data = {

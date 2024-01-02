@@ -1,4 +1,5 @@
 from basicansi import BasicANSI
+from pycode.renderer import Renderer
 
 class BBSChooser(BasicANSI):
     def __init__(self, util):
@@ -33,6 +34,9 @@ class BBSChooser(BasicANSI):
 
         self.draw_frame(16, 0)
         self.show_page(self.current_page)
+
+        self.sid_data.setRenderer(Renderer(self.util, None))
+        self.sid_data.renderer.render_page("html/startpage.html")
 
     def ensure_default_bbs(self):
         if self.mailboxes_collection.count_documents({}) == 0:
