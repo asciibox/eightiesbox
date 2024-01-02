@@ -160,37 +160,38 @@ class Renderer:
             self.util.sid_data.setCurrentAction("wait_for_profile_renderer")
 
     
-    def render_element(self, element, left, top):
-       
+    def render_element(self, element, left, top, color = 6):
+        
+        # Check if the element is a Tag and process it
+        if isinstance(element, bs4.element.Tag):
+            unique_id = element.get('uniqueid')
 
-        # Recursively process child elements first (depth-first)
-        for child in element.children:
-            if isinstance(child, bs4.element.Tag):
-                top, left = self.render_element(child, left, top)
+            # Check if this Tag's unique_id has already been processed
+            if unique_id in self.processed_ids:
+                return top, left
 
-        unique_id = element.get('uniqueid')
+            # Apply specific styles and processing for this Tag element
+            style = element.get('style', '')
+            color = self.extract_color(style)
 
-        # Check if this element's unique_id has already been processed
-        if unique_id in self.processed_ids:
-            return top, left
+            # Recursively process child elements (depth-first)
+            for child in element.children:
+                top, left = self.render_element(child, left, top, color)
 
-        # Process this element if not already processed
-        # (Your rendering logic goes here)
-        style = element.get('style', '')
-        color = self.extract_color(style)
+            # Mark this Tag element as processed
+            self.processed_ids.add(unique_id)
 
-        for child in element.children:
-            if isinstance(child, bs4.element.Tag):
-                top, left = self.render_element(child, left, top)
-            elif isinstance(child, str):
-                child_text = child.strip()
-                if child_text:
-                    print(unique_id)
-                    top, left = self.output_text(child_text, left, top, color)
-        # Mark this element as processed
-        self.processed_ids.add(unique_id)
+        # If the element is a string (NavigableString), process it directly
+        elif isinstance(element, bs4.NavigableString):
+            child_text = element.strip()
+            if child_text:
+                print("NavigableString:", child_text)  # For debugging
+                # Output text with the color extracted from the parent Tag
+                top, left = self.output_text(child_text, left, top, color)
 
         return top, left
+
+
 
 
 
