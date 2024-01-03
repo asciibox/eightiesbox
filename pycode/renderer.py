@@ -238,7 +238,7 @@ class Renderer:
             if len(current_line) + len(word) + (0 if is_punctuation or new_block else 1) > max_width - left:
                 # Check if we're in a link and need to emit before wrapping
                 if tag_name == 'a' and current_line:
-                    self.emit_href(link, link_start_x, top)
+                    self.emit_href(len(text), link, link_start_x, top)
 
                 # Output the current line and reset it
                 self.util.sid_data.startX = left
@@ -258,17 +258,18 @@ class Renderer:
             self.util.sid_data.startY = top
             self.util.output(current_line, foregroundColor, 0)
             if tag_name == 'a':
-                self.emit_href(link, link_start_x, top)
+                self.emit_href(len(text), link, link_start_x, top)
 
         left = self.util.sid_data.startX
         top = self.util.sid_data.startY
 
         return top, left
 
-    def emit_href(self, link, x, y):
+    def emit_href(self, length, link, x, y):
         """ Emit a socket event for an href link. """
         self.util.socketio.emit('a', {
             'href': link,
+            'length': length,
             'x': x,
             'y': y
         }, room=self.util.request_id)

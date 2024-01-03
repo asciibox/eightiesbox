@@ -64,11 +64,9 @@ function setupSocketEventListeners(socket) {
             
             for (let href of hrefs) {
 
-                let hrefLength;
+                let hrefLength = 0;
                 if (href.length) {
                   hrefLength = href.length;
-                } else {
-                  hrefLength = href.href.length;
                 }
                 /*console.log("hrefLenghth: "+hrefLength);
                 console.log(tileX + " >= " + href.x + " && " + tileX + " < " + (Number(href.x) + Number(hrefLength)));
