@@ -79,8 +79,8 @@ class Renderer:
         self.redraw_elements(True)
 
     def redraw_elements(self, useHTMLValues):
-        elements = self.soup.find_all(["div", "p", "input", "button", "submit"])  # Add more tags as needed
-        self.element_order = [e.get('id') for e in self.soup.find_all(["div", "p", "input", "button", "submit"]) if e.get('id')]
+        elements = self.soup.find_all(["div", "p", "input", "button", "submit", "a"])  # Add more tags as needed
+        self.element_order = [e.get('id') for e in self.soup.find_all(["div", "p", "input", "button", "submit", "a"]) if e.get('id')]
 
         for element in elements:
             if self.first_input_element == None and element.name == 'input':
@@ -128,8 +128,7 @@ class Renderer:
             elif element_id != None:
                 element_value = self.input_values[element_id]
 
-            if element.name == 'div':
-                
+            if element.name == 'div':                
                 mytop, myleft = self.render_element(element, self.util.sid_data.startX, self.util.sid_data.startY)
                 self.util.sid_data.startY = mytop
                 self.util.sid_data.startX = myleft
@@ -175,6 +174,8 @@ class Renderer:
             color = self.extract_color(style)
 
             # Recursively process child elements (depth-first)
+            tag_name = element.name
+            link = element.get('href')
             for child in element.children:
                 if isinstance(child, bs4.element.Tag):
                     # If the child is a Tag, recursively call render_element
@@ -184,7 +185,7 @@ class Renderer:
                 elif isinstance(child, bs4.NavigableString):
                     child_text = child.strip()
                     if child_text:
-                        top, left = self.output_text(child_text, left, top, color, new_block=new_block)
+                        top, left = self.output_text(child_text, left, top, tag_name, color, link=link, new_block=new_block)
                         # After text, it's no longer the start of a new block
                         new_block = False
 
@@ -197,8 +198,10 @@ class Renderer:
             if child_text:
                 print("NavigableString:", child_text)  # For debugging
                 # Output text with the color extracted from the parent Tag
-                top, left = self.output_text(child_text, left, top, color)
-
+                parent_tag_name = element.parent.name if element.parent else None
+                top, left = self.output_text(child_text, left, top, parent_tag_name, color, link=link)
+                
+            
         return top, left
 
 
@@ -214,9 +217,10 @@ class Renderer:
 
 
 
-    def output_text(self, element, left, top, foregroundColor=6, new_block=False,):
+    def output_text(self, element, left, top, tag_name, foregroundColor=6, new_block=False, link =""):
         # Initialize left with the current startX value.
         left = self.util.sid_data.startX
+        print("LEFT : "+str(left))
 
         # Determine if the element is a string or needs text extraction
         text = element if isinstance(element, str) else element.get_text()
@@ -226,11 +230,16 @@ class Renderer:
 
         current_line = ""
         max_width = self.util.sid_data.xWidth
+        link_start_x = left  # Initialize the starting x position of the link
 
         for i, word in enumerate(words):
             is_punctuation = word in [",", ".", ":", ";", "!", "?"]
 
             if len(current_line) + len(word) + (0 if is_punctuation or new_block else 1) > max_width - left:
+                # Check if we're in a link and need to emit before wrapping
+                if tag_name == 'a' and current_line:
+                    self.emit_link(link, link_start_x, top)
+
                 # Output the current line and reset it
                 self.util.sid_data.startX = left
                 self.util.sid_data.startY = top
@@ -238,6 +247,7 @@ class Renderer:
                 top += 1
                 left = 0
                 current_line = word
+                link_start_x = left  # Reset the starting x position of the link
             else:
                 current_line += ("" if is_punctuation or new_block else " ") + word
 
@@ -247,11 +257,21 @@ class Renderer:
             self.util.sid_data.startX = left
             self.util.sid_data.startY = top
             self.util.output(current_line, foregroundColor, 0)
+            if tag_name == 'a':
+                self.emit_link(link, link_start_x, top)
 
         left = self.util.sid_data.startX
         top = self.util.sid_data.startY
 
         return top, left
+
+    def emit_link(self, link, x, y):
+        """ Emit a socket event for an href link. """
+        self.util.socketio.emit('a', {
+            'href': link,
+            'x': x,
+            'y': y
+        }, room=self.util.request_id)
 
 
 
@@ -419,7 +439,7 @@ class Renderer:
                 if using_mouse:
         # Find the index of the next input element
                     next_input_index = None
-                    self.element_order = [e.get('id') for e in self.soup.find_all(["div", "p", "input", "button", "submit"]) if e.get('id')]
+                    self.element_order = [e.get('id') for e in self.soup.find_all(["div", "p", "input", "button", "submit", "a"]) if e.get('id')]
                     for i, el_id in enumerate(self.element_order):
                         print(el_id+"=="+element_id)
                         if el_id == element_id:
@@ -528,7 +548,7 @@ class Renderer:
     def focus_next_element(self):
         # Check if the elements list and current focus index are initialized
         if not hasattr(self, 'element_order'):
-            self.element_order = [e.get('id') for e in self.soup.find_all(["div", "p", "input", "button", "submit"]) if e.get('id')]
+            self.element_order = [e.get('id') for e in self.soup.find_all(["div", "p", "input", "button", "submit", "a"]) if e.get('id')]
             
         # Move to the next element in the list
         self.current_focus_index += 1
@@ -548,7 +568,7 @@ class Renderer:
     def focus_previous_element(self):
     # Check if the elements list and current focus index are initialized
         if not hasattr(self, 'element_order'):
-            self.element_order = [e.get('id') for e in self.soup.find_all(["div", "p", "input", "button", "submit"]) if e.get('id')]
+            self.element_order = [e.get('id') for e in self.soup.find_all(["div", "p", "input", "button", "submit", "a"]) if e.get('id')]
             
         # Move to the previous element in the list
         self.current_focus_index -= 1
@@ -566,7 +586,7 @@ class Renderer:
 
     def enter(self):
         if not hasattr(self, 'element_order'):
-            self.element_order = [e.get('id') for e in self.soup.find_all(["div", "p", "input", "button", "submit"]) if e.get('id')]
+            self.element_order = [e.get('id') for e in self.soup.find_all(["div", "p", "input", "button", "submit", "a"]) if e.get('id')]
             
         element_id = self.element_order[self.current_focus_index]
 

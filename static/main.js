@@ -313,6 +313,17 @@ function create() {
 
      let tileX = Math.floor(pointer.x /  8) + 1;
      let tileY = Math.floor(pointer.y / 16) + 1;
+     console.log(hrefs);
+     for (let i = 0; i < hrefs.length; i++) {
+      let href = hrefs[i];
+      let hrefLength = href.href.length; // Assuming href string length corresponds to its display length
+      // Check if the click is within the horizontal range of the href and on the same vertical line
+      if (tileX >= href.x && tileX < (href.x + hrefLength) && tileY === href.y+1) {
+          window.open(href.href, "_blank");
+          return; // Stop checking after finding a match
+      }
+    }
+
      socket.emit("pointerdown", { x: tileX, y: tileY });
 
       if (popupOpened == false) {

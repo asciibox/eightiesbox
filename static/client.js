@@ -1,6 +1,8 @@
 var persistentID = "";
 var chosen_bbs = 0;
 const protocol = window.location.protocol;
+var hrefs = [];  // Global array to store hrefs
+
 var socket = io.connect(
   protocol + "//" + document.domain + ":" + location.port,
   {
@@ -45,6 +47,38 @@ function setupSocketEventListeners(socket) {
     if (inited == false) {
       initPage(data);
       inited = true;
+      const canvasElements = document.getElementsByTagName("canvas");
+      for (let i = 0; i < canvasElements.length; i++) {
+        if (canvasElements[i].className != "tracker") {
+        
+          canvasElements[i].addEventListener('mousemove', function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const pointer = {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            };
+
+            let tileX = Math.floor(pointer.x / 8) + 1;
+            let tileY = Math.floor(pointer.y / 16) + 1;
+            let isOverHref = false;
+
+            for (let href of hrefs) {
+                let hrefLength = href.href.length;
+                console.log(href.href)
+                console.log(tileX, href.x)
+                console.log(tileY, href.y)
+
+                if (tileX >= href.x && tileX < (href.x + hrefLength) && tileY === href.y + 1) {
+                    isOverHref = true;
+                    break;
+                }
+            }
+
+            canvasElements[i].style.cursor = isOverHref ? 'pointer' : 'default';
+        });
+
+        }
+      }
     } else {
       const canvasElements = document.getElementsByTagName("canvas");
       for (let i = 0; i < canvasElements.length; i++) {
@@ -56,6 +90,11 @@ function setupSocketEventListeners(socket) {
 
   socket.on("connect", function () {
     console.log("Connected with SID:", window.socket.id);
+  });
+
+  socket.on("a", function (data) {
+    // Add the received href data to the global array
+    hrefs.push(data);
   });
 
   socket.on("draw", async (data) => {
