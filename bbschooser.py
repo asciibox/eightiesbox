@@ -129,7 +129,7 @@ class BBSChooser(BasicANSI):
             self.util.sid_data.setStartX(2)
             fg_color = 11 if i == self.current_selection else 6  # Highlight if current selection
             self.util.emit_link(len(bbs['name']), bbs['_id'], self.bbs_clicked, 'bbs_click'+str(bbs['_id']), self.util.sid_data.startX, self.util.sid_data.startY)
-            self.util.output(bbs['name']+str(bbs['_id']), fg_color, 0)  # Assuming 'name' is the field for BBS name
+            self.util.output(bbs['name'], fg_color, 0)  # Assuming 'name' is the field for BBS name
 
     def draw_single_bbs(self, index, fg_color):
         self.util.sid_data.setStartY(index + 4)  # Adjust for frame and page indicator
