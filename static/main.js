@@ -599,6 +599,12 @@ function update(time, delta) {
     document.body.style.height = null; // for the body tag
     document.getElementById("spinner").style.display = "none";
 
+    var canvas = document.getElementById('game-container').querySelector('canvas');
+    var computedStyle = window.getComputedStyle(canvas);
+  
+    canvasScaleX = parseInt(computedStyle.width, 10) / baseWidth;
+    canvasScaleY = parseInt(computedStyle.height, 10) / baseHeight;
+    
     initCalled = true;
   }
 

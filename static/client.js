@@ -57,9 +57,9 @@ function setupSocketEventListeners(socket) {
                 x: e.clientX - rect.left,
                 y: e.clientY - rect.top
             };
-
-            let tileX = Math.floor(pointer.x / 8) + 1;
-            let tileY = Math.floor(pointer.y / 16) + 1;
+            
+            let tileX = Math.floor(pointer.x / canvasScaleX /  8) + 1;
+            let tileY = Math.floor(pointer.y / canvasScaleY / 16) + 1;
             let isOverHref = false;
             
             for (let href of hrefs) {
@@ -70,9 +70,9 @@ function setupSocketEventListeners(socket) {
                 } else {
                   hrefLength = href.href.length;
                 }
-                console.log("hrefLenghth: "+hrefLength);
+                /*console.log("hrefLenghth: "+hrefLength);
                 console.log(tileX + " >= " + href.x + " && " + tileX + " < " + (Number(href.x) + Number(hrefLength)));
-                console.log(tileY + " == " + (Number(href.y) + 1));
+                console.log(tileY + " == " + (Number(href.y) + 1));*/
                 if (tileX >= Number(href.x) && tileX < (Number(href.x) + Number(hrefLength)) && tileY === (Number(href.y) + 1)) {
                     isOverHref = true;
                     break;
