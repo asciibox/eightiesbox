@@ -593,6 +593,7 @@ class Utils:
         self.sid_data.setCursorY(y)
 
     def clear_screen(self):
+        self.sid_data.callbacks = {}
         if self.sid_data.copy_action:
             self.sid_data.copy_color_bgarray = []
             self.sid_data.copy_color_array = []
@@ -1145,3 +1146,28 @@ class Utils:
     def pointerdown(self, x, y):
         print(x)
         print(y)
+
+    def emit_link(self, length, parameter, callback, callback_name, x, y):
+        """ Emit a socket event for an href link. """
+        # Validate parameters
+        if not isinstance(callback_name, str):
+            raise ValueError("Callback name must be a string")
+        if not callable(callback):
+            raise ValueError("Callback must be a callable function")
+        if not isinstance(x, int) or not isinstance(y, int):
+            raise ValueError("Coordinates x and y must be integers")
+
+        # Store the callback function and parameter in the dictionary
+        self.sid_data.callbacks[callback_name] = {'callback': callback, 'parameter': parameter}
+
+        # Emit the socket event
+        self.socketio.emit('a', {
+            'callback_name': callback_name,
+            'x': x,
+            'y': y,
+            'length' : length,
+        }, room=self.request_id)
+
+    def get_callback(self, callback_name):
+        """ Retrieve a callback function by its name. """
+        return self.sid_data.callbacks.get(callback_name, None)

@@ -117,7 +117,6 @@ class BBSChooser(BasicANSI):
         self.util.sid_data.setStartY(1)
         self.util.output(f"Page: {page_number + 1}/{self.total_pages} - Please choose the BBS you want to login to using cursor UP/DOWN (< and > arrows) and by pressing ENTER", 6, 0)
 
-
         # Reset current_selection when switching pages
         self.current_selection = 0
         
@@ -129,7 +128,8 @@ class BBSChooser(BasicANSI):
             self.util.sid_data.setStartY(i + 4)  # Adjust for frame and page indicator
             self.util.sid_data.setStartX(2)
             fg_color = 11 if i == self.current_selection else 6  # Highlight if current selection
-            self.util.output(bbs['name'], fg_color, 0)  # Assuming 'name' is the field for BBS name
+            self.util.emit_link(len(bbs['name']), bbs['_id'], self.bbs_clicked, 'bbs_click'+str(bbs['_id']), self.util.sid_data.startX, self.util.sid_data.startY)
+            self.util.output(bbs['name']+str(bbs['_id']), fg_color, 0)  # Assuming 'name' is the field for BBS name
 
     def draw_single_bbs(self, index, fg_color):
         self.util.sid_data.setStartY(index + 4)  # Adjust for frame and page indicator
@@ -157,7 +157,6 @@ class BBSChooser(BasicANSI):
                     self.current_page -= 1
                     self.show_page(self.current_page)
         elif key == 'ArrowDown':
-            print(self.bbs_per_page )
             if self.current_selection < min(len(self.bbs_on_page) - 1, self.bbs_per_page - 1):
                 # Redraw the current selection with non-highlight color
                 self.draw_single_bbs(self.current_selection, 6)
@@ -183,20 +182,23 @@ class BBSChooser(BasicANSI):
             # Convert the ObjectId to a string
             bbs_id_str = str(selected_bbs['_id'])
 
-            # Store the string representation of the unique ID of the BBS
-            self.util.sid_data.chosen_bbs = bbs_id_str
-
-            # Now you can emit the event with the string ID
-            self.util.socketio.emit('set_chosen_bbs', {'chosen_bbs': self.sid_data.chosen_bbs})
-
-            self.login(self.current_selection)
+            self.bbs_clicked(bbs_id_str)
             
         elif key == 'C' or key =='c':
             self.util.sid_data.chosen_bbs = ""
-            self.login(0)
+            self.login()
 
+    def bbs_clicked(self, bbs_id_str):
+        # Store the string representation of the unique ID of the BBS
+        print(bbs_id_str)
+        self.util.sid_data.chosen_bbs = bbs_id_str
 
-    def login(self, current_selection):
+        # Now you can emit the event with the string ID
+        self.util.socketio.emit('set_chosen_bbs', {'chosen_bbs': self.sid_data.chosen_bbs})
+
+        self.login()
+
+    def login(self):
         
         data2 = { 'filename' : self.startFile+'-'+str(self.util.sid_data.xWidth)+'x'+str(self.util.sid_data.yHeight), 'x' : self.util.sid_data.xWidth, 'y': self.util.sid_data.yHeight }
         self.util.clear_screen()

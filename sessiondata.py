@@ -77,6 +77,7 @@ class SessionData:
         self.group_chooser = None
         self.profile_renderer = None
         self.renderer = None
+        self.callbacks = {}
     
         
 
@@ -260,3 +261,7 @@ class SessionData:
 
     def setGroupEditor(self, value):
         self.group_editor = value
+
+    def get_callback(self, callback_name):
+        """ Retrieve a callback function and its parameter by its name. """
+        return self.callbacks.get(callback_name, None)

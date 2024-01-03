@@ -52,7 +52,7 @@ function setupSocketEventListeners(socket) {
         if (canvasElements[i].className != "tracker") {
         
           canvasElements[i].addEventListener('mousemove', function(e) {
-            const rect = canvas.getBoundingClientRect();
+            const rect = canvasElements[i].getBoundingClientRect();
             const pointer = {
                 x: e.clientX - rect.left,
                 y: e.clientY - rect.top
@@ -61,14 +61,19 @@ function setupSocketEventListeners(socket) {
             let tileX = Math.floor(pointer.x / 8) + 1;
             let tileY = Math.floor(pointer.y / 16) + 1;
             let isOverHref = false;
-
+            
             for (let href of hrefs) {
-                let hrefLength = href.href.length;
-                console.log(href.href)
-                console.log(tileX, href.x)
-                console.log(tileY, href.y)
 
-                if (tileX >= href.x && tileX < (href.x + hrefLength) && tileY === href.y + 1) {
+                let hrefLength;
+                if (href.length) {
+                  hrefLength = href.length;
+                } else {
+                  hrefLength = href.href.length;
+                }
+                console.log("hrefLenghth: "+hrefLength);
+                console.log(tileX + " >= " + href.x + " && " + tileX + " < " + (Number(href.x) + Number(hrefLength)));
+                console.log(tileY + " == " + (Number(href.y) + 1));
+                if (tileX >= Number(href.x) && tileX < (Number(href.x) + Number(hrefLength)) && tileY === (Number(href.y) + 1)) {
                     isOverHref = true;
                     break;
                 }
@@ -97,9 +102,11 @@ function setupSocketEventListeners(socket) {
     hrefs.push(data);
   });
 
+ 
   socket.on("draw", async (data) => {
     if (data.command && data.command === 'clear') {
       clearScreen();
+      hrefs = [];
     } else {
       // Handle normal drawing operations
       await writeAsciiHTMLPos(

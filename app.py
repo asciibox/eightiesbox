@@ -599,13 +599,26 @@ bucket = storage_client.get_bucket('eightiesbox')
 subscriber = pubsub_v1.SubscriberClient()
 subscription_path = subscriber.subscription_path('animated-moon-403620', 'projects/animated-moon-403620/subscriptions/bbs-file-upload-notification')
 
-#def callback(message):
-#    print(f"Received message: {message}")
-#    message.ack()
-#    
-#    # Update MongoDB
-#    file_name = message.attributes.get('objectId')
-#    collection.insert_one({"file_name": file_name})
+# When a click on a link happens (not on a href element)
+@socketio.on('link_callback')
+def link_callback(callback_name):
+    global sid_data
+
+    siddata = sid_data[request.sid]
+    callback_info = siddata.get_callback(callback_name.get('callback_name'))
+
+    # Extract the callback function and parameter
+    callback_function = callback_info['callback']
+    parameter = callback_info['parameter']
+
+    # Convert parameter to string if necessary
+    parameter_str = str(parameter)
+
+    # Call the callback function with the parameter
+    callback_function(parameter_str)
+
+    print("Callback called with parameter:", parameter_str)
+    return
 
 @app.route('/getSignedUrl', methods=['GET'])
 
