@@ -18,6 +18,12 @@ class Renderer:
         self.previous_element_id = None
         self.processed_ids = set()
 
+        self.inheritable_properties = [
+            'color',
+            'top',
+            'left',
+        ]
+
         self.current_focus_index = 0
         self.input_values = {}  # Dictionary to store input values for each element
         self.js_code = """
@@ -91,16 +97,6 @@ class Renderer:
                 if element_id:
                     self.onclick_events[element_id] = onclick
             
-            # Extract event handlers
-            #onclick = element.get('onclick')
-            #onkeydown = element.get('onkeydown')
-
-            # Process events if they exist
-            #if onclick:
-            #    self.handle_event_with_dukpy(onclick)
-            #if onkeydown:
-            #    self.handle_event_with_dukpy(onkeydown)
-
             style = element.get('style', '')
             top, left = self.extract_position(style)
             if left != None:
@@ -158,20 +154,30 @@ class Renderer:
             self.focus_on_element(ele_id, False)
             self.util.sid_data.setCurrentAction("wait_for_profile_renderer")
 
+    def gather_inherited_styles(self, element):
+        inherited_styles = {}
+        parent = element.parent
+        while parent is not None:
+            parent_style = parent.get('style', '')
+            for inheritable_attribute in self.inheritable_properties:  # inheritable_properties is a list of CSS properties that are inheritable
+                value = self.extract_style_value(parent_style, inheritable_attribute, None)
+                if value is not None:
+                    inherited_styles[inheritable_attribute] = value
+            parent = parent.parent
+        return inherited_styles
     
-    def render_element(self, element, left, top, color = 6, new_block=True):
-        
-        # Check if the element is a Tag and process it
+    def render_element(self, element, left, top, new_block=True):
         if isinstance(element, bs4.element.Tag):
             unique_id = element.get('uniqueid')
-
-            # Check if this Tag's unique_id has already been processed
             if unique_id in self.processed_ids:
                 return top, left
 
-            # Apply specific styles and processing for this Tag element
+            inherited_styles = self.gather_inherited_styles(element)
             style = element.get('style', '')
-            color = self.extract_color(style)
+            color = self.extract_color(style)  # Extracts color from own style
+
+            if 'color' not in style:
+                color = inherited_styles.get('color', color)  # Inherits color if not defined in own style
 
             # Recursively process child elements (depth-first)
             tag_name = element.name
@@ -179,7 +185,7 @@ class Renderer:
             for child in element.children:
                 if isinstance(child, bs4.element.Tag):
                     # If the child is a Tag, recursively call render_element
-                    top, left = self.render_element(child, left, top, color, new_block=new_block)
+                    top, left = self.render_element(child, left, top, new_block=new_block)
                     # After a tag, it's no longer the start of a new block
                     new_block = False
                 elif isinstance(child, bs4.NavigableString):
