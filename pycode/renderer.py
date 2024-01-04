@@ -17,7 +17,7 @@ class Renderer:
         self.active_callback = None
         self.previous_element_id = None
         self.processed_ids = set()
-        self.sleeper = 0.1
+        self.sleeper = 0.0
         self.uppermost_top = None
 
         self.inheritable_properties = [
@@ -92,16 +92,18 @@ class Renderer:
         
 
     def redraw_elements(self, useHTMLValues):
-        grid_containers = self.soup.find_all(["div", "p", "input", "button", "submit", "a"], style=lambda s: 'grid-template-columns:' in s or 'grid-template-rows:' in s if s else False)
 
-        for container in grid_containers:
+        def process_grid_container(container, total_width, total_height, processed_ids, parent_top = 0):
+            print(f"Debug: Starting container {container.get('uniqueid')} with width: {total_width}, height: {total_height}")
+
+
+
             container_style = container.get('style', '')
+            print(container)
             grid_columns = []
             grid_rows = []
-            total_width = self.util.sid_data.xWidth
-            total_height = self.util.sid_data.yHeight
 
-            # Extract column and row styles
+            # Extract column styles
             if 'grid-template-columns:' in container_style:
                 columns_style = container_style.split('grid-template-columns:')[1].split(';')[0].strip()
                 grid_columns = columns_style.split()
@@ -109,7 +111,8 @@ class Renderer:
                 fixed_width_columns = sum([int(c.strip('px')) for c in grid_columns if 'px' in c])
                 fr_width = (total_width - fixed_width_columns) / total_fr_columns if total_fr_columns else 0
                 column_widths = [fr_width * float(c.split('fr')[0]) if 'fr' in c else int(c.strip('px')) for c in grid_columns]
-
+                print(f"Debug: Column widths calculated: {column_widths}")
+            # Extract row styles
             if 'grid-template-rows:' in container_style:
                 rows_style = container_style.split('grid-template-rows:')[1].split(';')[0].strip()
                 grid_rows = rows_style.split()
@@ -117,20 +120,24 @@ class Renderer:
                 fixed_height_rows = sum([int(r.strip('px')) for r in grid_rows if 'px' in r])
                 fr_height = (total_height - fixed_height_rows) / total_fr_rows if total_fr_rows else 0
                 row_heights = [fr_height * float(r.split('fr')[0]) if 'fr' in r else int(r.strip('px')) for r in grid_rows]
-
-            elements = container.find_all(["div", "p", "input", "button", "submit", "a"])
+                print(f"Debug: Row heights calculated: {row_heights}")
+                      
+            elements = container.find_all(["div", "p", "input", "button", "submit", "a"], recursive=False)
             for index, element in enumerate(elements):
+                unique_id = element.get('uniqueid')
+                
                 existing_style = element.get('style', '')
                 column = index % len(grid_columns) if grid_columns else 0
                 row = index // len(grid_columns) if grid_columns else 0
 
                 left = sum(column_widths[:column]) if grid_columns else 0
-                top = sum(row_heights[:row]) if grid_rows else 0
+                top = sum(row_heights[:row]) + parent_top if grid_rows else 0
+                width = column_widths[column] if grid_columns and column < len(column_widths) else total_width
+                height = row_heights[row] if grid_rows and row < len(row_heights) else total_height
 
-                width = column_widths[column] if grid_columns else total_width
-                height = row_heights[row] if grid_rows else total_height
-
-                # Only update left, top, width, and height if they don't already exist
+                print(f"Debug: Element {unique_id} - top position: {top}, height: {height}")
+                print(f"Element {unique_id}: left={left}, top={top}, width={width}, height={height}")
+                print(f"Debug: Updated style for {unique_id}: {element['style']}")
                 if 'left:' not in existing_style:
                     existing_style += f" left: {left}px;"
                 if 'top:' not in existing_style:
@@ -141,11 +148,31 @@ class Renderer:
                     existing_style += f" height: {height}px;"
 
                 element['style'] = existing_style
+                print(f"Updated style for {unique_id}: {element['style']}")
 
+                print(f"Container {container.get('uniqueid')}: Checking for nested grids...")
+                nested_grids = element.find_all(["div"], style=lambda s: 'grid-template-columns:' in s or 'grid-template-rows:' in s, recursive=False)
+                for nested_grid in nested_grids:
+                    unique_id = nested_grid.get('uniqueid')
+                    if unique_id not in processed_ids:
+                        print(f"Processing nested grid {unique_id}...")
+                        # Calculate the width and height for the nested grid
+                        nested_top = top
+                        process_grid_container(nested_grid, width, height, processed_ids, parent_top = nested_top)
+                        processed_ids.add(unique_id)
+
+            return
+
+        processed_ids = set()
+        # Start processing with the outermost grid containers
+        grid_containers = self.soup.find_all(["div", "p", "input", "button", "submit", "a"], style=self.has_grid_style, recursive=False)
+        my_uppermost_top = 0
+        if self.uppermost_top != None:
+            my_uppermost_top = self.uppermost_top
+        for container in grid_containers:
+            process_grid_container(container, self.util.sid_data.xWidth, self.util.sid_data.yHeight, processed_ids, parent_top = my_uppermost_top)
 
         elements = self.soup.find_all(["div", "p", "input", "button", "submit", "a"])  # Add more tags as needed
-        self.element_order = [e.get('id') for e in elements if e.get('id')]
-        print(elements)
 
         for element in elements:
             if self.first_input_element == None and element.name == 'input':
@@ -332,7 +359,8 @@ class Renderer:
 
 
 
-
+    def has_grid_style(self, style):
+        return 'grid-template-columns:' in style or 'grid-template-rows:' in style
 
 
 
