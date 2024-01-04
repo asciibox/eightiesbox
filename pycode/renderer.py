@@ -18,13 +18,15 @@ class Renderer:
         self.previous_element_id = None
         self.processed_ids = set()
         self.sleeper = 0.1
+        self.uppermost_top = None
 
         self.inheritable_properties = [
             'color',
             'top',
             'left',
             'background-color',
-            'width'
+            'width',
+            'display'
         ]
 
         self.current_focus_index = 0
@@ -143,6 +145,7 @@ class Renderer:
 
         elements = self.soup.find_all(["div", "p", "input", "button", "submit", "a"])  # Add more tags as needed
         self.element_order = [e.get('id') for e in elements if e.get('id')]
+        print(elements)
 
         for element in elements:
             if self.first_input_element == None and element.name == 'input':
@@ -213,13 +216,23 @@ class Renderer:
     def gather_inherited_styles(self, element):
         inherited_styles = {}
         parent = element.parent
+
+        # Set the uppermost_top to None at the start of the function
+        self.uppermost_top = None
+
         while parent is not None:
             parent_style = parent.get('style', '')
-            for inheritable_attribute in self.inheritable_properties:  # inheritable_properties is a list of CSS properties that are inheritable
+            for inheritable_attribute in self.inheritable_properties:
                 value = self.extract_style_value(parent_style, inheritable_attribute, None)
                 if value is not None:
                     inherited_styles[inheritable_attribute] = value
+
+                    # Check for 'top' attribute and update uppermost_top if necessary
+                    if inheritable_attribute == 'top' and (self.uppermost_top is None or self.uppermost_top > value):
+                        self.uppermost_top = value
+
             parent = parent.parent
+
         return inherited_styles
     
     def render_element(self, element, left, top, default_width, default_height, new_block=True):
@@ -234,7 +247,6 @@ class Renderer:
             color = extracted_color if extracted_color is not None else None
             extracted_backgroundColor = self.extract_style_value(style, 'background-color', None)
             backgroundColor = extracted_backgroundColor if extracted_backgroundColor is not None else None
-
             extracted_width = self.extract_style_value(style, 'width',None)
             width = extracted_width if extracted_width is not None else default_width
 
@@ -245,21 +257,33 @@ class Renderer:
 
             extracted_display = self.extract_style_value(style,'display', None)
             display = extracted_display if extracted_display is not None else None
+            if display == None:
+                display = inherited_styles.get('display', None)  # Inherits color if not defined in own style
+            if display == None:
+                display = 'block'
+
+            if display == 'grid':
+                extracted_left = self.extract_style_value(style,'left', None)
+                left = extracted_left if extracted_left is not None else None
+                if left == None:
+                    left = inherited_styles.get('left', 0)  # Inherits color if not defined in own style
+
+                extracted_top = self.extract_style_value(style,'top', None)
+                top = extracted_top if extracted_top is not None else None
+                if top == None:
+                    top = inherited_styles.get('top', 0)  # Inherits color if not defined in own style
 
             if color == None:
                 color = inherited_styles.get('color', color)  # Inherits color if not defined in own style
             if color == None:
                 color = 6
 
-            if display == None:
-                display = inherited_styles.get('display', color)  # Inherits color if not defined in own style
-            if display == None:
-                display = 'block'
+           
 
 
 
             if backgroundColor == None:
-                backgroundColor = inherited_styles.get('background-color', 0)  # Inherits background-color if not defined in own style
+                backgroundColor = inherited_styles.get('background-color', None)  # Inherits background-color if not defined in own style
             if backgroundColor == None:
                 backgroundColor = 0
 
@@ -281,7 +305,6 @@ class Renderer:
                 elif isinstance(child, bs4.NavigableString):
                     child_text = child.strip()
                     if child_text:
-                        print("LEFT:"+str(left))
                         top, left = self.output_text(display, child_text, left, top, width, height, tag_name, color, backgroundColor, link=link, new_block=new_block)
                         time.sleep(self.sleeper)
                         # After text, it's no longer the start of a new block
@@ -294,7 +317,6 @@ class Renderer:
         elif isinstance(element, bs4.NavigableString):
             child_text = element.strip()
             if child_text:
-                print("NavigableString:", child_text)  # For debugging
                 # Output text with the color extracted from the parent Tag
                 parent_tag_name = element.parent.name if element.parent else None
                 top, left = self.output_text(display, child_text, left, top, width, height, parent_tag_name, color, backgroundColor, link=link)
@@ -316,10 +338,12 @@ class Renderer:
 
 
 
-    def output_text(self, display, element, left, top, width, height, tag_name, foregroundColor=6, backgroundColor=0, new_block=False, link=""):
+    def output_text(self, display, element, left, top, width, height, tag_name, foregroundColor, backgroundColor, new_block=False, link=""):
     # Initialize left with the current startX value.
         #left = self.util.sid_data.startX
-        
+        if self.uppermost_top != None:
+            top = top + self.uppermost_top
+
         # Determine if the element is a string or needs text extraction
         text = element if isinstance(element, str) else element.get_text()
 
@@ -345,17 +369,15 @@ class Renderer:
                 self.util.sid_data.startX = left
                 self.util.sid_data.startY = top
                 
-                if height == None or top - original_top < height:
-
-                    self.util.output(current_line, foregroundColor, backgroundColor)
-                    time.sleep(self.sleeper)
-                    if display == 'grid':
-                        if width != None:
-                            remaining_space = width - len(current_line)
-                        else:
-                            remaining_space = self.util.sid_data.xWidth - len(current_line)
-                        # Output spaces until the specified width is reached
-                        self.util.output(" " * remaining_space, foregroundColor, backgroundColor)
+                self.util.output(current_line, foregroundColor, backgroundColor)
+                time.sleep(self.sleeper)
+                if display == 'grid':
+                    if width != None:
+                        remaining_space = width - len(current_line)
+                    else:
+                        remaining_space = self.util.sid_data.xWidth - len(current_line)
+                    # Output spaces until the specified width is reached
+                    self.util.output(" " * remaining_space, foregroundColor, backgroundColor)
 
                 top += 1
                 if height != None and top - original_top >= height:
@@ -372,31 +394,38 @@ class Renderer:
         if height == None or current_line and top - original_top < height:
             self.util.sid_data.startX = left
             self.util.sid_data.startY = top
-            self.util.output(current_line, foregroundColor, 0)
+            self.util.output(current_line, foregroundColor, backgroundColor)
 
             time.sleep(self.sleeper)
             if width != None:
                 remaining_space = width - len(current_line)
-                self.util.output(" " * remaining_space, 6, 0)
+                self.util.output(" " * remaining_space, foregroundColor, backgroundColor)
             
             if tag_name == 'a':
                 self.emit_href(len(text), link, link_start_x, top)
-
+        
         if display == 'grid':
             # Fill the remaining vertical space with empty spaces
-            while height != None and top < height :
-                # self.util.sid_data.startX = original_left
+            while height != None and top < height + self.uppermost_top:
                 self.util.sid_data.startY = top + 1
+                self.util.sid_data.startX = original_left
                 self.util.output(" " * width, foregroundColor, backgroundColor)
                 top += 1
 
+            # Update top and left for the next element
+            top = original_top + height if height is not None else top + 1
+            left = original_left + width if left + width <= max_width else 0
+            if left == 0:
+                top += 1  # Move down a row if we've hit the max width
+        else:
+            left = self.util.sid_data.startX
         # left = original_left # self.util.sid_data.startX
         
-        # top = original_top  # Reset startY to the original position
+        
         
         #self.util.startY = original_top
             
-        left = self.util.sid_data.startX
+        
 
         return top, left
 
@@ -441,32 +470,32 @@ class Renderer:
         return self.extract_style_value(style, 'width', default_width)
 
     def extract_style_value(self, style, attribute, default_value):
-        print("Input style:", style)  # Debug: Print input style
-        print("Searching for attribute:", attribute)  # Debug: Print the attribute to be searched
+        #print("Input style:", style)  # Debug: Print input style
+        #print("Searching for attribute:", attribute)  # Debug: Print the attribute to be searched
 
         properties = style.split(';')
-        print("Properties after split:", properties)  # Debug: Print properties list
+        #print("Properties after split:", properties)  # Debug: Print properties list
 
         for prop in properties:
             prop = prop.strip()
-            print("Current property:", prop)  # Debug: Print the current property
+            #print("Current property:", prop)  # Debug: Print the current property
 
             key_value = prop.split(':')
             if len(key_value) == 2:
                 key, value = key_value[0].strip(), key_value[1].strip()
-                print(f"Key: '{key}', Value: '{value}'")  # Debug: Print the key and value
+                #print(f"Key: '{key}', Value: '{value}'")  # Debug: Print the key and value
 
                 if key == attribute:
-                    print("Attribute found")  # Debug: Print when attribute is found
+                    #print("Attribute found")  # Debug: Print when attribute is found
                     if 'px' in value:
                         numeric_value = int(float(value.split('px')[0].strip()))
-                        print(f"Returning numeric value: {numeric_value}")  # Debug: Print the numeric value
+                        #print(f"Returning numeric value: {numeric_value}")  # Debug: Print the numeric value
                         return numeric_value
                     else:
-                        print(f"Returning value: {value}")  # Debug: Print the non-numeric value
+                        #print(f"Returning value: {value}")  # Debug: Print the non-numeric value
                         return value
             
-        print(f"Attribute not found, returning default value: {default_value}")  # Debug: Print when returning default
+        #print(f"Attribute not found, returning default value: {default_value}")  # Debug: Print when returning default
         return default_value
 
 
