@@ -17,7 +17,7 @@ class Renderer:
         self.active_callback = None
         self.previous_element_id = None
         self.processed_ids = set()
-        self.sleeper = 0
+        self.sleeper = 0.1
         self.uppermost_top = None
 
         self.inheritable_properties = [
@@ -183,13 +183,13 @@ class Renderer:
 
             if element.name == 'div':
                 self.util.sid_data.startX = 0
-                mytop, myleft = self.render_element(element, self.util.sid_data.startX, self.util.sid_data.startY, None, None, new_block=True)
+                mytop, myleft = self.render_element(element, self.util.sid_data.startX, self.util.sid_data.startY, None, None)
                 self.util.sid_data.startY = mytop
                 self.util.sid_data.startX = myleft
             elif element.name == 'p':
                 self.util.sid_data.startX = 0
                 self.util.sid_data.startY += 1  # You might need to add logic to check if this increment is necessary
-                mytop, myleft = self.render_element(element, self.util.sid_data.startX, self.util.sid_data.startY, None, None, new_block=True)
+                mytop, myleft = self.render_element(element, self.util.sid_data.startX, self.util.sid_data.startY, None, None)
                 self.util.sid_data.startY = mytop
                 self.util.sid_data.startX = myleft
             elif element.name == 'button' or element.name=='submit':
@@ -271,7 +271,7 @@ class Renderer:
                 extracted_top = self.extract_style_value(style,'top', None)
                 top = extracted_top if extracted_top is not None else None
                 if top == None:
-                   top = inherited_styles.get('top', 0)  # Inherits color if not defined in own style
+                    top = inherited_styles.get('top', 0)  # Inherits color if not defined in own style
 
             if color == None:
                 color = inherited_styles.get('color', color)  # Inherits color if not defined in own style
@@ -301,10 +301,10 @@ class Renderer:
                     # If the child is a Tag, recursively call render_element
                     top, left = self.render_element(child, left, top, width, height, new_block=new_block)
                     # After a tag, it's no longer the start of a new block
+                    new_block = False
                 elif isinstance(child, bs4.NavigableString):
                     child_text = child.strip()
                     if child_text:
-                        print(top)
                         top, left = self.output_text(display, child_text, left, top, width, height, tag_name, color, backgroundColor, link=link, new_block=new_block)
                         time.sleep(self.sleeper)
                         # After text, it's no longer the start of a new block
@@ -319,7 +319,6 @@ class Renderer:
             if child_text:
                 # Output text with the color extracted from the parent Tag
                 parent_tag_name = element.parent.name if element.parent else None
-                print(top)
                 top, left = self.output_text(display, child_text, left, top, width, height, parent_tag_name, color, backgroundColor, link=link)
                 time.sleep(self.sleeper)
                 
@@ -362,30 +361,42 @@ class Renderer:
         link_start_x = left  # Initialize the starting x position of the link
 
         for i, word in enumerate(words):
+ 
             is_punctuation = word in [",", ".", ":", ";", "!", "?"]
 
-            if len(current_line) + len(word) + (0 if is_punctuation or new_block else 1) > max_width:
+            if display =='grid':
+                maximum = max_width
+            else:
+                maximum = max_width - left
+            if len(current_line) + len(word) + (0 if is_punctuation or new_block else 1) > maximum:
                 # Check if we're in a link and need to emit before wrapping
                 if tag_name == 'a' and current_line:
                     self.emit_href(len(text), link, link_start_x, top)
 
                 # Output the current line and reset it
-                self.util.sid_data.startX = original_left  # Use original_left instead of left
+                if display == 'grid':
+                    self.util.sid_data.startX = original_left  # Use original_left instead of left
+                else:
+                    self.util.sid_data.startX = left
                 self.util.sid_data.startY = top
-                        
+                
                 self.util.output(current_line, foregroundColor, backgroundColor)
                 time.sleep(self.sleeper)
                 if display == 'grid':
                     remaining_space = width - len(current_line) if width is not None else self.util.sid_data.xWidth - len(current_line)
                     # Output spaces until the specified width is reached
                     self.util.output(" " * remaining_space, foregroundColor, backgroundColor)
-                
+
                 top += 1
-                if height is not None and top - original_top >= height:
+                if height != None and top - original_top >= height:
+                    print("break")
                     break  # Stop printing if height is exceeded
-                left = original_left  # Reset left to original_left instead of 0
+                if display == 'grid':
+                    left = original_left  # Reset left to original_left instead of 0
+                else:
+                    left = 0
                 current_line = word
-                link_start_x = original_left  # Reset the starting x position of the link
+                link_start_x = left  # Reset the starting x position of the link
             else:
                 current_line += ("" if is_punctuation or new_block else " ") + word
 
@@ -419,6 +430,13 @@ class Renderer:
                 top += 1  # Move down a row if we've hit the max width
         else:
             left = self.util.sid_data.startX
+        # left = original_left # self.util.sid_data.startX
+        
+        
+        
+        #self.util.startY = original_top
+            
+        
 
         return top, left
 
