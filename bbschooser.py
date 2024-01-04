@@ -38,7 +38,7 @@ class BBSChooser(BasicANSI):
         self.sid_data.setRenderer(Renderer(self.util, None))
         if self.sid_data.xWidth > 80:
             self.sid_data.renderer.render_page("html/startpage.html")
-        if self.sid_data.xWidth > 40:
+        elif self.sid_data.xWidth > 40:
             self.sid_data.renderer.render_page("html/startpage_medium.html")
         else:
             self.sid_data.renderer.render_page("html/startpage_small.html")

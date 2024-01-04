@@ -4,7 +4,7 @@ import bs4.element
 import dukpy
 import re
 import bcrypt
-
+import time
 class Renderer:
     def __init__(self, util, return_function):
         # Initialize common rendering properties
@@ -17,11 +17,14 @@ class Renderer:
         self.active_callback = None
         self.previous_element_id = None
         self.processed_ids = set()
+        self.sleeper = 0.1
 
         self.inheritable_properties = [
             'color',
             'top',
             'left',
+            'background-color',
+            'width'
         ]
 
         self.current_focus_index = 0
@@ -84,9 +87,62 @@ class Renderer:
             unique_id += 1
         self.redraw_elements(True)
 
+        
+
     def redraw_elements(self, useHTMLValues):
+        grid_containers = self.soup.find_all(["div", "p", "input", "button", "submit", "a"], style=lambda s: 'grid-template-columns:' in s or 'grid-template-rows:' in s if s else False)
+
+        for container in grid_containers:
+            container_style = container.get('style', '')
+            grid_columns = []
+            grid_rows = []
+            total_width = self.util.sid_data.xWidth
+            total_height = self.util.sid_data.yHeight
+
+            # Extract column and row styles
+            if 'grid-template-columns:' in container_style:
+                columns_style = container_style.split('grid-template-columns:')[1].split(';')[0].strip()
+                grid_columns = columns_style.split()
+                total_fr_columns = sum([float(c.split('fr')[0]) for c in grid_columns if 'fr' in c])
+                fixed_width_columns = sum([int(c.strip('px')) for c in grid_columns if 'px' in c])
+                fr_width = (total_width - fixed_width_columns) / total_fr_columns if total_fr_columns else 0
+                column_widths = [fr_width * float(c.split('fr')[0]) if 'fr' in c else int(c.strip('px')) for c in grid_columns]
+
+            if 'grid-template-rows:' in container_style:
+                rows_style = container_style.split('grid-template-rows:')[1].split(';')[0].strip()
+                grid_rows = rows_style.split()
+                total_fr_rows = sum([float(r.split('fr')[0]) for r in grid_rows if 'fr' in r])
+                fixed_height_rows = sum([int(r.strip('px')) for r in grid_rows if 'px' in r])
+                fr_height = (total_height - fixed_height_rows) / total_fr_rows if total_fr_rows else 0
+                row_heights = [fr_height * float(r.split('fr')[0]) if 'fr' in r else int(r.strip('px')) for r in grid_rows]
+
+            elements = container.find_all(["div", "p", "input", "button", "submit", "a"])
+            for index, element in enumerate(elements):
+                existing_style = element.get('style', '')
+                column = index % len(grid_columns) if grid_columns else 0
+                row = index // len(grid_columns) if grid_columns else 0
+
+                left = sum(column_widths[:column]) if grid_columns else 0
+                top = sum(row_heights[:row]) if grid_rows else 0
+
+                width = column_widths[column] if grid_columns else total_width
+                height = row_heights[row] if grid_rows else total_height
+
+                # Only update left, top, width, and height if they don't already exist
+                if 'left:' not in existing_style:
+                    existing_style += f" left: {left}px;"
+                if 'top:' not in existing_style:
+                    existing_style += f" top: {top}px;"
+                if 'width:' not in existing_style:
+                    existing_style += f" width: {width}px;"
+                if 'height:' not in existing_style:
+                    existing_style += f" height: {height}px;"
+
+                element['style'] = existing_style
+
+
         elements = self.soup.find_all(["div", "p", "input", "button", "submit", "a"])  # Add more tags as needed
-        self.element_order = [e.get('id') for e in self.soup.find_all(["div", "p", "input", "button", "submit", "a"]) if e.get('id')]
+        self.element_order = [e.get('id') for e in elements if e.get('id')]
 
         for element in elements:
             if self.first_input_element == None and element.name == 'input':
@@ -96,14 +152,13 @@ class Renderer:
                 element_id = element.get('id', None)
                 if element_id:
                     self.onclick_events[element_id] = onclick
-            
-            style = element.get('style', '')
-            top, left = self.extract_position(style)
-            if left != None:
-                self.util.sid_data.startX = left
-            if top != None:
-                self.util.sid_data.startY = top
 
+            style = element.get('style', '')
+            
+            # Non-grid element positioning logic
+            top, left = self.extract_position(style)
+            self.util.sid_data.startX = left if left is not None else 0
+            self.util.sid_data.startY = top if top is not None else 0
 
             width = self.extract_width(style)
             height = self.extract_style_value(style, 'height', 1)
@@ -119,18 +174,19 @@ class Renderer:
             if useHTMLValues == True:
                 element_value = element.get('value')
                 if element_value:
-                    print("Setting "+element_id)
                     self.input_values[element_id] = element_value
             elif element_id != None:
                 element_value = self.input_values[element_id]
 
-            if element.name == 'div':                
-                mytop, myleft = self.render_element(element, self.util.sid_data.startX, self.util.sid_data.startY)
+            if element.name == 'div':
+                self.util.sid_data.startX = 0
+                mytop, myleft = self.render_element(element, self.util.sid_data.startX, self.util.sid_data.startY, None, None)
                 self.util.sid_data.startY = mytop
                 self.util.sid_data.startX = myleft
             elif element.name == 'p':
-                self.util.sid_data.startY += 2  # You might need to add logic to check if this increment is necessary
-                mytop, myleft = self.render_element(element, self.util.sid_data.startX, self.util.sid_data.startY)
+                self.util.sid_data.startX = 0
+                self.util.sid_data.startY += 1  # You might need to add logic to check if this increment is necessary
+                mytop, myleft = self.render_element(element, self.util.sid_data.startX, self.util.sid_data.startY, None, None)
                 self.util.sid_data.startY = mytop
                 self.util.sid_data.startX = myleft
             elif element.name == 'button' or element.name=='submit':
@@ -166,18 +222,52 @@ class Renderer:
             parent = parent.parent
         return inherited_styles
     
-    def render_element(self, element, left, top, new_block=True):
+    def render_element(self, element, left, top, default_width, default_height, new_block=True):
         if isinstance(element, bs4.element.Tag):
             unique_id = element.get('uniqueid')
             if unique_id in self.processed_ids:
                 return top, left
 
-            inherited_styles = self.gather_inherited_styles(element)
             style = element.get('style', '')
-            color = self.extract_color(style)  # Extracts color from own style
+            # Extracts values from own style, set them only if not None
+            extracted_color = self.extract_style_value(style, 'color', None)
+            color = extracted_color if extracted_color is not None else None
+            extracted_backgroundColor = self.extract_style_value(style, 'background-color', None)
+            backgroundColor = extracted_backgroundColor if extracted_backgroundColor is not None else None
 
-            if 'color' not in style:
+            extracted_width = self.extract_style_value(style, 'width',None)
+            width = extracted_width if extracted_width is not None else default_width
+
+            extracted_height = self.extract_style_value(style,'height', None)
+            height = extracted_height if extracted_height is not None else default_height
+
+            inherited_styles = self.gather_inherited_styles(element)
+
+            extracted_display = self.extract_style_value(style,'display', None)
+            display = extracted_display if extracted_display is not None else None
+
+            if color == None:
                 color = inherited_styles.get('color', color)  # Inherits color if not defined in own style
+            if color == None:
+                color = 6
+
+            if display == None:
+                display = inherited_styles.get('display', color)  # Inherits color if not defined in own style
+            if display == None:
+                display = 'block'
+
+
+
+            if backgroundColor == None:
+                backgroundColor = inherited_styles.get('background-color', 0)  # Inherits background-color if not defined in own style
+            if backgroundColor == None:
+                backgroundColor = 0
+
+            if 'width' not in style:
+                width = inherited_styles.get('width', width)  # Inherits width if not defined in own style
+
+            if 'height' not in style:
+                height = inherited_styles.get('height', height)  # Inherits height
 
             # Recursively process child elements (depth-first)
             tag_name = element.name
@@ -185,13 +275,15 @@ class Renderer:
             for child in element.children:
                 if isinstance(child, bs4.element.Tag):
                     # If the child is a Tag, recursively call render_element
-                    top, left = self.render_element(child, left, top, new_block=new_block)
+                    top, left = self.render_element(child, left, top, width, height, new_block=new_block)
                     # After a tag, it's no longer the start of a new block
                     new_block = False
                 elif isinstance(child, bs4.NavigableString):
                     child_text = child.strip()
                     if child_text:
-                        top, left = self.output_text(child_text, left, top, tag_name, color, link=link, new_block=new_block)
+                        print("LEFT:"+str(left))
+                        top, left = self.output_text(display, child_text, left, top, width, height, tag_name, color, backgroundColor, link=link, new_block=new_block)
+                        time.sleep(self.sleeper)
                         # After text, it's no longer the start of a new block
                         new_block = False
 
@@ -205,7 +297,8 @@ class Renderer:
                 print("NavigableString:", child_text)  # For debugging
                 # Output text with the color extracted from the parent Tag
                 parent_tag_name = element.parent.name if element.parent else None
-                top, left = self.output_text(child_text, left, top, parent_tag_name, color, link=link)
+                top, left = self.output_text(display, child_text, left, top, width, height, parent_tag_name, color, backgroundColor, link=link)
+                time.sleep(self.sleeper)
                 
             
         return top, left
@@ -223,11 +316,10 @@ class Renderer:
 
 
 
-    def output_text(self, element, left, top, tag_name, foregroundColor=6, new_block=False, link =""):
-        # Initialize left with the current startX value.
-        left = self.util.sid_data.startX
-        print("LEFT : "+str(left))
-
+    def output_text(self, display, element, left, top, width, height, tag_name, foregroundColor=6, backgroundColor=0, new_block=False, link=""):
+    # Initialize left with the current startX value.
+        #left = self.util.sid_data.startX
+        
         # Determine if the element is a string or needs text extraction
         text = element if isinstance(element, str) else element.get_text()
 
@@ -236,9 +328,12 @@ class Renderer:
 
         current_line = ""
         max_width = self.util.sid_data.xWidth
+        original_top = top  # Save the original top position
+        original_left = left  # Save the original top position
         link_start_x = left  # Initialize the starting x position of the link
 
         for i, word in enumerate(words):
+ 
             is_punctuation = word in [",", ".", ":", ";", "!", "?"]
 
             if len(current_line) + len(word) + (0 if is_punctuation or new_block else 1) > max_width - left:
@@ -249,8 +344,23 @@ class Renderer:
                 # Output the current line and reset it
                 self.util.sid_data.startX = left
                 self.util.sid_data.startY = top
-                self.util.output(current_line, foregroundColor, 0)
+                
+                if height == None or top - original_top < height:
+
+                    self.util.output(current_line, foregroundColor, backgroundColor)
+                    time.sleep(self.sleeper)
+                    if display == 'grid':
+                        if width != None:
+                            remaining_space = width - len(current_line)
+                        else:
+                            remaining_space = self.util.sid_data.xWidth - len(current_line)
+                        # Output spaces until the specified width is reached
+                        self.util.output(" " * remaining_space, foregroundColor, backgroundColor)
+
                 top += 1
+                if height != None and top - original_top >= height:
+                    print("break")
+                    break  # Stop printing if height is exceeded
                 left = 0
                 current_line = word
                 link_start_x = left  # Reset the starting x position of the link
@@ -259,17 +369,37 @@ class Renderer:
 
             new_block = False  # After the first word, it's no longer a new block
 
-        if current_line:
+        if height == None or current_line and top - original_top < height:
             self.util.sid_data.startX = left
             self.util.sid_data.startY = top
             self.util.output(current_line, foregroundColor, 0)
+
+            time.sleep(self.sleeper)
+            if width != None:
+                remaining_space = width - len(current_line)
+                self.util.output(" " * remaining_space, 6, 0)
+            
             if tag_name == 'a':
                 self.emit_href(len(text), link, link_start_x, top)
 
+        if display == 'grid':
+            # Fill the remaining vertical space with empty spaces
+            while height != None and top < height :
+                # self.util.sid_data.startX = original_left
+                self.util.sid_data.startY = top + 1
+                self.util.output(" " * width, foregroundColor, backgroundColor)
+                top += 1
+
+        # left = original_left # self.util.sid_data.startX
+        
+        # top = original_top  # Reset startY to the original position
+        
+        #self.util.startY = original_top
+            
         left = self.util.sid_data.startX
-        top = self.util.sid_data.startY
 
         return top, left
+
 
     def emit_href(self, length, link, x, y):
         """ Emit a socket event for an href link. """
@@ -303,19 +433,44 @@ class Renderer:
         if top == None:
             top = self.util.sid_data.startY
         if left == None:
-            left = 0
+            left = self.util.sid_data.startX
         return top, left 
 
-    def extract_color(self, style):
-        return self.extract_style_value(style, 'color', 6)
 
     def extract_width(self, style, default_width=35):
         return self.extract_style_value(style, 'width', default_width)
 
     def extract_style_value(self, style, attribute, default_value):
-        if attribute + ':' in style:
-            return int(style.split(attribute + ':')[1].split('px')[0].strip())
+        print("Input style:", style)  # Debug: Print input style
+        print("Searching for attribute:", attribute)  # Debug: Print the attribute to be searched
+
+        properties = style.split(';')
+        print("Properties after split:", properties)  # Debug: Print properties list
+
+        for prop in properties:
+            prop = prop.strip()
+            print("Current property:", prop)  # Debug: Print the current property
+
+            key_value = prop.split(':')
+            if len(key_value) == 2:
+                key, value = key_value[0].strip(), key_value[1].strip()
+                print(f"Key: '{key}', Value: '{value}'")  # Debug: Print the key and value
+
+                if key == attribute:
+                    print("Attribute found")  # Debug: Print when attribute is found
+                    if 'px' in value:
+                        numeric_value = int(float(value.split('px')[0].strip()))
+                        print(f"Returning numeric value: {numeric_value}")  # Debug: Print the numeric value
+                        return numeric_value
+                    else:
+                        print(f"Returning value: {value}")  # Debug: Print the non-numeric value
+                        return value
+            
+        print(f"Attribute not found, returning default value: {default_value}")  # Debug: Print when returning default
         return default_value
+
+
+
 
     def handle_event_with_dukpy(self, js_code):
         full_js_code = self.js_code + ' ' + js_code
@@ -442,9 +597,11 @@ class Renderer:
                 # Re-fetch the currently focused element
                 focused_element = self.extract_element_for_id(self.previous_element_id)
 
-
+                # When clicking on an element, the current_focus_index must get set according to
+                # the order of elements. What is known is the id of the clicked element, but not that
+                # of of current_focus_index
                 if using_mouse:
-        # Find the index of the next input element
+                    # Find the index of the next input element
                     next_input_index = None
                     self.element_order = [e.get('id') for e in self.soup.find_all(["div", "p", "input", "button", "submit", "a"]) if e.get('id')]
                     for i, el_id in enumerate(self.element_order):
