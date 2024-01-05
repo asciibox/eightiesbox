@@ -17,7 +17,7 @@ class Renderer:
         self.active_callback = None
         self.previous_element_id = None
         self.processed_ids = set()
-        self.sleeper = 0.01
+        self.sleeper = 0.1
         self.uppermost_top = None
 
         self.inheritable_properties = [
@@ -59,7 +59,9 @@ class Renderer:
             }
         """
     def has_display_grid_style(self, style):
-        return 'display:grid' in style
+        if style is None:
+            return False
+        return re.search(r'display\s*:\s*grid', style, re.IGNORECASE) is not None
 
 
     def render_page(self, filename):
@@ -95,20 +97,36 @@ class Renderer:
 
         self.redraw_elements(True)
 
+    def get_total_rows_from_parent_style_with_repeat(self, grid_container_style):
+        # Search for the 'grid-template-rows' property with a 'repeat()' value
+        match = re.search(r'grid-template-rows\s*:\s*repeat\((\d+),', grid_container_style)
+        if match:
+            # Extract the number of rows from the first capturing group
+            total_rows = int(match.group(1))
+        else:
+            # Fallback if no 'repeat()' is found
+            total_rows = 1  # Default to 1 if the style doesn't use 'repeat()' or is not found
+        return total_rows
+
     def add_data_grid_row_attributes(self, soup):
         for grid_container in soup.find_all(style=self.has_display_grid_style):
-            total_rows = self.get_total_rows_from_parent_style(grid_container)
+            # Extract the style attribute from the grid_container
+            grid_container_style = grid_container.get('style', '')
+            
+            # Get the total number of rows from the style
+            total_rows = self.get_total_rows_from_parent_style_with_repeat(grid_container_style)
             row_number = 1
 
             for child in grid_container.find_all(recursive=False):
                 child['data-grid-row'] = str(row_number)
-                # Increment row_number based on how many rows this child is expected to span
-                # This is a simplified example, assuming each child spans one row
+                # Increment row_number
                 row_number += 1
+                # Reset row_number if it exceeds total_rows
                 if row_number > total_rows:
-                    row_number = 1  # Reset or adjust based on your grid layout
+                    row_number = 1
 
         return soup
+
 
     def add_data_grid_column_attributes(self, soup):
         for grid_container in soup.find_all(style=self.has_display_grid_style):
@@ -118,20 +136,15 @@ class Renderer:
 
             for child in grid_container.find_all(recursive=False):
                 child['data-grid-column'] = str(column_number)
+                child['data-grid-row'] = str(row_number)
 
-                # Increment column_number and check if it needs to be reset
-                if row_number % 2 == 1:
-                    # For odd rows, increment normally
-                    column_number += 1
-                else:
-                    # For even rows, decrement
-                    column_number -= 1
+                # Increment column_number
+                column_number += 1
 
                 # Check if we've reached the end of a row
-                if (row_number % 2 == 1 and column_number > total_columns) or (row_number % 2 == 0 and column_number < 1):
+                if column_number > total_columns:
                     row_number += 1
-                    # Reset column_number based on the new row's parity
-                    column_number = 1 if row_number % 2 == 1 else total_columns
+                    column_number = 1
 
         return soup
 
@@ -170,20 +183,35 @@ class Renderer:
     def extract_fr_units_and_fixed_sizes(self, grid_style):
         fr_units = []
         fixed_sizes = []
-        if 'grid-template-columns:' in grid_style:
+        # Match the 'repeat()' function and extract the number of repetitions and the size
+        match = re.search(r'grid-template-columns\s*:\s*repeat\((\d+),\s*(\d+px)\)', grid_style)
+        if match:
+            repeats = int(match.group(1))
+            size = float(match.group(2).strip('px'))
+            # Add the size to fixed_sizes list 'repeats' number of times
+            fixed_sizes = [size] * repeats
+        else:
+            # Fallback to split method if 'repeat()' is not used
             columns_part = grid_style.split('grid-template-columns:')[1].split(';')[0].strip()
-            print(columns_part)
             for unit in columns_part.split():
                 if 'fr' in unit:
                     fr_units.append(float(unit.strip('fr')))
                 elif 'px' in unit:
                     fixed_sizes.append(float(unit.strip('px')))
         return fr_units, fixed_sizes
-    
+
     def extract_row_fr_units_and_fixed_sizes(self, grid_style):
         row_fr_units = []
         row_fixed_sizes = []
-        if 'grid-template-rows:' in grid_style:
+        # Match the 'repeat()' function and extract the number of repetitions and the size
+        match = re.search(r'grid-template-rows\s*:\s*repeat\((\d+),\s*(\d+px)\)', grid_style)
+        if match:
+            repeats = int(match.group(1))
+            size = float(match.group(2).strip('px'))
+            # Add the size to row_fixed_sizes list 'repeats' number of times
+            row_fixed_sizes = [size] * repeats
+        else:
+            # Fallback to split method if 'repeat()' is not used
             rows_part = grid_style.split('grid-template-rows:')[1].split(';')[0].strip()
             for unit in rows_part.split():
                 if 'fr' in unit:
@@ -285,41 +313,26 @@ class Renderer:
 
         return top_position
 
-    def calculate_nested_items_top(self, nested_container, nested_row_heights, parent_top):
-        print(f"Debug: Parent top: {parent_top}")
-        style = nested_container.get('style', '')
-        print(f"Debug: Nested container style: {style}")
+    def calculate_nested_items_top(self, nested_container, nested_row_heights):
+        # Assume each item's height is 5.0px, and there is no gap between rows
+        item_height = 5.0
 
-        # Get the 'top' position of the nested grid container itself
-        for prop in style.split(';'):
-            if 'top' in prop:
-                top_value = int(prop.split(':')[1].replace('px', '').strip())
-                break
-        nested_grid_top = top_value
-        
-        print(f"Nested grid top: {nested_grid_top}")
-        print(f"Nested row heights: {nested_row_heights}")  # Debug output
         for index, item in enumerate(nested_container.find_all(recursive=False)):
-            # Calculate the 'top' position for this item relative to the nested grid container
-            item_style = item.get('style', '')
-            print(f"Item {index} initial style: {item_style}")  # Debug output
-
-            item_top = nested_grid_top
-
-            # Assuming 'data-grid-row' is 1-indexed and consistent with nested_row_heights index
+            # Calculate the 'top' position for this item
+            # Assuming 'data-grid-row' starts at 1 for the first row
             item_grid_row = int(item.get('data-grid-row', '1')) - 1
-            print(f"Item {index} row index: {item_grid_row}, calculated item top: {item_top}")
-            # Add up the heights of all rows up to the one this item is in
-            if item_grid_row > 0:
-                additional_top = sum(nested_row_heights[:item_grid_row])
-                print(f"Debug: Additional Top for Item {index} (Row {item_grid_row}): {additional_top}px")
-                item_top += additional_top
-            
-            # Update the item's style to include the correct 'top' position
-            current_style = item.get('style', '')
-            new_style = f"top: {item_top}px; {current_style}"
-            print(f"Debug: Final style for Item {index}: {new_style}")
-            item['style'] = new_style
+            item_top = item_height * item_grid_row
+
+            # Construct the new style attribute with the correct 'top' value
+            item_style = item.get('style', '')
+            new_styles = [s for s in item_style.split(';') if not s.startswith('top')]
+            new_styles.append(f"top: {item_top}px") # Add the new 'top' value
+            item['style'] = '; '.join(new_styles).strip(';') # Clean up and set the style attribute
+
+            # Debug output
+            print(f"Debug: Final style for Item {index} (Row {item_grid_row+1}): {item['style']}")
+
+
 
     
 
@@ -376,14 +389,14 @@ class Renderer:
 
             if self.is_nested_grid(container):
                 # Assuming 'self.main_grid_style' contains the 'style' attribute of the main grid container
-                
                 main_grid_style = container.parent.get('style')  # The parent should be the main grid
                 print("nested_grid_top")
+                
                 # Calculate the total height available for the nested grid
                 nested_height = self.get_main_grid_total_height(container, total_height)
-
                 nested_grid_top = self.reset_nested_grid_top(container, total_height)
                 print("nested_grid_top2")
+                
                 # Extract fr units and fixed sizes from the main grid's 'grid-template-columns' style
                 fr_units, fixed_sizes = self.extract_fr_units_and_fixed_sizes(main_grid_style)
                 main_grid_total_width = self.calculate_grid_width(total_width, fr_units, fixed_sizes)
@@ -391,60 +404,73 @@ class Renderer:
                 # Assuming the nested grid spans the width of the first column of the main grid
                 nested_width = main_grid_total_width * (fr_units[0] / sum(fr_units))
                 
-                # Extract the column and row fractions for the nested grid
-                nested_columns = [1, 1]  # Assuming 1fr 1fr for simplicity
-                nested_rows = [1, 1]  # Assuming 1fr 1fr for simplicity
+                # Extract the nested grid's style and use it to determine the column and row fractions
+                nested_grid_style = container.get('style', '')
+                nested_columns_fr_units, nested_columns_fixed_sizes = self.extract_fr_units_and_fixed_sizes(nested_grid_style)
+                nested_rows_fr_units, nested_rows_fixed_sizes = self.extract_row_fr_units_and_fixed_sizes(nested_grid_style)
 
-                # Extract the row heights from the parent grid's style
-                # parent_row_fr_units, parent_row_fixed_sizes = self.extract_row_fr_units_and_fixed_sizes(container.parent.get('style', ''))
-                # Calculate the total height available for the nested grid based on the parent's row heights
-                
                 # Determine the starting row of the nested grid within the parent grid
                 # and accumulate the heights of all rows up to that point
                 accumulated_height = nested_grid_top  # Start from the top position of the nested grid container
-                
 
                 # Now use these row heights to calculate the nested grid's row heights
-                nested_row_heights = self.calculate_individual_row_heights(nested_height, nested_rows, [])
+                nested_row_heights = self.calculate_individual_row_heights(nested_height, nested_rows_fr_units, nested_rows_fixed_sizes)
 
                 # Call the function to calculate the top position for nested items
-                self.calculate_nested_items_top(container, nested_row_heights, nested_grid_top)
-                self.calculate_left_positions(container, nested_width, nested_height)
+                self.calculate_nested_items_top(container, nested_row_heights)
+                self.calculate_left_positions(container, nested_width)
                 debug_elements = container.find_all(["div", "p", "input", "button", "submit", "a"], recursive=False)
                 print("debug_elements")
                 print(debug_elements)
                 nested_items = container.find_all(recursive=False)  # Get the direct children (grid items)
+                
                 # Calculate the width and height each 'fr' unit represents in the nested grid
-                nested_fr_width = nested_width / sum(nested_columns)
-                nested_fr_height = nested_height / sum(nested_rows)
+                # Calculate the width each 'fr' unit represents in the nested grid
+                if nested_columns_fr_units:
+                    # When 'fr' units are used, they are usually equal so dividing the total width by the number of 'fr' units.
+                    nested_fr_width = nested_width / sum(nested_columns_fr_units)
+                    items_per_row = len(nested_columns_fr_units)  # The number of 'fr' units is the number of items per row
+                else:
+                    # Assuming all fixed sizes are equal, the number of items per row would be the total width divided by the width of one item.
+                    # This assumes that nested_columns_fixed_sizes contains the width for one column, repeated for how many columns there are.
+                    item_width = nested_columns_fixed_sizes[0] if nested_columns_fixed_sizes else nested_width
+                    items_per_row = int(nested_width / item_width)  # How many items of 'item_width' fit into 'nested_width'
+                    nested_fr_width = item_width  # Use fixed sizes if no 'fr' units
+
+                # Calculate the height each 'fr' unit represents in the nested grid
+                if nested_rows_fr_units:
+                    nested_fr_height = nested_height / sum(nested_rows_fr_units)
+                else:
+                    # Use the fixed size for height if no 'fr' units. This assumes all rows are equal height.
+                    nested_fr_height = nested_rows_fixed_sizes[0] if nested_rows_fixed_sizes else nested_height
+
+
 
                 # Assuming there are an equal number of items in each row
-                items_per_row = sum(nested_columns)  # or another method if the grid is more complex
-                total_rows = len(nested_items) // items_per_row
+               
+                # total_rows = len(nested_items) // items_per_row
                 # row_heights = [nested_fr_height for _ in range(total_rows)]
 
                 for index, item in enumerate(nested_items):
-                    column_index = index % items_per_row  # Modulo by items_per_row for column index
-                    row_index = index // items_per_row  # Integer division by items_per_row for row index
-
-                    # For the first item in a new row, update the accumulated_height
-                    if column_index == 0 and index > 0:
-                        accumulated_height += nested_row_heights[row_index - 1]
-
-                    # Calculate the top position for each item based on the accumulated height of previous rows
-                    # item_top = accumulated_height + sum(nested_row_heights[:row_index])
+                    column_index = index % items_per_row
+                    row_index = index // items_per_row
 
                     # Calculate the position and size for each item
                     item_width = nested_fr_width
                     item_height = nested_fr_height
-                    # item_left = column_index * item_width
-
+                    item_left = column_index * item_width
+                    
+                    item_top = row_index * item_height
+                    print("ITEM_TOP=")
+                    print(row_index*item_height)
                     # Update the style for each nested item
                     item_style = item.get('style', '')
-                    item_style += f" width: {item_width}px; height: {item_height}px;"
-                    print(" new item style ")
-                    print(item_style)
-                    item['style'] = item_style
+                    new_styles = [s for s in item_style.split(';') if not any(x in s for x in ['width', 'height', 'left', 'top'])]
+                    new_styles += [f"width: {item_width}px;", f"height: {item_height}px;", f"left: {item_left}px;", f"top: {item_top}px;"]
+                    item['style'] = '; '.join(new_styles)
+
+                    # Print or debug as needed
+                    print(f"Item {index}: {item['style']}")
 
                 
 
@@ -1209,22 +1235,33 @@ class Renderer:
 
 
     
-    def calculate_left_positions(self, grid_container, total_width, total_height):
-        column_definitions = self.get_column_definitions(grid_container)
-        column_widths = self.calculate_column_widths(column_definitions, total_width)
+    def calculate_left_positions(self, grid_container, total_width):
+    # Extract the style attribute from the grid container
+        grid_style = grid_container.get('style', '')
 
-        print(f"Debug: Column Widths: {column_widths}")
+        # Use the extract function to get fr units and fixed sizes
+        fr_units, fixed_sizes = self.extract_fr_units_and_fixed_sizes(grid_style)
+
+        # Assume total width is known, and calculate column widths based on fr and fixed sizes
+        # For simplicity, this example will distribute the remaining width evenly across fr units
+        # You may need a more complex calculation based on the actual CSS specifications for fr units
+        remaining_width = total_width - sum(fixed_sizes)
+        fr_unit_width = remaining_width / sum(fr_units) if fr_units else 0
+
+        column_widths = [size if size else fr_unit_width for size in fixed_sizes + [fr_unit_width] * len(fr_units)]
 
         for index, item in enumerate(grid_container.find_all(recursive=False)):
             column_index = int(item.get('data-grid-column', '1')) - 1
-            print(f"Debug: Item {index} Column Index: {column_index}")
-
             item_left = sum(column_widths[:column_index])
-            print(f"Debug: Calculated Left Position for Item {index}: {item_left}px")
 
+            # Update the 'left' position
             item_style = item.get('style', '')
-            item_style += f" left: {item_left}px;"
-            item['style'] = item_style
+            new_styles = [s for s in item_style.split(';') if not s.startswith('left')]
+            new_styles.append(f"left: {item_left}px")
+            item['style'] = '; '.join(new_styles).strip(';')
+            # Optionally, print debug information
+            print(f"Debug: Item {index} left: {item_left}px")
+
 
             #existing_style = item.get('style', '')
             #new_left_style = f"left: {item_left}px;"
@@ -1233,32 +1270,4 @@ class Renderer:
 
             
 
-    def get_column_definitions(self, grid_container):
-        # Extract column definitions from the grid container's style
-        # This is just a placeholder, implement based on your actual style format
-        return [1, 1]  # Example: Two columns with equal width
 
-    def get_row_definitions(self, grid_container):
-        # Extract row definitions from the grid container's style
-        # This is just a placeholder, implement based on your actual style format
-        return [1, 1]  # Example: Two rows with equal height
-
-    def calculate_column_widths(self, column_definitions, total_width):
-        # Calculate the width of each column based on the total width and column definitions
-        # This is a simplified example, adjust as needed
-        return [total_width / len(column_definitions) for _ in column_definitions]
-
-    def calculate_row_heights(self, row_definitions, total_height):
-        # Calculate the height of each row based on the total height and row definitions
-        # This is a simplified example, adjust as needed
-        return [total_height / len(row_definitions) for _ in row_definitions]
-
-    def get_column_index(self, item):
-        # Determine the column index of the item
-        # This is just a placeholder, implement based on your actual data structure
-        return int(item.get('data-grid-column', '1')) - 1
-
-    def get_row_index(self, item):
-        # Determine the row index of the item
-        # This is just a placeholder, implement based on your actual data structure
-        return int(item.get('data-grid-row', '1')) - 1
