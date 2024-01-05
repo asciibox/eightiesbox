@@ -113,11 +113,23 @@ class Renderer:
             if 'grid-template-rows:' in container_style:
                 rows_style = container_style.split('grid-template-rows:')[1].split(';')[0].strip()
                 grid_rows = rows_style.split()
-                total_fr_rows = sum([float(r.split('fr')[0]) for r in grid_rows if 'fr' in r])
-                fixed_height_rows = sum([int(r.strip('px')) for r in grid_rows if 'px' in r])
-                fr_height = (total_height - fixed_height_rows) / total_fr_rows if total_fr_rows else 0
-                row_heights = [fr_height * float(r.split('fr')[0]) if 'fr' in r else int(r.strip('px')) for r in grid_rows]
-                print(f"Debug: Row heights calculated: {row_heights} total_height: {total_height}")
+                
+                # Calculate the total fraction units and fixed heights
+                total_fr_units = sum(float(r.replace('fr', '')) for r in grid_rows if 'fr' in r)
+                fixed_height_rows = sum(int(r.replace('px', '')) for r in grid_rows if 'px' in r)
+                fr_unit_height = (total_height - fixed_height_rows) / total_fr_units if total_fr_units else 0
+
+                # Generate the list of row heights
+                row_heights = []
+                for r in grid_rows:
+                    if 'fr' in r:
+                        row_heights.append(fr_unit_height)
+                    elif 'px' in r:
+                        row_heights.append(int(r.replace('px', '')))
+                    else:
+                        raise ValueError(f"Invalid row height unit: {r}")
+
+                print(f"Debug: Row heights calculated: {row_heights}, fixed_height_rows: {fixed_height_rows}, total_fr_units: {total_fr_units}")
                       
             elements = container.find_all(["div", "p", "input", "button", "submit", "a"], recursive=False)
             for index, element in enumerate(elements):
