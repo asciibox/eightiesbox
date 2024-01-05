@@ -91,6 +91,7 @@ class Renderer:
             unique_id += 1
 
         self.soup = self.add_data_grid_row_attributes(self.soup)
+        self.soup = self.add_data_grid_column_attributes(self.soup)
 
         self.redraw_elements(True)
 
@@ -108,6 +109,44 @@ class Renderer:
                     row_number = 1  # Reset or adjust based on your grid layout
 
         return soup
+
+    def add_data_grid_column_attributes(self, soup):
+        for grid_container in soup.find_all(style=self.has_display_grid_style):
+            total_columns = self.get_total_columns_from_parent_style(grid_container)
+            column_number = 1
+            row_number = 1
+
+            for child in grid_container.find_all(recursive=False):
+                child['data-grid-column'] = str(column_number)
+
+                # Increment column_number and check if it needs to be reset
+                if row_number % 2 == 1:
+                    # For odd rows, increment normally
+                    column_number += 1
+                else:
+                    # For even rows, decrement
+                    column_number -= 1
+
+                # Check if we've reached the end of a row
+                if (row_number % 2 == 1 and column_number > total_columns) or (row_number % 2 == 0 and column_number < 1):
+                    row_number += 1
+                    # Reset column_number based on the new row's parity
+                    column_number = 1 if row_number % 2 == 1 else total_columns
+
+        return soup
+
+    
+    def get_total_columns_from_parent_style(self, grid_container):
+        style = grid_container.get('style', '')
+        # Extract the 'grid-template-columns' part of the style
+        for part in style.split(';'):
+            if 'grid-template-columns' in part:
+                columns = part.split(':')[1].strip()
+                # Count the number of columns defined
+                return len(columns.split(' '))
+        # Default to 1 column if 'grid-template-columns' is not defined
+        return 1
+
 
     def get_total_rows_from_parent_style(self, grid_container):
         # Extract the total number of rows from the parent's style
@@ -247,11 +286,11 @@ class Renderer:
         return top_position
 
     def calculate_nested_items_top(self, nested_container, nested_row_heights, parent_top):
-        # Get the 'top' position of the nested grid container itself
-        print(f"Parent top: {parent_top}")
+        print(f"Debug: Parent top: {parent_top}")
         style = nested_container.get('style', '')
-        print(f"Nested container style: {style}")  # Debug outpu
-        top_value = 0
+        print(f"Debug: Nested container style: {style}")
+
+        # Get the 'top' position of the nested grid container itself
         for prop in style.split(';'):
             if 'top' in prop:
                 top_value = int(prop.split(':')[1].replace('px', '').strip())
@@ -272,12 +311,14 @@ class Renderer:
             print(f"Item {index} row index: {item_grid_row}, calculated item top: {item_top}")
             # Add up the heights of all rows up to the one this item is in
             if item_grid_row > 0:
-                item_top += sum(nested_row_heights[:item_grid_row])
+                additional_top = sum(nested_row_heights[:item_grid_row])
+                print(f"Debug: Additional Top for Item {index} (Row {item_grid_row}): {additional_top}px")
+                item_top += additional_top
             
             # Update the item's style to include the correct 'top' position
             current_style = item.get('style', '')
             new_style = f"top: {item_top}px; {current_style}"
-            print(f"Item {index} new style: {new_style}")  # Debug output
+            print(f"Debug: Final style for Item {index}: {new_style}")
             item['style'] = new_style
 
     
@@ -355,7 +396,7 @@ class Renderer:
                 nested_rows = [1, 1]  # Assuming 1fr 1fr for simplicity
 
                 # Extract the row heights from the parent grid's style
-                parent_row_fr_units, parent_row_fixed_sizes = self.extract_row_fr_units_and_fixed_sizes(container.parent.get('style', ''))
+                # parent_row_fr_units, parent_row_fixed_sizes = self.extract_row_fr_units_and_fixed_sizes(container.parent.get('style', ''))
                 # Calculate the total height available for the nested grid based on the parent's row heights
                 
                 # Determine the starting row of the nested grid within the parent grid
@@ -369,7 +410,9 @@ class Renderer:
                 # Call the function to calculate the top position for nested items
                 self.calculate_nested_items_top(container, nested_row_heights, nested_grid_top)
                 self.calculate_left_positions(container, nested_width, nested_height)
-
+                debug_elements = container.find_all(["div", "p", "input", "button", "submit", "a"], recursive=False)
+                print("debug_elements")
+                print(debug_elements)
                 nested_items = container.find_all(recursive=False)  # Get the direct children (grid items)
                 # Calculate the width and height each 'fr' unit represents in the nested grid
                 nested_fr_width = nested_width / sum(nested_columns)
@@ -589,6 +632,7 @@ class Renderer:
         return inherited_styles
     
     def render_element(self, element, left, top, default_width, default_height, new_block=True):
+        print(f"Debug: Entering render_element, Left: {left}, Top: {top}, DefWidth: {default_width}, DefHeight: {default_height}")
         if isinstance(element, bs4.element.Tag):
             unique_id = element.get('uniqueid')
             if unique_id in self.processed_ids:
@@ -616,15 +660,20 @@ class Renderer:
                 display = 'block'
 
             if display == 'grid':
+                print(f"Debug: Grid - Left: {left}, Top: {top}")
                 extracted_left = self.extract_style_value(style,'left', None)
+                print("Setting left:"+str(extracted_left))
                 left = extracted_left if extracted_left is not None else None
                 if left == None:
                     left = inherited_styles.get('left', 0)  # Inherits color if not defined in own style
+                    print("Setting left to inherited style"+str(left))
 
                 extracted_top = self.extract_style_value(style,'top', None)
                 top = extracted_top if extracted_top is not None else None
+                
                 if top == None:
                     top = inherited_styles.get('top', 0)  # Inherits color if not defined in own style
+                    
 
             if color == None:
                 color = inherited_styles.get('color', color)  # Inherits color if not defined in own style
@@ -652,7 +701,9 @@ class Renderer:
             for child in element.children:
                 if isinstance(child, bs4.element.Tag):
                     # If the child is a Tag, recursively call render_element
+                    print(f"Debug: Before processing child, Left: {left}, Top: {top}")
                     top, left = self.render_element(child, left, top, width, height, new_block=new_block)
+                    print(f"Debug: After processing child, Left: {left}, Top: {top}")
                     # After a tag, it's no longer the start of a new block
                     new_block = False
                 elif isinstance(child, bs4.NavigableString):
@@ -691,6 +742,7 @@ class Renderer:
     
 
     def output_text(self, display, element, left, top, width, height, tag_name, foregroundColor, backgroundColor, new_block=False, link=""):
+        print(f"Debug: Entering output_text, Element: {element}, Left: {left}, Top: {top}")
     # Initialize left with the current startX value.
         #left = self.util.sid_data.startX
         if display == 'grid':
@@ -700,6 +752,7 @@ class Renderer:
 
         # Determine if the element is a string or needs text extraction
         text = element if isinstance(element, str) else element.get_text()
+        print("Element:")
         print(element)
         # Split the text into words
         words = text.split()
@@ -732,7 +785,8 @@ class Renderer:
                 else:
                     self.util.sid_data.startX = left
                 self.util.sid_data.startY = top
-                
+                print(original_left)
+                print(current_line)
                 self.util.output(current_line, foregroundColor, backgroundColor)
                 time.sleep(self.sleeper)
                 if display == 'grid':
@@ -758,6 +812,8 @@ class Renderer:
         if height == None or (current_line and top - original_top < height):
             self.util.sid_data.startX = left
             self.util.sid_data.startY = top
+            print(str(left)+"/"+str(top))
+            print(current_line)
             self.util.output(current_line, foregroundColor, backgroundColor)
 
             time.sleep(self.sleeper)
@@ -791,7 +847,7 @@ class Renderer:
         #self.util.startY = original_top
             
         
-
+        print(f"Debug: Exiting output_text, Left: {left}, Top: {top}")
         return top, left
 
 
@@ -1151,28 +1207,31 @@ class Renderer:
             elif my_element.name == 'input':
                 self.focus_next_element()
 
-    def calculate_left_positions(self, grid_container, total_width, total_height):
-        print("TOTAL_WIDTH")
-        print(total_width)
-        # Assuming the grid_container has attributes for column definitions
-        column_definitions = self.get_column_definitions(grid_container)
 
-        # Calculate the width of each column
+    
+    def calculate_left_positions(self, grid_container, total_width, total_height):
+        column_definitions = self.get_column_definitions(grid_container)
         column_widths = self.calculate_column_widths(column_definitions, total_width)
 
-        # Iterate over grid items and set their 'left' styles
+        print(f"Debug: Column Widths: {column_widths}")
+
         for index, item in enumerate(grid_container.find_all(recursive=False)):
-            # Assuming a simple grid with 2 columns, toggle column_index between 0 and 1
-            column_index = index % 2
-            print(f"Item {index} Column Index: {column_index}")  # Debug
+            column_index = int(item.get('data-grid-column', '1')) - 1
+            print(f"Debug: Item {index} Column Index: {column_index}")
 
             item_left = sum(column_widths[:column_index])
+            print(f"Debug: Calculated Left Position for Item {index}: {item_left}px")
 
             item_style = item.get('style', '')
             item_style += f" left: {item_left}px;"
             item['style'] = item_style
-            print("LEFT")
-            print(item['style'])
+
+            #existing_style = item.get('style', '')
+            #new_left_style = f"left: {item_left}px;"
+            #item['style'] = self.merge_styles(existing_style, new_left_style)
+            #print(f"Debug: Updated Item Style: {item['style']}")
+
+            
 
     def get_column_definitions(self, grid_container):
         # Extract column definitions from the grid container's style
