@@ -826,7 +826,7 @@ class Renderer:
         
         if display == 'grid':
             # Fill the remaining vertical space with empty spaces
-            while height != None and top < height + original_top:
+            while height != None and top < height + original_top - 1:
                 self.util.sid_data.startY = top + 1
                 self.util.sid_data.startX = original_left
                 self.util.output(" " * width, foregroundColor, backgroundColor)
