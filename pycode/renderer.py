@@ -17,7 +17,7 @@ class Renderer:
         self.active_callback = None
         self.previous_element_id = None
         self.processed_ids = set()
-        self.sleeper = 0.0
+        self.sleeper = 0.2
         self.uppermost_top = None
 
         self.inheritable_properties = [
@@ -99,9 +99,6 @@ class Renderer:
 
 
             container_style = container.get('style', '')
-            print(container)
-            grid_columns = []
-            grid_rows = []
 
             # Extract column styles
             if 'grid-template-columns:' in container_style:
@@ -120,7 +117,7 @@ class Renderer:
                 fixed_height_rows = sum([int(r.strip('px')) for r in grid_rows if 'px' in r])
                 fr_height = (total_height - fixed_height_rows) / total_fr_rows if total_fr_rows else 0
                 row_heights = [fr_height * float(r.split('fr')[0]) if 'fr' in r else int(r.strip('px')) for r in grid_rows]
-                print(f"Debug: Row heights calculated: {row_heights}")
+                print(f"Debug: Row heights calculated: {row_heights} total_height: {total_height}")
                       
             elements = container.find_all(["div", "p", "input", "button", "submit", "a"], recursive=False)
             for index, element in enumerate(elements):
@@ -256,7 +253,9 @@ class Renderer:
 
                     # Check for 'top' attribute and update uppermost_top if necessary
                     if inheritable_attribute == 'top' and (self.uppermost_top is None or self.uppermost_top > value):
-                        self.uppermost_top = value
+                        # self.uppermost_top = value
+                        self.uppermost_top = 0
+                        pass
 
             parent = parent.parent
 
@@ -371,11 +370,12 @@ class Renderer:
         #left = self.util.sid_data.startX
         if display == 'grid':
             if self.uppermost_top != None:
-                top = top + self.uppermost_top
+                pass
+                # top = top + self.uppermost_top
 
         # Determine if the element is a string or needs text extraction
         text = element if isinstance(element, str) else element.get_text()
-
+        print(element)
         # Split the text into words
         words = text.split()
 
@@ -445,7 +445,9 @@ class Renderer:
         
         if display == 'grid':
             # Fill the remaining vertical space with empty spaces
-            while height != None and top < height + self.uppermost_top:
+            print("height")
+            print(height)
+            while height != None and top < height + original_top:
                 self.util.sid_data.startY = top + 1
                 self.util.sid_data.startX = original_left
                 self.util.output(" " * width, foregroundColor, backgroundColor)
