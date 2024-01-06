@@ -17,8 +17,7 @@ class Renderer:
         self.active_callback = None
         self.previous_element_id = None
         self.processed_ids = set()
-        self.sleeper = 0.1
-        self.uppermost_top = None
+        self.sleeper = 0.03
 
         self.inheritable_properties = [
             'color',
@@ -157,13 +156,6 @@ class Renderer:
             return len(rows.split())
         return 0  # Default value if rows are not defined
 
-    '''def is_nested_grid(self, container):
-            # Find all direct child elements of the parent container that are grids
-            grid_children = [child for child in self.soup.find_all(recursive=True) if 'grid' in child.get('style', '')]
-
-            # Check if the container is the second grid in the list of grid children
-            bool = container == grid_children[1]
-            return bool'''
     
 
     def is_nested_grid(self, container):
@@ -659,21 +651,12 @@ class Renderer:
         inherited_styles = {}
         parent = element.parent
 
-        # Set the uppermost_top to None at the start of the function
-        self.uppermost_top = None
-
         while parent is not None:
             parent_style = parent.get('style', '')
             for inheritable_attribute in self.inheritable_properties:
                 value = self.extract_style_value(parent_style, inheritable_attribute, None)
                 if value is not None:
                     inherited_styles[inheritable_attribute] = value
-
-                    # Check for 'top' attribute and update uppermost_top if necessary
-                    if inheritable_attribute == 'top' and (self.uppermost_top is None or self.uppermost_top > value):
-                        # self.uppermost_top = value
-                        self.uppermost_top = 0
-                        pass
 
             parent = parent.parent
 
@@ -739,9 +722,11 @@ class Renderer:
             if color == None:
                 color = 6
 
-           
+            extracted_place_items = self.extract_style_value(style,'place-items', None)
+            place_items = extracted_place_items if extracted_place_items is not None else None
 
-
+            extracted_text_align = self.extract_style_value(style,'place-items', None)
+            text_align = extracted_text_align if extracted_text_align is not None else None
 
             if backgroundColor == None:
                 backgroundColor = inherited_styles.get('background-color', None)  # Inherits background-color if not defined in own style
@@ -774,7 +759,7 @@ class Renderer:
                 elif isinstance(child, bs4.NavigableString):
                     child_text = child.strip()
                     if child_text:
-                        top, left = self.output_text(display, child_text, left, top, width, height, tag_name, color, backgroundColor, tuple(padding_values), link=link, new_block=new_block)
+                        top, left = self.output_text(display, child_text, left, top, width, height, tag_name, color, backgroundColor, tuple(padding_values), place_items, text_align, link=link, new_block=new_block)
                         time.sleep(self.sleeper)
                         # After text, it's no longer the start of a new block
                         new_block = False
@@ -788,7 +773,7 @@ class Renderer:
             if child_text:
                 # Output text with the color extracted from the parent Tag
                 parent_tag_name = element.parent.name if element.parent else None
-                top, left = self.output_text(display, child_text, left, top, width, height, parent_tag_name, color, backgroundColor, tuple(padding_values), link=link)
+                top, left = self.output_text(display, child_text, left, top, width, height, parent_tag_name, color, backgroundColor, tuple(padding_values), place_items, text_align, link=link)
                 time.sleep(self.sleeper)
                 
             
@@ -808,10 +793,14 @@ class Renderer:
 
     
 
-    def output_text(self, display, element, left, top, width, height, tag_name, foregroundColor, backgroundColor, padding=(0,0,0,0), new_block=False, link=""):
+    def output_text(self, display, element, left, top, width, height, tag_name, foregroundColor, backgroundColor, padding, place_items, text_align, new_block=False, link=""):
     
         print("Padding ")
         print(padding)
+        original_top = top  # Save the original top position
+        original_left = left  # Save the original top position
+        link_start_x = left  # Initialize the starting x position of the link
+        
         padding_top, padding_right, padding_bottom, padding_left = padding
         
         # Adjust starting positions for padding
@@ -820,10 +809,7 @@ class Renderer:
         print(f"Debug: Entering output_text, Element: {element}, Left: {left}, Top: {top}")
     # Initialize left with the current startX value.
         #left = self.util.sid_data.startX
-        if display == 'grid':
-            if self.uppermost_top != None:
-                pass
-                # top = top + self.uppermost_top
+        
 
         # Determine if the element is a string or needs text extraction
         text = element if isinstance(element, str) else element.get_text()
@@ -832,20 +818,31 @@ class Renderer:
         # Split the text into words
         words = text.split()
 
+        
+
         current_line = ""
         if display == 'grid':
             max_width = width
         else: 
             max_width = self.util.sid_data.xWidth
-        original_top = top  # Save the original top position
-        original_left = left  # Save the original top position
-        link_start_x = left  # Initialize the starting x position of the link
-        print("padding_top")
-        print(padding_top)
+        
+        
+        if display == 'grid':
+            total_lines = self.calculate_total_lines(words, width, padding_left, padding_right)
+    
+            # Adjust top for vertical centering
+            if place_items == "center" and height is not None:
+                lines_to_center = min(total_lines, height)
+                vertical_space = height - lines_to_center
+                for _ in range(vertical_space // 2):
+                    self.util.sid_data.startX = left
+                    self.util.sid_data.startY = top
+                    self.util.output(" " * width, foregroundColor, backgroundColor)
+                    top += 1
+
         for _ in range(padding_top):
             self.util.sid_data.startX = left
             self.util.sid_data.startY = top
-            print("HANDLING RANGE")
             self.util.output(" " * width, foregroundColor, backgroundColor)
             top += 1
             time.sleep(self.sleeper)
@@ -865,7 +862,12 @@ class Renderer:
 
                 # Output the current line and reset it
                 if display == 'grid':
-                    self.util.sid_data.startX = original_left  # Use original_left instead of left
+                    line_length = len(current_line)
+                    if text_align == "center":
+                        horizontal_space = max_width - line_length
+                        self.util.sid_data.startX = original_left # + (horizontal_space // 2)
+                    else:
+                        self.util.sid_data.startX = original_left
                 else:
                     self.util.sid_data.startX = left
                 self.util.sid_data.startY = top
@@ -879,7 +881,6 @@ class Renderer:
 
                 top += 1
                 if height != None and top - original_top >= height:
-                    print("break")
                     break  # Stop printing if height is exceeded
                 if display == 'grid':
                     left = original_left  # Reset left to original_left instead of 0
@@ -895,8 +896,6 @@ class Renderer:
         if height == None or (current_line and top - original_top < height):
             self.util.sid_data.startX = left
             self.util.sid_data.startY = top
-            print(str(left)+"/"+str(top))
-            print(current_line)
             self.util.output(" " * padding_left, foregroundColor, backgroundColor)
             self.util.output(current_line, foregroundColor, backgroundColor)
 
@@ -924,12 +923,6 @@ class Renderer:
                 top += 1  # Move down a row if we've hit the max width
         else:
             left = self.util.sid_data.startX
-        # left = original_left # self.util.sid_data.startX
-        
-        
-        
-        #self.util.startY = original_top
-            
         
         print(f"Debug: Exiting output_text, Left: {left}, Top: {top}")
         return top, left
@@ -1328,4 +1321,29 @@ class Renderer:
 
             
 
+    def calculate_total_lines(self, words, width, padding_left, padding_right):
+        total_lines = 0
+        current_line_length = 0
+
+        for word in words:
+            is_punctuation = word in [",", ".", ":", ";", "!", "?"]
+            word_length = len(word)
+
+            # Calculate the available width considering padding
+            available_width = width - padding_left - padding_right
+
+            # Check if the word fits in the current line
+            if current_line_length + word_length + (0 if is_punctuation else 1) > available_width:
+                # Increment line count and reset current line length
+                total_lines += 1
+                current_line_length = word_length
+            else:
+                # Update the current line length
+                current_line_length += word_length + (0 if is_punctuation else 1)
+
+        # Add the last line if there's any content in it
+        if current_line_length > 0:
+            total_lines += 1
+
+        return total_lines
 
