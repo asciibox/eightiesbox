@@ -124,7 +124,7 @@ def onload(data):
     x = data.get('x')
     sid_data[request.sid].setXWidth(x)
     y = data.get('y')
-    sid_data[request.sid].setYHeight(y)
+    sid_data[request.sid].setYHeight(y-1)
     sid_data[request.sid].util.choose_bbs(data)
     return
 

@@ -17,7 +17,7 @@ class Renderer:
         self.active_callback = None
         self.previous_element_id = None
         self.processed_ids = set()
-        self.sleeper = 0.03
+        self.sleeper = 0.15
 
         self.inheritable_properties = [
             'color',
@@ -725,7 +725,7 @@ class Renderer:
             extracted_place_items = self.extract_style_value(style,'place-items', None)
             place_items = extracted_place_items if extracted_place_items is not None else None
 
-            extracted_text_align = self.extract_style_value(style,'place-items', None)
+            extracted_text_align = self.extract_style_value(style,'text-align', None)
             text_align = extracted_text_align if extracted_text_align is not None else None
 
             if backgroundColor == None:
@@ -792,6 +792,13 @@ class Renderer:
         return 'grid-template-columns:' in style or 'grid-template-rows:' in style
 
     
+    def get_horizontal_space(self, current_line, display, maximum, text_align):
+        horizontal_space = 0
+        if display == 'grid':
+            if text_align == "center":
+                line_length = len(current_line)
+                horizontal_space = (maximum - line_length) // 2
+        return horizontal_space
 
     def output_text(self, display, element, left, top, width, height, tag_name, foregroundColor, backgroundColor, padding, place_items, text_align, new_block=False, link=""):
     
@@ -800,7 +807,8 @@ class Renderer:
         original_top = top  # Save the original top position
         original_left = left  # Save the original top position
         link_start_x = left  # Initialize the starting x position of the link
-        
+
+
         padding_top, padding_right, padding_bottom, padding_left = padding
         
         # Adjust starting positions for padding
@@ -861,23 +869,21 @@ class Renderer:
                     self.emit_href(len(text), link, link_start_x, top)
 
                 # Output the current line and reset it
-                if display == 'grid':
-                    line_length = len(current_line)
-                    if text_align == "center":
-                        horizontal_space = max_width - line_length
-                        self.util.sid_data.startX = original_left # + (horizontal_space // 2)
-                    else:
-                        self.util.sid_data.startX = original_left
+                
+                if display  == "grid":                    
+                    self.util.sid_data.startX = original_left
                 else:
                     self.util.sid_data.startX = left
                 self.util.sid_data.startY = top
-             
-                self.util.output(" " * padding_left + current_line, foregroundColor, backgroundColor)
+
+                horizontal_space = self.get_horizontal_space( current_line, display, maximum, text_align)
+                print("CURRENTLINE:"+current_line)
+                print("HORIZONTAL_SPACE:"+str(horizontal_space))
+                self.util.output(" " * (padding_left + horizontal_space)  + current_line, foregroundColor, backgroundColor)
                 time.sleep(self.sleeper)
-                if display == 'grid':
-                    remaining_space = width - len(current_line) if width is not None else self.util.sid_data.xWidth - len(current_line)
-                    # Output spaces until the specified width is reached
-                    self.util.output(" " * remaining_space, foregroundColor, backgroundColor)
+                remaining_space = width - len(current_line) - horizontal_space if width is not None else self.util.sid_data.xWidth - len(current_line) - horizontal_space
+                # Output spaces until the specified width is reached
+                self.util.output(" " * remaining_space, foregroundColor, backgroundColor)
 
                 top += 1
                 if height != None and top - original_top >= height:
@@ -894,14 +900,17 @@ class Renderer:
             new_block = False  # After the first word, it's no longer a new block
 
         if height == None or (current_line and top - original_top < height):
+            horizontal_space = self.get_horizontal_space( current_line, display, maximum, text_align)
+            print("CURRENTLINE:"+current_line)
+            print("HORIZONTAL_SPACE:"+str(horizontal_space))
             self.util.sid_data.startX = left
             self.util.sid_data.startY = top
-            self.util.output(" " * padding_left, foregroundColor, backgroundColor)
+            self.util.output(" " * (padding_left + horizontal_space) , foregroundColor, backgroundColor)
             self.util.output(current_line, foregroundColor, backgroundColor)
 
             time.sleep(self.sleeper)
             if width != None:
-                remaining_space = width - len(current_line)
+                remaining_space = width - len(current_line) - horizontal_space
                 self.util.output(" " * remaining_space, foregroundColor, backgroundColor)
             
             if tag_name == 'a':
