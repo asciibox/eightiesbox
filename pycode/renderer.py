@@ -17,7 +17,7 @@ class Renderer:
         self.active_callback = None
         self.previous_element_id = None
         self.processed_ids = set()
-        self.sleeper = 0
+        self.sleeper = 0.1
         self.uppermost_top = None
 
         self.inheritable_properties = [
@@ -486,6 +486,8 @@ class Renderer:
                     # Update the style for each nested item
                     item_style = item.get('style', '')
                     new_styles = [s for s in item_style.split(';') if not any(x in s for x in ['width', 'height', 'left', 'top'])]
+                    item_height = round(item_height)
+                    item_top = round(item_top)
                     new_styles += [f"width: {item_width}px;", f"height: {item_height}px;", f"left: {item_left}px;", f"top: {item_top}px;"]
                     item['style'] = '; '.join(new_styles)
 
@@ -754,6 +756,11 @@ class Renderer:
 
             # Recursively process child elements (depth-first)
             tag_name = element.name
+            if tag_name == 'p':
+                top += 2
+                left = 0
+                new_block = True
+
             link = element.get('href')
             for child in element.children:
                 if isinstance(child, bs4.element.Tag):
@@ -762,7 +769,8 @@ class Renderer:
                     top, left = self.render_element(child, left, top, width, height, new_block=new_block)
                     print(f"Debug: After processing child, Left: {left}, Top: {top}")
                     # After a tag, it's no longer the start of a new block
-                    new_block = False
+                    if display != 'grid':
+                        new_block = False
                 elif isinstance(child, bs4.NavigableString):
                     child_text = child.strip()
                     if child_text:
@@ -832,10 +840,12 @@ class Renderer:
         original_top = top  # Save the original top position
         original_left = left  # Save the original top position
         link_start_x = left  # Initialize the starting x position of the link
-
+        print("padding_top")
+        print(padding_top)
         for _ in range(padding_top):
             self.util.sid_data.startX = left
             self.util.sid_data.startY = top
+            print("HANDLING RANGE")
             self.util.output(" " * width, foregroundColor, backgroundColor)
             top += 1
             time.sleep(self.sleeper)
@@ -847,7 +857,7 @@ class Renderer:
             if display =='grid':
                 maximum = max_width - padding_left - padding_right
             else:
-                maximum = max_width - left - padding_left - padding_right
+                maximum = max_width - left
             if len(current_line) + len(word) + (0 if is_punctuation or new_block else 1) > maximum:
                 # Check if we're in a link and need to emit before wrapping
                 if tag_name == 'a' and current_line:
@@ -859,10 +869,8 @@ class Renderer:
                 else:
                     self.util.sid_data.startX = left
                 self.util.sid_data.startY = top
-                print(original_left)
-                print(current_line)
-                if display == 'grid':
-                    self.util.output(" " * padding_left + current_line, foregroundColor, backgroundColor)
+             
+                self.util.output(" " * padding_left + current_line, foregroundColor, backgroundColor)
                 time.sleep(self.sleeper)
                 if display == 'grid':
                     remaining_space = width - len(current_line) if width is not None else self.util.sid_data.xWidth - len(current_line)
