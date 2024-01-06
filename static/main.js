@@ -322,16 +322,21 @@ function create() {
       hrefLength = href.href.length; // Assuming href string length corresponds to its display length
       }
       // Check if the click is within the horizontal range of the href and on the same vertical line
-      //console.log(tileX + " >= " + href.x + " && " + tileX + " < " + (Number(href.x) + Number(hrefLength)));
-      //console.log(tileY + " == " + (Number(href.y) + 1));
-      if (tileX >= Number(href.x) && tileX < (Number(href.x) + Number(hrefLength)) && tileY === (Number(href.y) + 1)) {
-        if (href.callback_name) {
-          socket.emit("link_callback", { callback_name: href.callback_name });
-        } else {
-          window.open(href.href, "_blank");
-        }
-        return; // Stop checking after finding a match
+      console.log(tileX + " >= " + href.x + " && " + tileX + " < " + (Number(href.x) + Number(hrefLength)));
+      console.log(tileY + " == " + (Number(href.y) + 1));
+      if (tileX >= parseInt(href.x) && 
+          tileX < (parseInt(href.x) + parseInt(hrefLength)) && 
+          tileY >= parseInt(href.y) && 
+          tileY < (parseInt(href.y) + parseInt(href.height))) {
+
+          if (href.callback_name) {
+              socket.emit("link_callback", { callback_name: href.callback_name });
+          } else {
+              window.open(href.href, "_blank");
+          }
+          return; // Stop checking after finding a match
       }
+
     }
 
      socket.emit("pointerdown", { x: tileX, y: tileY });

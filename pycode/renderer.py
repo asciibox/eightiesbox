@@ -573,7 +573,7 @@ class Renderer:
 
                     print(f"Debug: Element {unique_id} - top position: {top}, height: {height}")
                     print(f"Element {unique_id}: left={left}, top={top}, width={width}, height={height}")
-                    print(f"Debug: Updated style for {unique_id}: {element['style']}")
+                    # print(f"Debug: Updated style for {unique_id}: {element['style']}")
 
                     existing_style = element.get('style', '')
 
@@ -704,6 +704,20 @@ class Renderer:
 
         return inherited_styles
     
+    def gather_inherited_tags(self, element):
+        parent = element.parent
+
+        while parent is not None:
+            # Check if the parent is an <a> tag
+            if isinstance(parent, bs4.element.Tag) and parent.name == "a":
+                # Return the href attribute (link) of the <a> tag if it exists
+                return parent.get('href', None)
+            # Move to the next parent
+            parent = parent.parent
+
+        # Return None if no <a> tag is found
+        return None
+    
     def render_element(self, element, left, top, default_width, default_height, new_block=True):
         print(f"Debug: Entering render_element, Left: {left}, Top: {top}, DefWidth: {default_width}, DefHeight: {default_height}")
         if isinstance(element, bs4.element.Tag):
@@ -801,7 +815,13 @@ class Renderer:
                 elif isinstance(child, bs4.NavigableString):
                     child_text = child.strip()
                     if child_text:
+                        inherited_link = self.gather_inherited_tags(child)
+                        if inherited_link:
+                            print("LINK "+child_text)
+                            print(str(left)+"/"+str(top))
+                            self.emit_href(width, inherited_link, left, top, height)
                         top, left = self.output_text(display, child_text, left, top, width, height, tag_name, color, backgroundColor, tuple(padding_values), place_items, text_align, link=link, new_block=new_block)
+                        
                         time.sleep(self.sleeper)
                         # After text, it's no longer the start of a new block
                         new_block = False
@@ -815,7 +835,13 @@ class Renderer:
             if child_text:
                 # Output text with the color extracted from the parent Tag
                 parent_tag_name = element.parent.name if element.parent else None
+                inherited_link = self.gather_inherited_tags(element)
+                if inherited_link:
+                            print("LINK2 "+child_text)
+                            print(str(left)+"/"+str(top))
+                            self.emit_href(width, inherited_link, left, top, height)
                 top, left = self.output_text(display, child_text, left, top, width, height, parent_tag_name, color, backgroundColor, tuple(padding_values), place_items, text_align, link=link)
+                
                 time.sleep(self.sleeper)
                 
             
@@ -907,8 +933,8 @@ class Renderer:
                 maximum = max_width - left
             if len(current_line) + len(word) + (0 if is_punctuation or new_block else 1) > maximum:
                 # Check if we're in a link and need to emit before wrapping
-                if tag_name == 'a' and current_line:
-                    self.emit_href(len(text), link, link_start_x, top)
+                #if tag_name == 'a' and current_line:
+                #    self.emit_href(len(text), link, link_start_x, top)
 
                 # Output the current line and reset it
                 
@@ -979,13 +1005,14 @@ class Renderer:
         return top, left
 
 
-    def emit_href(self, length, link, x, y):
+    def emit_href(self, length, link, x, y, height):
         """ Emit a socket event for an href link. """
         self.util.socketio.emit('a', {
             'href': link,
             'length': length,
             'x': x,
-            'y': y
+            'y': y,
+            'height': height
         }, room=self.util.request_id)
 
 

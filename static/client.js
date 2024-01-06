@@ -72,7 +72,10 @@ function setupSocketEventListeners(socket) {
                 /*console.log("hrefLenghth: "+hrefLength);
                 console.log(tileX + " >= " + href.x + " && " + tileX + " < " + (Number(href.x) + Number(hrefLength)));
                 console.log(tileY + " == " + (Number(href.y) + 1));*/
-                if (tileX >= Number(href.x) && tileX < (Number(href.x) + Number(hrefLength)) && tileY === (Number(href.y) + 1)) {
+                if (tileX >= parseInt(href.x) && 
+                    tileX < (parseInt(href.x) + parseInt(href.length)) && 
+                    tileY >= parseInt(href.y) && 
+                    tileY < (parseInt(href.y) + parseInt(href.height))) {
                     isOverHref = true;
                     break;
                 }
