@@ -379,7 +379,7 @@ class Renderer:
         print("parent_grid")
         print(parent_grid)
         # Get the 'top' property of the parent grid
-        parent_top_value = int(parent_grid.get('style', '').split('top:')[1].split('px')[0]) if 'top:' in parent_grid.get('style', '') else 0
+        parent_top_value = round(parent_grid.get('style', '').split('top:')[1].split('px')[0]) if 'top:' in parent_grid.get('style', '') else 0
         print("*********************************************************")
         print("*********************************************************")
         print("*********************************************************")
@@ -494,8 +494,6 @@ class Renderer:
                 item_height = nested_fr_height
 
                 nested_grid_top = self.reset_nested_grid_top(container, parent_top)
-                print("nested_grip_top")
-                print(nested_grid_top)
                 for index, item in enumerate(container.find_all(recursive=False)):
                     column_index = index % items_per_row
                     row_index = index // items_per_row
@@ -506,11 +504,18 @@ class Renderer:
 
                     # Update the style for each nested item
                     item_style = item.get('style', '')
-                    new_styles = [s for s in item_style.split(';') if not any(x in s for x in ['width', 'height', 'left', 'top'])]
+                    # Check if 'height' is already in the item's style
+                    height_already_exists = 'height:' in item_style
+                    # Create a list of new styles, excluding 'width', 'height' (if it already exists), 'left', and 'top'
+                    new_styles = [s for s in item_style.split(';') if not any(x in s for x in ['width', 'left', 'top'] or (x in s for x in ['height'] if not height_already_exists))]
                     item_height = round(item_height)
                     item_top = round(item_top)
-                    new_styles += [f"width: {item_width}px;", f"height: {item_height}px;", f"left: {item_left}px;", f"top: {item_top}px;"]
+                    new_styles += [f"width: {item_width}px;", f"left: {item_left}px;", f"top: {item_top}px;"]
+                    # Add 'height' style only if it doesn't already exist
+                    if not height_already_exists:
+                        new_styles.append(f"height: {item_height}px;")
                     item['style'] = '; '.join(new_styles)
+
 
                     # Print or debug as needed
                     print(f"Item {index}: {item['style']}")
@@ -547,7 +552,7 @@ class Renderer:
                         if 'fr' in r:
                             row_heights.append(fr_unit_height)
                         elif 'px' in r:
-                            row_heights.append(int(r.replace('px', '')))
+                            row_heights.append(round(float(r.replace('px', ''))))
                         else:
                             raise ValueError(f"Invalid row height unit: {r}")
 
@@ -558,7 +563,6 @@ class Renderer:
                 for index, element in enumerate(elements):
                     unique_id = element.get('uniqueid')
                     
-                    existing_style = element.get('style', '')
                     column = index % len(grid_columns) if grid_columns else 0
                     row = index // len(grid_columns) if grid_columns else 0
 
@@ -570,14 +574,21 @@ class Renderer:
                     print(f"Debug: Element {unique_id} - top position: {top}, height: {height}")
                     print(f"Element {unique_id}: left={left}, top={top}, width={width}, height={height}")
                     print(f"Debug: Updated style for {unique_id}: {element['style']}")
-                    if 'left:' not in existing_style:
+
+                    existing_style = element.get('style', '')
+
+                    if 'left:' not in existing_style and 'left :' not in existing_style:
                         existing_style += f" left: {left}px;"
-                    if 'top:' not in existing_style:
+
+                    if 'top:' not in existing_style and 'top :' not in existing_style:
                         existing_style += f" top: {top}px;"
-                    if 'width:' not in existing_style:
+
+                    if 'width:' not in existing_style and 'width :' not in existing_style:
                         existing_style += f" width: {width}px;"
-                    if 'height:' not in existing_style:
+
+                    if 'height:' not in existing_style and 'height :' not in existing_style:
                         existing_style += f" height: {height}px;"
+
 
                     element['style'] = existing_style
                     print(f"Updated style for {unique_id}: {element['style']}")
@@ -1026,7 +1037,7 @@ class Renderer:
                 if key == attribute:
                     #print("Attribute found")  # Debug: Print when attribute is found
                     if 'px' in value:
-                        numeric_value = int(float(value.split('px')[0].strip()))
+                        numeric_value = round(float(value.split('px')[0].strip()))
                         #print(f"Returning numeric value: {numeric_value}")  # Debug: Print the numeric value
                         return numeric_value
                     else:
