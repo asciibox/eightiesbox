@@ -17,7 +17,7 @@ class Renderer:
         self.active_callback = None
         self.previous_element_id = None
         self.processed_ids = set()
-        self.sleeper = 0.025
+        self.sleeper = 0
         self.uppermost_top = None
 
         self.inheritable_properties = [
@@ -668,6 +668,17 @@ class Renderer:
                 return top, left
 
             style = element.get('style', '')
+
+            # Check for a 'padding' value that sets all sides to the same value
+            padding_value = self.extract_style_value(style, 'padding', None)
+            if padding_value is not None:
+                padding_values = [padding_value] * 4
+            else:
+                # Individual padding properties
+                padding_style = ['padding-top', 'padding-right', 'padding-bottom', 'padding-left']
+                padding_defaults = [0, 0, 0, 0]  # Default padding values if individual padding properties are not set
+                padding_values = [self.extract_style_value(style, prop, default) for prop, default in zip(padding_style, padding_defaults)]
+
             # Extracts values from own style, set them only if not None
             extracted_color = self.extract_style_value(style, 'color', None)
             color = extracted_color if extracted_color is not None else None
@@ -738,7 +749,7 @@ class Renderer:
                 elif isinstance(child, bs4.NavigableString):
                     child_text = child.strip()
                     if child_text:
-                        top, left = self.output_text(display, child_text, left, top, width, height, tag_name, color, backgroundColor, link=link, new_block=new_block)
+                        top, left = self.output_text(display, child_text, left, top, width, height, tag_name, color, backgroundColor, tuple(padding_values), link=link, new_block=new_block)
                         time.sleep(self.sleeper)
                         # After text, it's no longer the start of a new block
                         new_block = False
@@ -752,7 +763,7 @@ class Renderer:
             if child_text:
                 # Output text with the color extracted from the parent Tag
                 parent_tag_name = element.parent.name if element.parent else None
-                top, left = self.output_text(display, child_text, left, top, width, height, parent_tag_name, color, backgroundColor, link=link)
+                top, left = self.output_text(display, child_text, left, top, width, height, parent_tag_name, color, backgroundColor, tuple(padding_values), link=link)
                 time.sleep(self.sleeper)
                 
             
@@ -772,7 +783,15 @@ class Renderer:
 
     
 
-    def output_text(self, display, element, left, top, width, height, tag_name, foregroundColor, backgroundColor, new_block=False, link=""):
+    def output_text(self, display, element, left, top, width, height, tag_name, foregroundColor, backgroundColor, padding=(0,0,0,0), new_block=False, link=""):
+    
+        print("Padding ")
+        print(padding)
+        padding_top, padding_right, padding_bottom, padding_left = padding
+        
+        # Adjust starting positions for padding
+        #left += padding_left
+        #top += padding_top
         print(f"Debug: Entering output_text, Element: {element}, Left: {left}, Top: {top}")
     # Initialize left with the current startX value.
         #left = self.util.sid_data.startX
@@ -797,14 +816,21 @@ class Renderer:
         original_left = left  # Save the original top position
         link_start_x = left  # Initialize the starting x position of the link
 
+        for _ in range(padding_top):
+            self.util.sid_data.startX = left
+            self.util.sid_data.startY = top
+            self.util.output(" " * width, foregroundColor, backgroundColor)
+            top += 1
+            time.sleep(self.sleeper)
+
         for i, word in enumerate(words):
  
             is_punctuation = word in [",", ".", ":", ";", "!", "?"]
 
             if display =='grid':
-                maximum = max_width
+                maximum = max_width - padding_left - padding_right
             else:
-                maximum = max_width - left
+                maximum = max_width - left - padding_left - padding_right
             if len(current_line) + len(word) + (0 if is_punctuation or new_block else 1) > maximum:
                 # Check if we're in a link and need to emit before wrapping
                 if tag_name == 'a' and current_line:
@@ -818,7 +844,8 @@ class Renderer:
                 self.util.sid_data.startY = top
                 print(original_left)
                 print(current_line)
-                self.util.output(current_line, foregroundColor, backgroundColor)
+                if display == 'grid':
+                    self.util.output(" " * padding_left + current_line, foregroundColor, backgroundColor)
                 time.sleep(self.sleeper)
                 if display == 'grid':
                     remaining_space = width - len(current_line) if width is not None else self.util.sid_data.xWidth - len(current_line)
@@ -845,6 +872,7 @@ class Renderer:
             self.util.sid_data.startY = top
             print(str(left)+"/"+str(top))
             print(current_line)
+            self.util.output(" " * padding_left, foregroundColor, backgroundColor)
             self.util.output(current_line, foregroundColor, backgroundColor)
 
             time.sleep(self.sleeper)
@@ -861,9 +889,9 @@ class Renderer:
                 self.util.sid_data.startY = top + 1
                 self.util.sid_data.startX = original_left
                 self.util.output(" " * width, foregroundColor, backgroundColor)
-                time.sleep(self.sleeper)
                 top += 1
-
+                time.sleep(self.sleeper)
+                
             # Update top and left for the next element
             top = original_top + height if height is not None else top + 1
             left = original_left + width if left + width <= max_width else 0
