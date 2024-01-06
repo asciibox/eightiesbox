@@ -97,7 +97,8 @@ class MenuBarTextEditor(MenuBarANSIEditor):
         collection = self.mongo_client.bbs.uploads_ansi  # Replace with the actual MongoDB database and collection
         
         # Look for the filename in the database
-        file_data = collection.find_one({"filename": entered_filename})
+        filename_pattern = re.compile("^" + re.escape(entered_filename) + "$", re.IGNORECASE)
+        file_data = collection.find_one({"filename": filename_pattern})
 
         if file_data:
             file_data = base64.b64decode(file_data['file_data'])

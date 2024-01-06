@@ -55,11 +55,12 @@ class MenuBarMenuEditor(MenuBar):
         collection = self.mongo_client.bbs.uploads_html  # Replace with the actual MongoDB database and collection
 
         # Look for the filename in the database
-        file_data = collection.find_one({"filename": entered_filename, 'chosen_bbs' : self.sid_data.chosen_bbs})
+        filename_pattern = re.compile("^" + re.escape(entered_filename) + "$", re.IGNORECASE)
+        file_data = collection.find_one({"filename": filename_pattern, 'chosen_bbs' : self.sid_data.chosen_bbs})
 
         if file_data:
             # Delete the file from the database
-            collection.delete_one({"filename": entered_filename, 'chosen_bbs': self.sid_data.chosen_bbs})
+            collection.delete_one({"filename": filename_pattern, 'chosen_bbs': self.sid_data.chosen_bbs})
             self.goto_next_line()
             self.output_wrap("File "+entered_filename+" deleted successfully!", 6, 0)
             self.goto_next_line()
@@ -187,7 +188,8 @@ class MenuBarMenuEditor(MenuBar):
         collection = self.mongo_client.bbs.menufiles  # Replace with the actual MongoDB database and collection
 
         # Check if this filename already exists
-        if collection.find_one({"filename": entered_filename, 'chosen_bbs' : self.sid_data.chosen_bbs}):
+        filename_pattern = re.compile("^" + re.escape(entered_filename) + "$", re.IGNORECASE)
+        if collection.find_one({"filename": filename_pattern, 'chosen_bbs' : self.sid_data.chosen_bbs}):
             self.goto_next_line()
             self.output_wrap("File "+entered_filename+" already exists!", 6, 0)
             self.goto_next_line()
@@ -280,7 +282,8 @@ class MenuBarMenuEditor(MenuBar):
         collection = self.mongo_client.bbs.menufiles  # Replace with the actual MongoDB database and collection
         
         # Look for the filename in the database
-        file_data = collection.find_one({"filename": entered_filename, "chosen_bbs" : self.sid_data.chosen_bbs})
+        filename_pattern = re.compile("^" + re.escape(entered_filename) + "$", re.IGNORECASE)
+        file_data = collection.find_one({"filename": filename_pattern, "chosen_bbs" : self.sid_data.chosen_bbs})
         
         if file_data:
             # Clear the existing values in MenuBox
@@ -368,7 +371,8 @@ class MenuBarMenuEditor(MenuBar):
         collection = self.mongo_client.bbs.menufiles  # Replace with the actual MongoDB database and collection
 
         # Look for the filename in the database
-        file_data = collection.find_one({"filename": entered_filename, 'chosen_bbs' : self.sid_data.chosen_bbs})
+        filename_pattern = re.compile("^" + re.escape(entered_filename) + "$", re.IGNORECASE)
+        file_data = collection.find_one({"filename": filename_pattern, 'chosen_bbs' : self.sid_data.chosen_bbs})
 
         if file_data:
             # Delete the file from the database
@@ -429,7 +433,8 @@ class MenuBarMenuEditor(MenuBar):
         collection = self.mongo_client.bbs.ansifiles  # Replace with the actual MongoDB database and collection
         
         # Look for the filename in the database
-        file_data = collection.find_one({"filename": entered_filename})
+        filename_pattern = re.compile("^" + re.escape(entered_filename) + "$", re.IGNORECASE)
+        file_data = collection.find_one({"filename": filename_pattern})
         
         self.file_data = file_data
         if file_data:

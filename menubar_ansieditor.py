@@ -1,3 +1,4 @@
+import re
 import binascii
 from pymongo import MongoClient
 from menubar import MenuBar
@@ -41,6 +42,8 @@ class MenuBarANSIEditor(MenuBar):
                 self.delete_ansi()
             elif selected_option=="Upload HTML":
                 self.upload_html()
+            elif selected_option=="Upload ANSI":
+                self.upload_ansi()
             elif selected_option=="Import uploaded ANSI":
                 self.import_ansi()
             elif selected_option=="Delete uploaded ANSI":
@@ -50,7 +53,7 @@ class MenuBarANSIEditor(MenuBar):
             elif selected_option=="Clear ANSI":
                 self.clear_ansi()                
             else:
-                print("Hello world")
+                print("Menu not found")
             # Perform the action associated with selected_option here.
         else:
             self.in_sub_menu = True
@@ -127,7 +130,8 @@ class MenuBarANSIEditor(MenuBar):
         collection = self.mongo_client.bbs.ansifiles  # Replace with the actual MongoDB database and collection
         self.current_filename = entered_filename
         # Check if the filename already exists
-        if collection.find_one({"filename": entered_filename, 'chosen_bbs' : self.sid_data.chosen_bbs}):
+        filename_pattern = re.compile("^" + re.escape(entered_filename) + "$", re.IGNORECASE)
+        if collection.find_one({"filename": filename_pattern, 'chosen_bbs' : self.sid_data.chosen_bbs}):
             self.goto_next_line()
             self.output("File "+entered_filename+" already exists!", 6, 0)
             self.goto_next_line()
@@ -175,7 +179,8 @@ class MenuBarANSIEditor(MenuBar):
         collection = self.mongo_client.bbs.ansifiles  # Replace with the actual MongoDB database and collection
         
         # Look for the filename in the database
-        file_data = collection.find_one({"filename": entered_filename, 'chosen_bbs' : self.sid_data.chosen_bbs})
+        filename_pattern = re.compile("^" + re.escape(entered_filename) + "$", re.IGNORECASE)
+        file_data = collection.find_one({"filename": filename_pattern, 'chosen_bbs' : self.sid_data.chosen_bbs})
         
         self.file_data = file_data
         if file_data:
@@ -269,12 +274,13 @@ class MenuBarANSIEditor(MenuBar):
             return
         collection = self.mongo_client.bbs.uploads  # Replace with the actual MongoDB database and collection
 
+        filename_pattern = re.compile("^" + re.escape(entered_filename) + "$", re.IGNORECASE)
         # Look for the filename in the database
-        file_data = collection.find_one({"filename": entered_filename})
+        file_data = collection.find_one({"filename": filename_pattern})
 
         if file_data:
             # Delete the file from the database
-            collection.delete_one({"filename": entered_filename, 'chosen_bbs' : self.sid_data.chosen_bbs})
+            collection.delete_one({"filename": filename_pattern, 'chosen_bbs' : self.sid_data.chosen_bbs})
             self.goto_next_line()
             self.output_wrap("File "+entered_filename+" deleted successfully!", 6, 0)
             self.goto_next_line()
@@ -297,9 +303,12 @@ class MenuBarANSIEditor(MenuBar):
         entered_filename = entered_filename.upper()
         collection = self.mongo_client.bbs.ansifiles  # Replace with the actual MongoDB database and collection
 
-        # Look for the filename in the database
-        file_data = collection.find_one({"filename": entered_filename, 'chosen_bbs' : self.sid_data.chosen_bbs})
+        # Convert the filename to a regex pattern for case-insensitive matching
+        filename_pattern = re.compile("^" + re.escape(entered_filename) + "$", re.IGNORECASE)
 
+        # Look for the filename in the database using a case-insensitive search
+        file_data = collection.find_one({"filename": filename_pattern, 'chosen_bbs': self.sid_data.chosen_bbs})
+        
         if file_data:
             # Delete the file from the database
             collection.delete_one({"filename": entered_filename, 'chosen_bbs' : self.sid_data.chosen_bbs})
@@ -349,7 +358,8 @@ class MenuBarANSIEditor(MenuBar):
         collection = self.mongo_client.bbs.uploads_ansi  # Replace with the actual MongoDB database and collection
         
         # Look for the filename in the database
-        file_data = collection.find_one({"filename": entered_filename, 'chosen_bbs' : self.sid_data.chosen_bbs})
+        filename_pattern = re.compile("^" + re.escape(entered_filename) + "$", re.IGNORECASE)
+        file_data = collection.find_one({"filename": filename_pattern, 'chosen_bbs' : self.sid_data.chosen_bbs})
 
         try:
             file_data = base64.b64decode(file_data['file_data'])
