@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 import bs4.element
 import base64
+import math
 
 import dukpy
 import re
@@ -187,20 +188,14 @@ class Renderer:
     
 
     def is_nested_grid(self, container):
-        print("IS_NESTED_GRID")
-        print(container)
 
         # Get the parent of the current container
         parent_container = container.parent
-        print("Parent container:")
-        print(parent_container)
 
         # Check if the parent container exists and has a display: grid style
         if parent_container and self.has_display_grid_style(parent_container.get('style')):
-            print("Returning True")
             return True
 
-        print("Returning False")
         return False
 
     def extract_fr_units_and_fixed_sizes(self, grid_style):
@@ -279,9 +274,6 @@ class Renderer:
     def get_rows_spanned_by_nested_grid(self, nested_container):
         # Get the 'data-grid-row' attribute of the nested grid container
         start_row = int(nested_container.get('data-grid-row', 0)) - 1  # Convert to 0-based index
-        print("nested container")
-        print(nested_container)
-        print("start_row"+str(start_row))
         # Assuming each grid item occupies one row
         end_row = start_row  # If the nested grid spans more rows, adjust this accordingly
 
@@ -296,11 +288,6 @@ class Renderer:
 
         # Get the row heights of the parent grid
         parent_row_fr_units, parent_row_fixed_sizes = self.extract_row_fr_units_and_fixed_sizes(container.parent.get('style', ''))
-        print("viewport_height")
-        print(viewport_height)
-        
-        print("parent_row_fixed_sizes")
-        print(parent_row_fixed_sizes)
         parent_row_heights = self.calculate_individual_row_heights(viewport_height, parent_row_fr_units, parent_row_fixed_sizes)
 
         # Check if the start_row is within the range of defined rows
@@ -313,8 +300,6 @@ class Renderer:
 
         # Calculate the height for the nested grid
         nested_height = sum(parent_row_heights[start_row:end_row + 1])  # +1 because end_row is inclusive
-        print("nesteed_height")
-        print(nested_height)
         return nested_height
 
     def calculate_top_position(self, container, default_height):
@@ -354,7 +339,6 @@ class Renderer:
             item['style'] = '; '.join(new_styles).strip(';') # Clean up and set the style attribute
 
             # Debug output
-            print(f"Debug: Final style for Item {index} (Row {item_grid_row+1}): {item['style']}")
 
 
 
@@ -366,8 +350,6 @@ class Renderer:
         
         # If there are fractional units, distribute the remaining height among them
         if fr_units:
-            print("total_height")
-            print(total_height)
             # Subtract the sum of fixed sizes from the total height to get the height available for fractional units
             height_for_fr = total_height - sum(fixed_sizes)
             # Calculate the height that each 'fr' unit represents
@@ -375,40 +357,20 @@ class Renderer:
             # Add the calculated heights for the fractional units to the row heights list
             row_heights.extend(fr_unit * fr_unit_height for fr_unit in fr_units)
 
-        print(f"FR Units: {fr_units}, Fixed Sizes: {fixed_sizes}, Total Height: {total_height}")
         row_heights = [fr_unit * fr_unit_height for fr_unit in fr_units] + fixed_sizes
-        print(f"Calculated Row Heights: {row_heights}")
         return row_heights
 
     def reset_nested_grid_top(self, parent_grid, total_height):
         # Find the parent grid container
       
         # parent_grid = nested_container.find(lambda tag: 'display:grid' in tag.get('style', ''))
-        print("parent_grid")
-        print(parent_grid)
         # Get the 'top' property of the parent grid
-        parent_top_value = round(parent_grid.get('style', '').split('top:')[1].split('px')[0]) if 'top:' in parent_grid.get('style', '') else 0
-        print("*********************************************************")
-        print("*********************************************************")
-        print("*********************************************************")
-        print("*********************************************************")
-        print("parent_top_value")
-        print(parent_top_value)
+        parent_top_value = int(parent_grid.get('style', '').split('top:')[1].split('px')[0]) if 'top:' in parent_grid.get('style', '') else 0
         # Get the row index of the nested grid within the parent grid
         parent_grid_row_index = int(parent_grid.get('data-grid-row', '0')) - 1
-        print("parent_grid_row_index")
-        print(parent_grid_row_index)
-        print("total_height")
-        print(total_height)
-        print("parent_grid")
-        print(parent_grid)
         # Calculate the sum of the heights of all rows before the nested grid in the parent grid
         parent_row_heights = self.calculate_row_heights(parent_grid, total_height)
-        print("parent_row_heights")
-        print(parent_row_heights)
         accumulated_height_before_nested = sum(parent_row_heights[:parent_grid_row_index])
-        print("accumulated_height_before_nested")
-        print(accumulated_height_before_nested)
         # The top position of the nested grid container is the parent's top plus the accumulated height
         nested_grid_top = parent_top_value + accumulated_height_before_nested
         return nested_grid_top
@@ -483,7 +445,7 @@ class Renderer:
                     # Assuming all fixed sizes are equal, the number of items per row would be the total width divided by the width of one item.
                     # This assumes that nested_columns_fixed_sizes contains the width for one column, repeated for how many columns there are.
                     item_width = nested_width / len(nested_columns_fixed_sizes)
-                    print("item width: "+str(item_width))
+
                     items_per_row = int(nested_width / item_width)  # How many items of 'item_width' fit into 'nested_width'
                     nested_fr_width = item_width  # Use fixed sizes if no 'fr' units
 
@@ -492,13 +454,11 @@ class Renderer:
                     nested_fr_height = nested_height / sum(nested_rows_fr_units)
                 else:
                     # Use the fixed size for height if no 'fr' units. This assumes all rows are equal height.
-                    print("nested_rows_fixed_sizes")
-                    print(nested_rows_fixed_sizes)
                     nested_fr_height = nested_height
 
                 # total_rows = len(nested_items) // items_per_row
                 # row_heights = [nested_fr_height for _ in range(total_rows)]
-                    item_width = nested_fr_width
+                item_width = math.ceil(nested_fr_width)
                 item_height = nested_fr_height
 
                 nested_grid_top = self.reset_nested_grid_top(container, parent_top)
@@ -513,22 +473,23 @@ class Renderer:
                     # Update the style for each nested item
                     item_style = item.get('style', '')
                     # Check if 'height' is already in the item's style
+                    # Check if 'height' and 'width' are already in the item's style
                     height_already_exists = 'height:' in item_style
-                    # Create a list of new styles, excluding 'width', 'height' (if it already exists), 'left', and 'top'
-                    new_styles = [s for s in item_style.split(';') if not any(x in s for x in ['width', 'left', 'top'] or (x in s for x in ['height'] if not height_already_exists))]
-                    item_height = round(item_height)
-                    item_top = round(item_top)
-                    new_styles += [f"width: {item_width}px;", f"left: {item_left}px;", f"top: {item_top}px;"]
+                    width_already_exists = 'width:' in item_style
+
+                    # Create a list of new styles, excluding 'width' (if it already exists), 'height' (if it already exists), 'left', and 'top'
+                    new_styles = [s for s in item_style.split(';') if not any(x in s for x in ['left', 'top'] or (x in s for x in ['height'] if not height_already_exists) or (x in s for x in ['width'] if not width_already_exists))]
+                    item_height = int(item_height)
+                    item_top = int(item_top)
+                    # Add 'width' style only if it doesn't already exist
+                    if not width_already_exists:
+                        new_styles.append(f"width: {item_width}px;")
+                    new_styles += [f"left: {item_left}px;", f"top: {item_top}px;"]
                     # Add 'height' style only if it doesn't already exist
                     if not height_already_exists:
                         new_styles.append(f"height: {item_height}px;")
                     item['style'] = '; '.join(new_styles)
-
-
-                    # Print or debug as needed
-                    print(f"Item {index}: {item['style']}")
-
-                
+          
 
             else:
                 container_style = container.get('style', '')
@@ -542,7 +503,6 @@ class Renderer:
                     fixed_width_columns = sum([int(re.findall(r'\d+', c)[0]) for c in grid_columns if 'px' in c])
                     fr_width = (total_width - fixed_width_columns) / total_fr_columns if total_fr_columns else 0
                     column_widths = [fr_width * float(c.split('fr')[0]) if 'fr' in c else int(re.findall(r'\d+', c)[0]) for c in grid_columns]
-                    print(f"Debug: Column widths calculated: {column_widths}")
                 # Extract row styles
                 if 'grid-template-rows:' in container_style:
                     rows_style = container_style.split('grid-template-rows:')[1].split(';')[0].strip()
@@ -560,12 +520,10 @@ class Renderer:
                         if 'fr' in r:
                             row_heights.append(fr_unit_height)
                         elif 'px' in r:
-                            row_heights.append(round(float(r.replace('px', ''))))
+                            row_heights.append(int(float(r.replace('px', ''))))
                         else:
                             raise ValueError(f"Invalid row height unit: {r}")
 
-                    print(f"Debug: Row heights calculated: {row_heights}, fixed_height_rows: {fixed_height_rows}, total_fr_units: {total_fr_units}")
-                        
                 
                 elements = container.find_all(["div", "p", "input", "button", "submit", "a"], recursive=False)
                 for index, element in enumerate(elements):
@@ -576,11 +534,9 @@ class Renderer:
 
                     left = sum(column_widths[:column]) if grid_columns else 0
                     top = sum(row_heights[:row]) if grid_rows else 0
-                    width = column_widths[column] if grid_columns and column < len(column_widths) else total_width
+                    width = math.ceil(column_widths[column] if grid_columns and column < len(column_widths) else total_width)
                     height = row_heights[row] if grid_rows and row < len(row_heights) else total_height
 
-                    print(f"Debug: Element {unique_id} - top position: {top}, height: {height}")
-                    print(f"Element {unique_id}: left={left}, top={top}, width={width}, height={height}")
                     # print(f"Debug: Updated style for {unique_id}: {element['style']}")
 
                     existing_style = element.get('style', '')
@@ -599,10 +555,6 @@ class Renderer:
 
 
                     element['style'] = existing_style
-                    print(f"Updated style for {unique_id}: {element['style']}")
-               
-
-                print(f"Container {container.get('uniqueid')}: Checking for nested grids...")
                 #nested_grids = element.find_all(["div"], style=self.has_grid_style, recursive=True)
                 
                 #print(nested_grids)
@@ -619,8 +571,6 @@ class Renderer:
 
         # Start processing with the outermost grid containers
         grid_containers = self.soup.find_all(["div", "p", "input", "button", "submit", "a"], style=self.has_grid_style, recursive=True)
-        print("***************GRIDCONTAINER2***********************************")
-        print(grid_containers)
         
         for container in grid_containers:
             top_position =  self.calculate_top_position(container, 0)
@@ -628,9 +578,6 @@ class Renderer:
             process_grid_container(container, self.util.sid_data.xWidth, self.util.sid_data.yHeight-1, top_position)
 
         elements = self.soup.find_all(["div", "p", "input", "button", "submit", "a"])  # Add more tags as needed
-        print("**")
-        print(elements)
-        print("**")
         for element in elements:
             if self.first_input_element == None and element.name == 'input':
                 self.first_input_element = element
@@ -727,7 +674,6 @@ class Renderer:
         return None
     
     def render_element(self, element, left, top, default_width, default_height, new_block=True):
-        print(f"Debug: Entering render_element, Left: {left}, Top: {top}, DefWidth: {default_width}, DefHeight: {default_height}")
         if isinstance(element, bs4.element.Tag):
             unique_id = element.get('uniqueid')
             if unique_id in self.processed_ids:
@@ -766,13 +712,10 @@ class Renderer:
                 display = 'block'
 
             if display == 'grid':
-                print(f"Debug: Grid - Left: {left}, Top: {top}")
                 extracted_left = self.extract_style_value(style,'left', None)
-                print("Setting left:"+str(extracted_left))
                 left = extracted_left if extracted_left is not None else None
                 if left == None:
                     left = inherited_styles.get('left', 0)  # Inherits color if not defined in own style
-                    print("Setting left to inherited style"+str(left))
 
                 extracted_top = self.extract_style_value(style,'top', None)
                 top = extracted_top if extracted_top is not None else None
@@ -803,6 +746,9 @@ class Renderer:
             if 'height' not in style:
                 height = inherited_styles.get('height', height)  # Inherits height
 
+
+            
+
             # Recursively process child elements (depth-first)
             tag_name = element.name
             if tag_name == 'p':
@@ -814,9 +760,7 @@ class Renderer:
             for child in element.children:
                 if isinstance(child, bs4.element.Tag):
                     # If the child is a Tag, recursively call render_element
-                    print(f"Debug: Before processing child, Left: {left}, Top: {top}")
                     top, left = self.render_element(child, left, top, width, height, new_block=new_block)
-                    print(f"Debug: After processing child, Left: {left}, Top: {top}")
                     # After a tag, it's no longer the start of a new block
                     if display != 'grid':
                         new_block = False
@@ -825,12 +769,11 @@ class Renderer:
                     if child_text:
                         inherited_link = self.gather_inherited_tags(child)
                         if inherited_link:
-                            print("LINK "+child_text)
-                            print(str(left)+"/"+str(top))
                             if len(inherited_link)>1:
                                 self.emit_href(width, inherited_link, left, top, height)
                             else:
                                 self.util.emit_link(width, inherited_link, self.key_pressed, child.parent.get('uniqueid'), left, top, height)
+                       
                         top, left = self.output_text(display, child_text, left, top, width, height, tag_name, color, backgroundColor, tuple(padding_values), place_items, text_align, link=link, new_block=new_block)
                         
                         time.sleep(self.sleeper)
@@ -848,12 +791,11 @@ class Renderer:
                 parent_tag_name = element.parent.name if element.parent else None
                 inherited_link = self.gather_inherited_tags(element)
                 if inherited_link:
-                            print("LINK2 "+child_text)
-                            print(str(left)+"/"+str(top))
                             if len(inherited_link)>1:
                                 self.emit_href(width, inherited_link, left, top, height)
                             else:
                                 self.util.emit_link(width, inherited_link, self.key_pressed, element.get('uniqueid'), left, top, height)
+                
                 top, left = self.output_text(display, child_text, left, top, width, height, parent_tag_name, color, backgroundColor, tuple(padding_values), place_items, text_align, link=link)
                 
                 time.sleep(self.sleeper)
@@ -886,8 +828,6 @@ class Renderer:
 
     def output_text(self, display, element, left, top, width, height, tag_name, foregroundColor, backgroundColor, padding, place_items, text_align, new_block=False, link=""):
     
-        print("Padding ")
-        print(padding)
         original_top = top  # Save the original top position
         original_left = left  # Save the original top position
         link_start_x = left  # Initialize the starting x position of the link
@@ -898,15 +838,12 @@ class Renderer:
         # Adjust starting positions for padding
         #left += padding_left
         #top += padding_top
-        print(f"Debug: Entering output_text, Element: {element}, Left: {left}, Top: {top}")
-    # Initialize left with the current startX value.
+        # Initialize left with the current startX value.
         #left = self.util.sid_data.startX
         
 
         # Determine if the element is a string or needs text extraction
         text = element if isinstance(element, str) else element.get_text()
-        print("Element:")
-        print(element)
         # Split the text into words
         words = text.split()
 
@@ -961,8 +898,6 @@ class Renderer:
                 self.util.sid_data.startY = top
 
                 horizontal_space = self.get_horizontal_space( current_line, display, maximum, text_align)
-                print("CURRENTLINE:"+current_line)
-                print("HORIZONTAL_SPACE:"+str(horizontal_space))
                 self.util.output(" " * (padding_left + horizontal_space)  + current_line, foregroundColor, backgroundColor)
                 time.sleep(self.sleeper)
                 remaining_space = width - len(current_line) - horizontal_space if width is not None else self.util.sid_data.xWidth - len(current_line) - horizontal_space
@@ -985,8 +920,6 @@ class Renderer:
 
         if height == None or (current_line and top - original_top < height):
             horizontal_space = self.get_horizontal_space( current_line, display, maximum, text_align)
-            print("CURRENTLINE:"+current_line)
-            print("HORIZONTAL_SPACE:"+str(horizontal_space))
             self.util.sid_data.startX = left
             self.util.sid_data.startY = top
             self.util.output(" " * (padding_left + horizontal_space) , foregroundColor, backgroundColor)
@@ -999,13 +932,15 @@ class Renderer:
             
             #if tag_name == 'a':
             #    self.emit_href(len(text), link, link_start_x, top)
-        
-        if display == 'grid':
             # Fill the remaining vertical space with empty spaces
             while height != None and top < height + original_top - 1:
+                self.util.sid_data.startX = left
                 self.util.sid_data.startY = top + 1
-                self.util.sid_data.startX = original_left
-                self.util.output(" " * width, foregroundColor, backgroundColor)
+                print("INCREASING HEIGHT")
+                print(height)
+                print(top + 1)
+                print(original_left)
+                self.util.output("x" * width, foregroundColor, backgroundColor)
                 top += 1
                 time.sleep(self.sleeper)
                 
@@ -1017,7 +952,6 @@ class Renderer:
         else:
             left = self.util.sid_data.startX
         
-        print(f"Debug: Exiting output_text, Left: {left}, Top: {top}")
         return top, left
 
 
@@ -1080,7 +1014,7 @@ class Renderer:
                 if key == attribute:
                     #print("Attribute found")  # Debug: Print when attribute is found
                     if 'px' in value:
-                        numeric_value = round(float(value.split('px')[0].strip()))
+                        numeric_value = int(float(value.split('px')[0].strip()))
                         #print(f"Returning numeric value: {numeric_value}")  # Debug: Print the numeric value
                         return numeric_value
                     else:
