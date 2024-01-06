@@ -766,6 +766,8 @@ class Renderer:
 
 
     def has_grid_style(self, style):
+        if style is None:
+            return False
         return 'grid-template-columns:' in style or 'grid-template-rows:' in style
 
     
