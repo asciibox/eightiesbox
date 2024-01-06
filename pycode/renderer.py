@@ -442,7 +442,9 @@ class Renderer:
                     nested_fr_height = nested_height / sum(nested_rows_fr_units)
                 else:
                     # Use the fixed size for height if no 'fr' units. This assumes all rows are equal height.
-                    nested_fr_height = nested_rows_fixed_sizes[0] if nested_rows_fixed_sizes else nested_height
+                    print("nested_rows_fixed_sizes")
+                    print(nested_rows_fixed_sizes)
+                    nested_fr_height = nested_height
 
                 # total_rows = len(nested_items) // items_per_row
                 # row_heights = [nested_fr_height for _ in range(total_rows)]
