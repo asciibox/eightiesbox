@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 import bs4.element
+import base64
 
 import dukpy
 import re
@@ -63,26 +64,45 @@ class Renderer:
         return re.search(r'display\s*:\s*grid', style, re.IGNORECASE) is not None
 
 
-    def render_page(self, filename):
+    def render_page(self, filename, db_filename=''):
         # Fetch user data from the database
         # Assuming 'self.util.sid_data.user_document['_id']' contains the current user's ID
 
         # Read the HTML template
-        with open(filename, "r") as file:
-            html_content = file.read()
-
-        if self.util.sid_data.user_document != None:
+        if filename == None:
+            db = self.util.mongo_client['bbs']
+            upload_html_collection = db['uploads_html']
+            html_data = upload_html_collection.find_one({"filename": db_filename})
+            html_content = base64.b64decode(html_data['file_data']);
+        else:
+            with open(filename, "r") as file:
+                html_content = file.read()
+        
+        # Fill in userdata into the html if logged in
+        if self.util.sid_data.user_document is not None:
             db = self.util.mongo_client['bbs']
             users_collection = db['users']
             user_data = users_collection.find_one({"_id": self.util.sid_data.user_document['_id']})
-            # Replace placeholders with actual user data or remove them if not present
-            all_placeholders = re.findall(r'\{userdata\.\w+\}', html_content)
-            for placeholder in all_placeholders:
-                field = placeholder.strip('{}').split('.')[1]
-                if field in user_data and user_data[field] is not None:
-                    html_content = html_content.replace(placeholder, str(user_data[field]))
-                else:
-                    html_content = html_content.replace(placeholder, '')
+            
+            try:
+                # Assuming html_content is in byte format, decode it to a string
+                html_content_str = html_content.decode('utf-8')
+
+                # Replace placeholders with actual user data or remove them if not present
+                all_placeholders = re.findall(r'\{userdata\.\w+\}', html_content_str)
+                for placeholder in all_placeholders:
+                    field = placeholder.strip('{}').split('.')[1]
+                    if field in user_data and user_data[field] is not None:
+                        html_content_str = html_content_str.replace(placeholder, str(user_data[field]))
+                    else:
+                        html_content_str = html_content_str.replace(placeholder, '')
+
+                # If you need to use the modified content as bytes later on, encode it back
+                html_content = html_content_str.encode('utf-8')
+        
+            except AttributeError:
+                # Handle the case where html_content is not byte-like or other AttributeErrors
+                pass
 
         self.soup = BeautifulSoup(html_content, "html.parser")
         unique_id = 0
