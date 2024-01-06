@@ -19,7 +19,7 @@ class Renderer:
         self.active_callback = None
         self.previous_element_id = None
         self.processed_ids = set()
-        self.sleeper = 0
+        self.sleeper = 0.05
 
         self.inheritable_properties = [
             'color',
@@ -752,7 +752,7 @@ class Renderer:
             # Recursively process child elements (depth-first)
             tag_name = element.name
             if tag_name == 'p':
-                top += 1
+                top += 0
                 left = 0
                 new_block = True
 
@@ -869,12 +869,12 @@ class Renderer:
                     self.util.output(" " * width, foregroundColor, backgroundColor)
                     top += 1
 
-        for _ in range(padding_top):
-            self.util.sid_data.startX = left
-            self.util.sid_data.startY = top
-            self.util.output(" " * width, foregroundColor, backgroundColor)
-            top += 1
-            time.sleep(self.sleeper)
+            for _ in range(padding_top):
+                self.util.sid_data.startX = left
+                self.util.sid_data.startY = top
+                self.util.output(" " * width, foregroundColor, backgroundColor)
+                top += 1
+                time.sleep(self.sleeper)
 
         for i, word in enumerate(words):
  
@@ -933,22 +933,30 @@ class Renderer:
             #if tag_name == 'a':
             #    self.emit_href(len(text), link, link_start_x, top)
             # Fill the remaining vertical space with empty spaces
-            while height != None and top < height + original_top - 1:
-                self.util.sid_data.startX = left
-                self.util.sid_data.startY = top + 1
-                print("INCREASING HEIGHT")
-                print(height)
-                print(top + 1)
-                print(original_left)
-                self.util.output("x" * width, foregroundColor, backgroundColor)
-                top += 1
-                time.sleep(self.sleeper)
+            if display == 'grid':
+                while height != None and top < height + original_top - 1:
+                    self.util.sid_data.startX = left
+                    self.util.sid_data.startY = top + 1
+                    print("INCREASING HEIGHT")
+                    print(height)
+                    print(top + 1)
+                    print(original_left)
+                    self.util.output(" " * width, foregroundColor, backgroundColor)
+                    top += 1
+                    time.sleep(self.sleeper)
                 
-            # Update top and left for the next element
-            top = original_top + height if height is not None else top + 1
-            left = original_left + width if left + width <= max_width else 0
-            if left == 0:
-                top += 1  # Move down a row if we've hit the max width
+                # Update top and left for the next element
+                top = original_top + height if height is not None else top + 1
+
+                if width != None:
+                    left = original_left + width if original_left + width <= max_width else 0
+                else:
+                    left = original_left
+            else:
+                left = self.util.sid_data.startX
+
+            if left == 0 and display == 'grid':
+                    top += 1  # Move down a row if we've hit the max width
         else:
             left = self.util.sid_data.startX
         
