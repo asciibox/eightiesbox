@@ -20,7 +20,7 @@ class MenuBarMenuEditor(MenuBar):
 
         self.clear_screen()
 
-        self.show_filenames(filenames)
+        self.show_filenames(filenames, 22)
 
         self.sid_data.setStartX(0)
         self.sid_data.setStartY(10)  # Assuming you are asking at the 10th line
@@ -37,12 +37,12 @@ class MenuBarMenuEditor(MenuBar):
         
         self.clear_screen()
         
-        self.show_filenames(filenames)
+        self.show_filenames(filenames, 22)
         
         self.sid_data.setStartX(0)
         self.sid_data.setStartY(10)  # Assuming you are asking at the 10th line
         self.output_wrap("Please enter the HTML filename to delete: ", 6, 0)
-        self.ask(12, self.delete_html_callback)  # delete_filename_callback is the function to be called once filename is entered
+        self.ask(23, self.delete_html_callback)  # delete_filename_callback is the function to be called once filename is entered
 
         pass
 
@@ -65,14 +65,14 @@ class MenuBarMenuEditor(MenuBar):
             self.output_wrap("File "+entered_filename+" deleted successfully!", 6, 0)
             self.goto_next_line()
             self.output_wrap("Please enter another HTML filename to delete: ", 6, 0)
-            self.ask(11, self.delete_html_callback)  # delete_filename_callback is the function to be called once filename is entered
+            self.ask(23, self.delete_html_callback)  # delete_filename_callback is the function to be called once filename is entered
 
         else:
             self.goto_next_line()
             self.output_wrap("HTML File not found!", 6, 0)
             self.goto_next_line()
             self.output_wrap("Please enter the HTML filename to delete: ", 6, 0)
-            self.ask(12, self.delete_html_callback)  # delete_filename_callback is the function to be called if the filename is not found
+            self.ask(23, self.delete_html_callback)  # delete_filename_callback is the function to be called if the filename is not found
 
 
         # Add ANSI-specific methods here if needed
@@ -136,15 +136,19 @@ class MenuBarMenuEditor(MenuBar):
         self.sid_data.setCurrentAction("wait_for_menubox")
         self.in_sub_menu = False
 
-    def show_filenames(self, filenames):
+    def show_filenames(self, filenames, mylen = 11):
         # Display filenames
-        display_filenames = [doc['filename'][:12] for doc in filenames]  # Limit filenames to 11 characters
-
-        for y in range(0, 7):
-            for x in range(0, 7):
-                idx = y * 7 + x
+        display_filenames = [doc['filename'][:mylen+1] for doc in filenames]  # Limit filenames to 11 characters
+        
+        max_range = 7
+        if mylen > 20:
+            max_range = 4
+        
+        for y in range(0, max_range):
+            for x in range(0, max_range):
+                idx = y * max_range + x
                 if idx < len(display_filenames):
-                    self.sid_data.setStartX(x * 13)  # Assuming each entry takes up 12 spaces
+                    self.sid_data.setStartX(x * (mylen+2) )  # Adjusted for proper spacing
                     self.sid_data.setStartY(y + 3)  # Start from the 3rd line
                     self.output(display_filenames[idx], 6, 0)
 

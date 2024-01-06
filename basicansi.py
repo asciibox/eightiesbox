@@ -1,6 +1,7 @@
 from menu2ansi import *
 from menubar_ansieditor import *
 from menubar_menutexteditor import *
+from pycode.renderer import Renderer
 import datetime
 
 class BasicANSI:
@@ -72,32 +73,78 @@ class BasicANSI:
         self.max_height = self.util.sid_data.sauceHeight # len(self.editor_values)
         print(self.max_height)
         
+        for idx in range(self.max_height):
+            if menu_values is not None and idx < len(menu_values):
+                command_value = int(menu_values[idx][0]) if menu_values[idx][0] != '' else 0
+                
+                if command_value == 4:
+                    filename = menu_values[idx][1]
+                    print("FILENAME:" + filename)
+                    filename_without_extension, _ = os.path.splitext(filename)  # Split the filename from its extension
+
+                    self.sid_data.setRenderer(Renderer(self.util, None))
+
+                    # Determine modified filenames based on screen width
+                    possible_filenames = []
+                    if self.sid_data.xWidth > 80:
+                        possible_filenames.append(filename_without_extension + '.html')
+                    if self.sid_data.xWidth > 50:
+                        possible_filenames.append(filename_without_extension + "_medium.html")
+                    possible_filenames.append(filename_without_extension + "_small.html")
+
+                    collection = self.util.mongo_client.bbs.uploads_html
+
+                    for modified_filename in possible_filenames:
+                        print("Checking file:", modified_filename)
+
+                        # Convert the filename to a regex pattern for case-insensitive matching
+                        filename_pattern = re.compile("^" + re.escape(modified_filename) + "$", re.IGNORECASE)
+
+                        # Look for the filename in the database using a case-insensitive search
+                        file_data = collection.find_one({"filename": filename_pattern, 'chosen_bbs': self.sid_data.chosen_bbs})
+
+                        if file_data is not None:
+                            print("File found:", modified_filename)
+                            print("xWidth:", self.util.sid_data.xWidth)
+
+                            # Check if xWidth is less than 50 or if the filename ends with '_small.html'
+                            if self.util.sid_data.xWidth < 50 and "_small.html" in modified_filename:
+                                print("Rendering _small.html")
+                                self.sid_data.renderer.render_page(None, modified_filename)
+                                print("Rendered page and returning")
+                                return
+                            elif self.util.sid_data.xWidth >= 50:
+                                print("Rendering other format")
+                                self.sid_data.renderer.render_page(None, modified_filename)
+                                print("Rendered page and returning")
+                                return
+
+                    print("No suitable file found or render conditions not met")
+
         if self.sid_data.xWidth < 50 and menu_values is not None:
             self.process_small_menu_values(menu_values)
+            return
 
+        # No matching file found, handle accordingly
+        if isinstance(menu_values, list):
+            self.process_values(menu_values, self.max_height, None)
+
+        elif isinstance(menu_values, dict):
+            counter = 0
+            for idx in range(self.max_height):
+                if idx in menu_values:
+                    # Only process the idx if it exists in the dictionary
+                    self.process_values([menu_values[idx]], 1, counter)
+                else:
+                    self.draw_line(idx)
+                counter += 1
 
         else:
-            if isinstance(menu_values, list):
-                self.process_values(menu_values, self.max_height, None)
-
-            elif isinstance(menu_values, dict):
-                print(menu_values)
-                counter = 0
-                for idx in range(self.max_height):
-                    if idx in menu_values:
-                        # Only process the idx if it exists in the dictionary
-                        print(menu_values[idx])
-                        print("countr:"+str(counter))
-                        self.process_values([menu_values[idx]], 1, counter)
-                    else:
-                        self.draw_line(idx)
-                    counter += 1
-
-            else:
-                pass  # Handle the case when menu_values is neither a list nor a dictionary.
+            pass  # Handle the case when menu_values is neither a list nor a dictionary.
 
 
     def process_values(self, values, num_rows, idx2):
+    
         for idx in range(num_rows):
             # Initialize variables
             security_value = 0

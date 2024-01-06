@@ -4,6 +4,7 @@ from groupchooser import GroupChooser
 import json
 import base64
 
+''' This is the menu editor '''
 class MenuBox:
     def __init__(self, util):
         self.util = util
