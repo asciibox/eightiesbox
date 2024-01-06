@@ -1147,7 +1147,7 @@ class Utils:
         print(x)
         print(y)
 
-    def emit_link(self, length, parameter, callback, callback_name, x, y):
+    def emit_link(self, length, parameter, callback, callback_name, x, y, height = 1):
         """ Emit a socket event for an href link. """
         # Validate parameters
         if not isinstance(callback_name, str):
@@ -1166,6 +1166,7 @@ class Utils:
             'x': x,
             'y': y,
             'length' : length,
+            'height' : height
         }, room=self.request_id)
 
     def get_callback(self, callback_name):

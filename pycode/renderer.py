@@ -86,7 +86,10 @@ class Renderer:
             
             try:
                 # Assuming html_content is in byte format, decode it to a string
-                html_content_str = html_content.decode('utf-8')
+                if isinstance(html_content, bytes):
+                    html_content_str = html_content.decode('utf-8')
+                else:
+                    html_content_str = html_content
 
                 # Replace placeholders with actual user data or remove them if not present
                 all_placeholders = re.findall(r'\{userdata\.\w+\}', html_content_str)
@@ -100,7 +103,12 @@ class Renderer:
                 # If you need to use the modified content as bytes later on, encode it back
                 html_content = html_content_str.encode('utf-8')
         
-            except AttributeError:
+            except AttributeError as e:
+                print("*********************************************************")
+                print("An error occured inserting document")
+                print("*********************************************************")
+                print(e)
+                self.return_function()
                 # Handle the case where html_content is not byte-like or other AttributeErrors
                 pass
 
@@ -819,7 +827,10 @@ class Renderer:
                         if inherited_link:
                             print("LINK "+child_text)
                             print(str(left)+"/"+str(top))
-                            self.emit_href(width, inherited_link, left, top, height)
+                            if len(inherited_link)>1:
+                                self.emit_href(width, inherited_link, left, top, height)
+                            else:
+                                self.util.emit_link(width, inherited_link, self.key_pressed, child.parent.get('uniqueid'), left, top, height)
                         top, left = self.output_text(display, child_text, left, top, width, height, tag_name, color, backgroundColor, tuple(padding_values), place_items, text_align, link=link, new_block=new_block)
                         
                         time.sleep(self.sleeper)
@@ -839,7 +850,10 @@ class Renderer:
                 if inherited_link:
                             print("LINK2 "+child_text)
                             print(str(left)+"/"+str(top))
-                            self.emit_href(width, inherited_link, left, top, height)
+                            if len(inherited_link)>1:
+                                self.emit_href(width, inherited_link, left, top, height)
+                            else:
+                                self.util.emit_link(width, inherited_link, self.key_pressed, element.get('uniqueid'), left, top, height)
                 top, left = self.output_text(display, child_text, left, top, width, height, parent_tag_name, color, backgroundColor, tuple(padding_values), place_items, text_align, link=link)
                 
                 time.sleep(self.sleeper)
@@ -851,7 +865,9 @@ class Renderer:
 
 
 
-
+    def key_pressed(self, char):
+        self.util.sid_data.menu.handle_key(char)
+        pass
 
 
     def has_grid_style(self, style):
@@ -981,8 +997,8 @@ class Renderer:
                 remaining_space = width - len(current_line) - horizontal_space
                 self.util.output(" " * remaining_space, foregroundColor, backgroundColor)
             
-            if tag_name == 'a':
-                self.emit_href(len(text), link, link_start_x, top)
+            #if tag_name == 'a':
+            #    self.emit_href(len(text), link, link_start_x, top)
         
         if display == 'grid':
             # Fill the remaining vertical space with empty spaces

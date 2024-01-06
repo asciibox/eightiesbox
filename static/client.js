@@ -74,8 +74,8 @@ function setupSocketEventListeners(socket) {
                 console.log(tileY + " == " + (Number(href.y) + 1));*/
                 if (tileX >= parseInt(href.x) && 
                     tileX < (parseInt(href.x) + parseInt(href.length)) && 
-                    tileY >= parseInt(href.y) && 
-                    tileY < (parseInt(href.y) + parseInt(href.height))) {
+                    tileY > parseInt(href.y) && 
+                    tileY <= (parseInt(href.y) + parseInt(href.height))) {
                     isOverHref = true;
                     break;
                 }
@@ -131,10 +131,12 @@ function setupSocketEventListeners(socket) {
 
   socket.on("clear", (data) => {
     clearScreen();
+    hrefs = []
   });
 
   socket.on("ansi_mod_editor", (data) => {
     clearScreen();
+    hrefs = []
     enableTrackerKeyboard = true;
   });
   socket.on("graphic_mod_editor", (data) => {

@@ -326,8 +326,8 @@ function create() {
       console.log(tileY + " == " + (Number(href.y) + 1));
       if (tileX >= parseInt(href.x) && 
           tileX < (parseInt(href.x) + parseInt(hrefLength)) && 
-          tileY >= parseInt(href.y) && 
-          tileY < (parseInt(href.y) + parseInt(href.height))) {
+          tileY > parseInt(href.y) && 
+          tileY <= (parseInt(href.y) + parseInt(href.height))) {
 
           if (href.callback_name) {
               socket.emit("link_callback", { callback_name: href.callback_name });
