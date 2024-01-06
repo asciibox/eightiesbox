@@ -17,7 +17,7 @@ class Renderer:
         self.active_callback = None
         self.previous_element_id = None
         self.processed_ids = set()
-        self.sleeper = 0.15
+        self.sleeper = 0
 
         self.inheritable_properties = [
             'color',
@@ -392,6 +392,19 @@ class Renderer:
         row_heights = self.calculate_individual_row_heights(total_height, fr_units, fixed_sizes)
         return row_heights
 
+    def parse_grid_template(self, grid_template):
+        # Regular expression to find repeat function
+        repeat_regex = r'repeat\((\d+),\s*([\d.]+(px|fr))\)'
+
+        # Expand repeat function
+        while re.search(repeat_regex, grid_template):
+            match = re.search(repeat_regex, grid_template)
+            count, value = int(match.group(1)), match.group(2)
+            expanded = ' '.join([value] * count)
+            grid_template = re.sub(repeat_regex, expanded, grid_template, 1)
+
+        return grid_template
+
 
     def redraw_elements(self, useHTMLValues):
 
@@ -494,20 +507,22 @@ class Renderer:
                 # Extract column styles
                 if 'grid-template-columns:' in container_style:
                     columns_style = container_style.split('grid-template-columns:')[1].split(';')[0].strip()
-                    grid_columns = columns_style.split()
+                    # Parse and expand the grid template
+                    grid_columns = self.parse_grid_template(columns_style).split()
                     total_fr_columns = sum([float(c.split('fr')[0]) for c in grid_columns if 'fr' in c])
-                    fixed_width_columns = sum([int(c.strip('px')) for c in grid_columns if 'px' in c])
+                    fixed_width_columns = sum([int(re.findall(r'\d+', c)[0]) for c in grid_columns if 'px' in c])
                     fr_width = (total_width - fixed_width_columns) / total_fr_columns if total_fr_columns else 0
-                    column_widths = [fr_width * float(c.split('fr')[0]) if 'fr' in c else int(c.strip('px')) for c in grid_columns]
+                    column_widths = [fr_width * float(c.split('fr')[0]) if 'fr' in c else int(re.findall(r'\d+', c)[0]) for c in grid_columns]
                     print(f"Debug: Column widths calculated: {column_widths}")
                 # Extract row styles
                 if 'grid-template-rows:' in container_style:
                     rows_style = container_style.split('grid-template-rows:')[1].split(';')[0].strip()
-                    grid_rows = rows_style.split()
-                    
+                    # Parse and expand the grid template
+                    grid_rows = self.parse_grid_template(rows_style).split()
+
                     # Calculate the total fraction units and fixed heights
                     total_fr_units = sum(float(r.replace('fr', '')) for r in grid_rows if 'fr' in r)
-                    fixed_height_rows = sum(int(r.replace('px', '')) for r in grid_rows if 'px' in r)
+                    fixed_height_rows = sum(int(re.findall(r'\d+', r)[0]) for r in grid_rows if 'px' in r)
                     fr_unit_height = (total_height - fixed_height_rows) / total_fr_units if total_fr_units else 0
 
                     # Generate the list of row heights
