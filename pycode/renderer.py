@@ -157,16 +157,32 @@ class Renderer:
             return len(rows.split())
         return 0  # Default value if rows are not defined
 
-    def is_nested_grid(self, container):
-        print("is_nested_grid")
-        # Find all direct child elements of the parent container that are grids
-        grid_children = [child for child in self.soup.find_all(recursive=True) if 'grid' in child.get('style', '')]
+    '''def is_nested_grid(self, container):
+            # Find all direct child elements of the parent container that are grids
+            grid_children = [child for child in self.soup.find_all(recursive=True) if 'grid' in child.get('style', '')]
 
-        # Check if the container is the second grid in the list of grid children
-        bool = container == grid_children[1]
-        print(bool)
-        return bool
+            # Check if the container is the second grid in the list of grid children
+            bool = container == grid_children[1]
+            return bool'''
     
+
+    def is_nested_grid(self, container):
+        print("IS_NESTED_GRID")
+        print(container)
+
+        # Get the parent of the current container
+        parent_container = container.parent
+        print("Parent container:")
+        print(parent_container)
+
+        # Check if the parent container exists and has a display: grid style
+        if parent_container and self.has_display_grid_style(parent_container.get('style')):
+            print("Returning True")
+            return True
+
+        print("Returning False")
+        return False
+
     def extract_fr_units_and_fixed_sizes(self, grid_style):
         fr_units = []
         fixed_sizes = []
@@ -412,7 +428,7 @@ class Renderer:
 
                 # Determine the starting row of the nested grid within the parent grid
                 # and accumulate the heights of all rows up to that point
-                accumulated_height = nested_grid_top  # Start from the top position of the nested grid container
+                # accumulated_height = nested_grid_top  # Start from the top position of the nested grid container
 
                 # Now use these row heights to calculate the nested grid's row heights
                 nested_row_heights = self.calculate_individual_row_heights(nested_height, nested_rows_fr_units, nested_rows_fixed_sizes)
@@ -420,14 +436,15 @@ class Renderer:
                 # Call the function to calculate the top position for nested items
                 self.calculate_nested_items_top(container, nested_row_heights)
                 self.calculate_left_positions(container, nested_width)
-                debug_elements = container.find_all(["div", "p", "input", "button", "submit", "a"], recursive=False)
-                nested_items = container.find_all(recursive=False)  # Get the direct children (grid items)
+                # debug_elements = container.find_all(["div", "p", "input", "button", "submit", "a"], recursive=False)
+                # nested_items = container.find_all(recursive=False)  # Get the direct children (grid items)
                 
                 # Calculate the width and height each 'fr' unit represents in the nested grid
                 # Calculate the width each 'fr' unit represents in the nested grid
                 if nested_columns_fr_units:
                     # When 'fr' units are used, they are usually equal so dividing the total width by the number of 'fr' units.
                     nested_fr_width = nested_width / sum(nested_columns_fr_units)
+                    item_width = nested_fr_width
                     items_per_row = len(nested_columns_fr_units)  # The number of 'fr' units is the number of items per row
                 else:
                     # Assuming all fixed sizes are equal, the number of items per row would be the total width divided by the width of one item.
@@ -449,7 +466,7 @@ class Renderer:
                 # total_rows = len(nested_items) // items_per_row
                 # row_heights = [nested_fr_height for _ in range(total_rows)]
                     item_width = nested_fr_width
-                    item_height = nested_fr_height
+                item_height = nested_fr_height
 
                 nested_grid_top = self.reset_nested_grid_top(container, parent_top)
                 print("nested_grip_top")
