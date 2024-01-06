@@ -14,11 +14,65 @@ class MenuBarMenuEditor(MenuBar):
     def upload_html(self):
         self.util.emit_uploadANSI('HTML')
 
-    def show_html(self):
-        pass
+    def show_htmls(self):
+        collection = self.mongo_client.bbs.uploads_html  # Replace with actual MongoDB database and collection
+        filenames = collection.find({'chosen_bbs' : self.sid_data.chosen_bbs}, {'filename': 1})  # Query MongoDB for filenames
+
+        self.clear_screen()
+
+        self.show_filenames(filenames)
+
+        self.sid_data.setStartX(0)
+        self.sid_data.setStartY(10)  # Assuming you are asking at the 10th line
+        self.util.goto_next_line()
+        self.util.wait_with_message(self.show_htmls_callback)
+
+    def show_htmls_callback(self):
+        self.sid_data.menu_box.draw_all_rows()
+        self.sid_data.setCurrentAction("wait_for_menubox")     
 
     def delete_html(self):
+        collection = self.mongo_client.bbs.uploads_html  # Replace with the actual MongoDB database and collection
+        filenames = collection.find({'chosen_bbs' : self.sid_data.chosen_bbs}, {'filename': 1})  # Query MongoDB for filenames
+        
+        self.clear_screen()
+        
+        self.show_filenames(filenames)
+        
+        self.sid_data.setStartX(0)
+        self.sid_data.setStartY(10)  # Assuming you are asking at the 10th line
+        self.output_wrap("Please enter the HTML filename to delete: ", 6, 0)
+        self.ask(12, self.delete_html_callback)  # delete_filename_callback is the function to be called once filename is entered
+
         pass
+
+    def delete_html_callback(self, entered_filename):
+        if entered_filename=='':
+            self.sid_data.menu_box.draw_all_rows()
+            self.sid_data.setCurrentAction("wait_for_menubox")
+            self.in_sub_menu = False
+            return
+        collection = self.mongo_client.bbs.uploads_html  # Replace with the actual MongoDB database and collection
+
+        # Look for the filename in the database
+        file_data = collection.find_one({"filename": entered_filename, 'chosen_bbs' : self.sid_data.chosen_bbs})
+
+        if file_data:
+            # Delete the file from the database
+            collection.delete_one({"filename": entered_filename, 'chosen_bbs': self.sid_data.chosen_bbs})
+            self.goto_next_line()
+            self.output_wrap("File "+entered_filename+" deleted successfully!", 6, 0)
+            self.goto_next_line()
+            self.output_wrap("Please enter another HTML filename to delete: ", 6, 0)
+            self.ask(11, self.delete_html_callback)  # delete_filename_callback is the function to be called once filename is entered
+
+        else:
+            self.goto_next_line()
+            self.output_wrap("HTML File not found!", 6, 0)
+            self.goto_next_line()
+            self.output_wrap("Please enter the HTML filename to delete: ", 6, 0)
+            self.ask(12, self.delete_html_callback)  # delete_filename_callback is the function to be called if the filename is not found
+
 
         # Add ANSI-specific methods here if needed
     def choose_field(self):
@@ -37,7 +91,7 @@ class MenuBarMenuEditor(MenuBar):
                 self.upload_html()
             elif selected_option=="Show HTMLs":
                 self.show_htmls()
-            elif selected_option=="Delete HTMLs":
+            elif selected_option=="Delete HTML":
                 self.delete_html()
             elif selected_option=="Delete menu":
                 self.delete_menu()
