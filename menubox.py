@@ -181,7 +181,7 @@ class MenuBox:
             self.draw_row(self.current_row_index)  # Redraw the new line
         else:
             sub_menus = {
-            'File': ['Load menu', 'Save menu', 'New menu', 'Delete menu'],
+            'File': ['Load menu', 'Save menu', 'New menu', 'Delete menu', 'Upload HTML', 'Show HTMLs', 'Delete HTML'],
             'Edit': ['Edit text', 'Simulate text', 'Clear text', 'View text', 'Leave menu bar'],
             }
             self.util.sid_data.setMenuBar(MenuBarMenuEditor(sub_menus, self.util))

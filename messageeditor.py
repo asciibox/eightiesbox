@@ -8,7 +8,7 @@ class MessageEditor(ANSIEditor):
         self.callback_on_exit = callback_on_exit
         self.current_page = 0
         self.setup_interface()
-        self.max_height = self.sid_data.yHeight-1
+        self.max_height = self.sid_data.yHeight
 
         self.input_values_page = [[]]
         self.color_array_page = [[]]

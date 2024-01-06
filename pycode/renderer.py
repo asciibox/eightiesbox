@@ -299,7 +299,7 @@ class Renderer:
 
         # Extract row heights from the parent grid
         parent_row_fr_units, parent_row_fixed_sizes = self.extract_row_fr_units_and_fixed_sizes(parent_grid.get('style', ''))
-        parent_row_heights = self.calculate_individual_row_heights(self.util.sid_data.yHeight, parent_row_fr_units, parent_row_fixed_sizes)
+        parent_row_heights = self.calculate_individual_row_heights(self.util.sid_data.yHeight-1, parent_row_fr_units, parent_row_fixed_sizes)
 
         # Get the grid row of the current container
         grid_row = int(container.get('data-grid-row', 1)) - 1  # Default to 1 if not specified, adjust for 0-based indexing
@@ -478,10 +478,6 @@ class Renderer:
                 print(nested_grid_top)
                 for index, item in enumerate(container.find_all(recursive=False)):
                     column_index = index % items_per_row
-                    print("index")
-                    print(index)
-                    print("items_per_row")
-                    print(items_per_row)
                     row_index = index // items_per_row
 
                     # Calculate the left and top positions
@@ -569,7 +565,7 @@ class Renderer:
 
                 print(f"Container {container.get('uniqueid')}: Checking for nested grids...")
                 #nested_grids = element.find_all(["div"], style=self.has_grid_style, recursive=True)
-                print("***************GRIDCONTAINER1***********************************")
+                
                 #print(nested_grids)
                 #for nested_grid in nested_grids:
                 #    unique_id = nested_grid.get('uniqueid')
@@ -589,8 +585,8 @@ class Renderer:
         
         for container in grid_containers:
             top_position =  self.calculate_top_position(container, 0)
-            print("process_grid_container 1 with "+str(self.util.sid_data.yHeight))
-            process_grid_container(container, self.util.sid_data.xWidth, self.util.sid_data.yHeight, top_position)
+            print("process_grid_container 1 with "+str(self.util.sid_data.yHeight-1))
+            process_grid_container(container, self.util.sid_data.xWidth, self.util.sid_data.yHeight-1, top_position)
 
         elements = self.soup.find_all(["div", "p", "input", "button", "submit", "a"])  # Add more tags as needed
         print("**")
@@ -757,7 +753,7 @@ class Renderer:
             # Recursively process child elements (depth-first)
             tag_name = element.name
             if tag_name == 'p':
-                top += 2
+                top += 1
                 left = 0
                 new_block = True
 

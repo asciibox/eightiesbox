@@ -124,7 +124,7 @@ def onload(data):
     x = data.get('x')
     sid_data[request.sid].setXWidth(x)
     y = data.get('y')
-    sid_data[request.sid].setYHeight(y-1)
+    sid_data[request.sid].setYHeight(y)
     sid_data[request.sid].util.choose_bbs(data)
     return
 
@@ -148,6 +148,7 @@ def disconnect():
 
 db = mongo_client["bbs"]  # You can replace "mydatabase" with the name of your database
 uploads_collection = db["uploads_ansi"]
+uploads_collection_html = db["uploads_html"]
 
 ALLOWED_EXTENSIONS = {'ans'}
 
@@ -159,36 +160,48 @@ def allowed_file(filename):
 @app.route('/upload', methods=['POST'])
 def upload_file():
     global sid_data
-    
-    data = request.json
-    base64_string = data.get('file_data')
-    filename = data.get('filename')  # Retrieve the filename here
-    chosen_bbs = data.get('chosen_bbs')
 
-    if not base64_string or not filename or not chosen_bbs:
-        return jsonify({"error": "Missing file data or filename or no chosen_bbs"}), 400
+    # Check if a file is part of the request
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
 
-    # Decode the Base64 string
+    file = request.files['file']
+    chosen_bbs = request.form.get('chosen_bbs')
+    upload_file_type = request.form.get('upload_file_type')
+
+    # If the user does not select a file, the browser submits an
+    # empty file without a filename.
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
     
-    # Check file size
-    if len(base64_string) > MAX_FILE_SIZE:
-        return jsonify({"error": "File size exceeds 100KB"}), 400
-    
+    # Secure the filename
+    filename = secure_filename(file.filename)
+
+    # Check file size here if necessary
+    # ...
+
+    # Generate a unique filename if needed
     filename = generate_unique_filename(filename, chosen_bbs)
 
-    # Save file data and filename to MongoDB
+    # Read and base64 encode the file content
+    file_content = file.read()
+    base64_encoded_data = base64.b64encode(file_content).decode('utf-8')
+
+    # Prepare data for MongoDB
     new_file = {
         "filename": filename,
-        "file_data": base64_string,
-        "chosen_bbs" : chosen_bbs
+        "file_data": base64_encoded_data,
+        "chosen_bbs": chosen_bbs,
+        'upload_file_type': upload_file_type
     }
 
-    #with open('output_app.ans', "w", encoding='cp1252') as ansi_file:
-    #
-    #     ansi_file.write(file_data)
+    # Save metadata to MongoDB
+    if upload_file_type == "HTML":
+        uploads_collection_html.insert_one(new_file)
+    else:
+        uploads_collection.insert_one(new_file)
 
-    uploads_collection.insert_one(new_file)
-    return jsonify({"success": f"File {filename} uploaded successfully"}), 200
+    return jsonify({"success": f"File {filename} ({upload_file_type}) uploaded successfully"}), 200
 
 def generate_unique_filename(filename, chosen_bbs):
     global sid_data
@@ -399,7 +412,7 @@ def handle_keypress(data):
 
         elif key == 'Escape':
             sub_menus = {
-                'File': ['Load menu', 'Save menu', 'New menu', 'Delete menu'],
+                'File': ['Load menu', 'Save menu', 'New menu', 'Delete menu', 'Upload HTML', 'Show HTMLs', 'Delete HTML'],
                 'Edit': ['Edit text', 'Simulate text', 'Clear text', 'View text', 'Leave menu bar'],
             }
             

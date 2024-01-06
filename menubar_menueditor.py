@@ -11,7 +11,14 @@ class MenuBarMenuEditor(MenuBar):
         util.sid_data.setCurrentAction("wait_for_menubar_menueditor")
         self.current_filename = ""
         
-        
+    def upload_html(self):
+        self.util.emit_uploadANSI('HTML')
+
+    def show_html(self):
+        pass
+
+    def delete_html(self):
+        pass
 
         # Add ANSI-specific methods here if needed
     def choose_field(self):
@@ -26,6 +33,12 @@ class MenuBarMenuEditor(MenuBar):
                 self.save_menu()
             elif selected_option=="New menu":
                 self.new_menu()
+            elif selected_option=="Upload HTML":
+                self.upload_html()
+            elif selected_option=="Show HTMLs":
+                self.show_htmls()
+            elif selected_option=="Delete HTMLs":
+                self.delete_html()
             elif selected_option=="Delete menu":
                 self.delete_menu()
             elif selected_option=="Edit text":

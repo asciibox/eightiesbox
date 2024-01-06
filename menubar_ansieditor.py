@@ -39,8 +39,8 @@ class MenuBarANSIEditor(MenuBar):
                 self.save_ansi()
             elif selected_option=="Delete ANSI":
                 self.delete_ansi()
-            elif selected_option=="Upload ANSI":
-                self.upload_ansi()
+            elif selected_option=="Upload HTML":
+                self.upload_html()
             elif selected_option=="Import uploaded ANSI":
                 self.import_ansi()
             elif selected_option=="Delete uploaded ANSI":
@@ -74,7 +74,7 @@ class MenuBarANSIEditor(MenuBar):
         self.sid_data.setCurrentAction("wait_for_ansieditor")
 
     def upload_ansi(self):
-        self.emit_uploadANSI()
+        self.emit_uploadANSI('ANS')
 
     def load_ansi(self):
         collection = self.mongo_client.bbs.ansifiles  # Replace with actual MongoDB database and collection

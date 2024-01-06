@@ -619,9 +619,9 @@ class Utils:
         sid = self.request_id  # Get the Session ID
         self.socketio.emit('toggle_keyboard', {}, room=sid)
 
-    def emit_uploadANSI(self):
+    def emit_uploadANSI(self, upload_file_type):
         sid = self.request_id  # Get the Session ID
-        self.socketio.emit('uploadANSI', {}, room=sid)
+        self.socketio.emit('uploadANSI', { 'upload_file_type': upload_file_type}, room=sid)
 
     def emit_uploadFile(self):
         sid = self.request_id  # Get the Session ID

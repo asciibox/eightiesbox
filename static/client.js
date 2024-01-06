@@ -1,6 +1,7 @@
 var persistentID = "";
 var chosen_bbs = 0;
 const protocol = window.location.protocol;
+var uploadFileType = 'ANS';
 var hrefs = [];  // Global array to store hrefs
 
 var socket = io.connect(
@@ -172,6 +173,13 @@ function setupSocketEventListeners(socket) {
     // Display the fileUploadDiv
     const uploadDiv = document.getElementById("ANSIUploadDiv");
     uploadDiv.style.display = "inline";
+    uploadFileType = data.upload_file_type;
+        console.error(uploadFileType);
+        if (uploadFileType=='HTML') {
+          document.getElementById('toggleButtonANSI').innerHTML='Close HTML Upload';
+        } else {
+          document.getElementById('toggleButtonANSI').innerHTML='Close ANSI Upload';
+        }
   });
 
   function removeButtons() {

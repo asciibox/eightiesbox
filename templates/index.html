@@ -599,7 +599,7 @@
     </div>
     <div id="ANSIUploadDiv" style="display: none">
       <button id="toggleButtonANSI">Close ANSI Upload</button>
-      <div id="uploadStatusANSI"></div>
+      <div id="uploadStatusANSI" style="color:grey"></div>
       <form
         action="/upload"
         class="dropzone"
@@ -843,60 +843,50 @@
       }
 
       Dropzone.options.uploadFormANSI = {
-        maxFilesize: 1, // MB
-        autoProcessQueue: true, // TODO: Check
-        init: function () {
-          this.on("addedfile", function (file) {
-            // Create a FileReader object
-            var reader = new FileReader();
+          maxFilesize: 1, // MB
+          autoProcessQueue: false,
+          url: "/upload", // Ensure this is the correct URL for your server endpoint
+          init: function() {
+              this.on("addedfile", function(file) {
+                  // Create a FormData object
+                  var formData = new FormData();
 
-            // You can access the filename here
-            var filename = file.name;
+                  // Append the file to the FormData object
+                  formData.append("file", file);
+                  formData.append("filename", file.name); // Append the filename
+                  formData.append("chosen_bbs", chosen_bbs); // Replace with actual value
+                  formData.append("upload_file_type", uploadFileType); // Replace with actual value
 
-            // Read the file as Data URL (Base64)
-            reader.readAsDataURL(file);
+                  var xhr = new XMLHttpRequest();
+                  xhr.open("POST", this.options.url, true);
+                  // Note: No need to set Content-Type for FormData, browser sets it automatically
 
-            // Event handler when the reading is complete
-            reader.onload = function (event) {
-              // Get the Base64 string, remove the Data URL prefix
-              var base64String = event.target.result.split(",")[1];
+                  xhr.onreadystatechange = function() {
+                      if (xhr.readyState == 4) {
+                          if (xhr.status == 200) {
+                              document.getElementById("uploadStatusANSI").innerHTML += `<div>File ${file.name} uploaded successfully</div>`;
+                          } else {
+                              document.getElementById("uploadStatusANSI").innerHTML += `<div>Error uploading file ${file.name}: ${xhr.statusText}</div>`;
+                          }
+                      }
+                  };
 
-              var xhr = new XMLHttpRequest();
-              xhr.open("POST", "/upload", true);
-              xhr.setRequestHeader("Content-Type", "application/json");
+                  // Send the FormData object
+                  xhr.send(formData);
+              });
 
-              xhr.onreadystatechange = function () {
-                if (xhr.readyState == 4 && xhr.status == 200) {
-                  document.getElementById(
-                    "uploadStatusANSI"
-                  ).innerHTML += `<div>File ${filename} uploaded successfully</div>`;
-                }
-              };
+              this.on("success", function(file, response) {
+                  // Success handler (might be redundant if handled in the onreadystatechange)
+                  document.getElementById("uploadStatusANSI").innerHTML += `<div>File ${file.name} uploaded successfully</div>`;
+              });
 
-              // Include the filename in the JSON payload
-              xhr.send(
-                JSON.stringify({
-                  file_data: base64String,
-                  chosen_bbs: chosen_bbs,
-                  filename: filename, // Add filename here
-                })
-              );
-            };
-          });
-
-          this.on("success", function (file, response) {
-            document.getElementById(
-              "uploadStatusANSI"
-            ).innerHTML += `<div>File ${file.name} uploaded successfully</div>`;
-          });
-
-          this.on("error", function (file, response) {
-            document.getElementById(
-              "uploadStatusANSI"
-            ).innerHTML += `<div>Failed to upload ${file.name}</div>`;
-          });
-        },
+              this.on("error", function(file, response) {
+                  // Error handler
+                  document.getElementById("uploadStatusANSI").innerHTML += `<div>Failed to upload ${file.name}</div>`;
+              });
+          },
       };
+
 
       socket.on("uploadFile", (data) => {
         const canvasElements = document.getElementsByTagName("canvas");
