@@ -359,7 +359,7 @@ class Utils:
             print("Failed to insert upload token.")
 
         groups_collection = db['groups']
-        if groups_collection.count_documents({}) == 0:
+        if groups_collection.count_documents({'chosen_bbs': str(self.sid_data.chosen_bbs)}) == 0:
             default_groups = ["Guest", "New user", "Full user", "File admin", "Message admin", "Sysop"]
             for group_name in default_groups:
                 groups_collection.insert_one({"name": group_name, 'chosen_bbs': self.sid_data.chosen_bbs})

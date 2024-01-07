@@ -45,7 +45,7 @@
             "Data": "ADMIN.MNU",
             "Key": "A",
             "Sec": "",
-            "Groups": "",
+            "Groups": "Sysop",
             "HideOnSec": ""
         },
         {
