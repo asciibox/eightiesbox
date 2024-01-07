@@ -19,7 +19,7 @@ class Renderer:
         self.active_callback = None
         self.previous_element_id = None
         self.processed_ids = set()
-        self.sleeper = 0
+        self.sleeper = 0.1
         self.is_current_line_empty=True
 
         self.inheritable_properties = [
@@ -681,6 +681,7 @@ class Renderer:
         return None
     
     def render_element(self, element, left, top, default_width, default_height, new_block=True, last_char=' '):
+        print(element)
         if isinstance(element, bs4.element.Tag):
             unique_id = element.get('uniqueid')
             if unique_id in self.processed_ids:
@@ -729,7 +730,7 @@ class Renderer:
                 # For other elements, extract and handle display property as before
                 extracted_display = self.extract_style_value(style, 'display', None)
                 display = extracted_display if extracted_display else self.get_default_display(tag_name)
-
+            print(display)
             
 
             if display == 'grid':
@@ -910,15 +911,16 @@ class Renderer:
                 
                 if display  == "grid":                    
                     self.util.sid_data.startX = original_left
-                elif display != 'inline':
+                else:
                     self.util.sid_data.startX = left
-                    self.util.sid_data.startY = top
+                
+                self.util.sid_data.startY = top
 
                 horizontal_space = self.get_horizontal_space( current_line, display, maximum, text_align)
                 self.util.output(" " * (padding_left + horizontal_space)  + current_line, foregroundColor, backgroundColor)
                 new_block = False
             
-                print("is_current_line_empty set to false")
+
                 time.sleep(self.sleeper)
                 remaining_space = width - len(current_line) - horizontal_space if width is not None else self.util.sid_data.xWidth - len(current_line) - horizontal_space
                 # Output spaces until the specified width is reached
