@@ -73,8 +73,11 @@ class Renderer:
         if filename == None:
             db = self.util.mongo_client['bbs']
             upload_html_collection = db['uploads_html']
-            html_data = upload_html_collection.find_one({"filename": db_filename})
+            html_data = upload_html_collection.find_one({"filename": db_filename, 'chosen_bbs' : self.util.sid_data.chosen_bbs })
             html_content = base64.b64decode(html_data['file_data']);
+            print("***************")
+            print(html_content)
+            print("****************")
         else:
             with open(filename, "r") as file:
                 html_content = file.read()

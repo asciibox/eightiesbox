@@ -11,6 +11,7 @@ from stransi.cursor import CursorMove, SaveCursor, RestoreCursor
 from ochre import ansi256  # Assuming this is where the colors list is defined
 from sauce import Sauce
 import bcrypt
+import base64
 import os
 from menu import *
 import asyncio
@@ -364,6 +365,50 @@ class Utils:
             for group_name in default_groups:
                 groups_collection.insert_one({"name": group_name, 'chosen_bbs': self.sid_data.chosen_bbs})
 
+        self.store_html_file('admin_medium.html', db)
+        self.store_html_file('filebase_medium.html', db)
+        self.store_html_file('mbase_medium.html', db)
+        self.store_html_file('multi_medium.html', db)
+        self.store_html_file('test_menu_medium.html', db)
+
+    def store_html_file(self, filename, db):
+        html_dir = 'html/'  # Replace with the actual path
+        file_path = os.path.join(html_dir, filename)
+
+        try:
+            # Read the file contents
+            with open(file_path, 'rb') as file:
+                file_contents = file.read()
+            print(file_contents)
+            # Encode the contents to base64
+            encoded_contents = base64.b64encode(file_contents).decode('utf-8')
+
+            # Prepare the document
+            document = {
+                'filename': filename,
+                'chosen_bbs': self.sid_data.chosen_bbs,
+                'file_data': encoded_contents,
+                'uploaded_file_type': 'HTML'  # As it's always HTML
+            }
+
+            # Check if the file already exists in the database
+            uploads_html_collection = db['uploads_html']
+            existing_file = uploads_html_collection.find_one({'filename': filename, 'chosen_bbs': self.sid_data.chosen_bbs})
+
+            if existing_file is None:
+                # Insert the document into the uploads_html collection
+                result = uploads_html_collection.insert_one(document)
+
+                # Check the result
+                if result.acknowledged:
+                    print("File data inserted successfully. Document ID:", result.inserted_id)
+                else:
+                    print("Failed to insert file data.")
+            else:
+                print("File already exists in the database.")
+        except IOError:
+            print("Error: File not found or unable to read html file.")
+
 
     def usernameCallback(self, input):
         input = input.strip().lower()
@@ -562,6 +607,7 @@ class Utils:
             
         if file_data:
             self.sid_data.setMenu(Menu(self, [["" for _ in ['Type', 'Data', 'Key', 'Sec', 'Groups', 'HideOnSec']] for _ in range(50)], 50, None))
+            print("LOADING MAIN.MNU")
             self.sid_data.menu.load_menu('MAIN.MNU')
         else:
             self.goto_next_line()

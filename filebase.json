@@ -1,0 +1,61 @@
+{
+    "table": [
+        {
+            "Type": "21",
+            "Data": "",
+            "Key": "D",
+            "Sec": "",
+            "Groups": "",
+            "HideOnSec": ""
+        },
+        {
+            "Type": "22",
+            "Data": "",
+            "Key": "U",
+            "Sec": "",
+            "Groups": "",
+            "HideOnSec": ""
+        },
+        {
+            "Type": "23",
+            "Data": "",
+            "Key": "L",
+            "Sec": "",
+            "Groups": "",
+            "HideOnSec": ""
+        },
+        {
+            "Type": "24",
+            "Data": "",
+            "Key": "A",
+            "Sec": "",
+            "Groups": "",
+            "HideOnSec": ""
+        },
+        {
+            "Type": "01",
+            "Data": "MAIN.MNU",
+            "Key": "-",
+            "Sec": "",
+            "Groups": "",
+            "HideOnSec": ""
+        },
+        {
+            "Type": "25",
+            "Data": "",
+            "Key": "C",
+            "Sec": "",
+            "Groups": "",
+            "HideOnSec": ""
+        },
+        {
+            "Type": "04",
+            "Data": "filebase",
+            "Key": "",
+            "Sec": "",
+            "Groups": "",
+            "HideOnSec": ""
+        }
+    ],
+    "ansi_data": ""
+}

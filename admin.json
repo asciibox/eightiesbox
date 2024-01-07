@@ -1,0 +1,61 @@
+{
+    "table": [
+        {
+            "Type": "93",
+            "Data": "",
+            "Key": "U",
+            "Sec": "",
+            "Groups": "",
+            "HideOnSec": ""
+        },
+        {
+            "Type": "94",
+            "Data": "",
+            "Key": "A",
+            "Sec": "",
+            "Groups": "",
+            "HideOnSec": ""
+        },
+        {
+            "Type": "95",
+            "Data": "",
+            "Key": "E",
+            "Sec": "",
+            "Groups": "",
+            "HideOnSec": ""
+        },
+        {
+            "Type": "92",
+            "Data": "",
+            "Key": "F",
+            "Sec": "",
+            "Groups": "",
+            "HideOnSec": ""
+        },
+        {
+            "Type": "91",
+            "Data": "",
+            "Key": "M",
+            "Sec": "",
+            "Groups": "",
+            "HideOnSec": ""
+        },
+        {
+            "Type": "01",
+            "Data": "MAIN.MNU",
+            "Key": "-",
+            "Sec": "",
+            "Groups": "",
+            "HideOnSec": ""
+        },
+        {
+            "Type": "04",
+            "Data": "admin",
+            "Key": "",
+            "Sec": "",
+            "Groups": "",
+            "HideOnSec": ""
+        }
+    ],
+    "ansi_data": ""
+}
