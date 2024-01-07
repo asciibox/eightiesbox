@@ -755,11 +755,10 @@ class Renderer:
             # Recursively process child elements (depth-first)
             tag_name = element.name
             if tag_name == 'p':
-                top += 0
+                top += 1
                 left = 0
                 new_block = True
 
-            link = element.get('href')
             for child in element.children:
                 if isinstance(child, bs4.element.Tag):
                     # If the child is a Tag, recursively call render_element
@@ -773,11 +772,12 @@ class Renderer:
                         inherited_link = self.gather_inherited_tags(child)
                         if inherited_link:
                             if len(inherited_link)>1:
-                                self.emit_href(width, inherited_link, left, top, height)
+                                print("LINK:"+str(width)+"/"+inherited_link+"left:"+str(left)+"top:"+str(top)+"height:"+str(height))
+                                self.emit_href(child_text, width, inherited_link, left, top, height)
                             else:
                                 self.util.emit_link(width, inherited_link, self.key_pressed, child.parent.get('uniqueid'), left, top, height)
                        
-                        top, left = self.output_text(display, child_text, left, top, width, height, tag_name, color, backgroundColor, tuple(padding_values), place_items, text_align, link=link, new_block=new_block)
+                        top, left = self.output_text(display, child_text, left, top, width, height, tag_name, color, backgroundColor, tuple(padding_values), place_items, text_align, new_block=new_block)
                         
                         time.sleep(self.sleeper)
                         # After text, it's no longer the start of a new block
@@ -795,11 +795,11 @@ class Renderer:
                 inherited_link = self.gather_inherited_tags(element)
                 if inherited_link:
                             if len(inherited_link)>1:
-                                self.emit_href(width, inherited_link, left, top, height)
+                                self.emit_href(child_text, width, inherited_link, left, top, height)
                             else:
                                 self.util.emit_link(width, inherited_link, self.key_pressed, element.get('uniqueid'), left, top, height)
                 
-                top, left = self.output_text(display, child_text, left, top, width, height, parent_tag_name, color, backgroundColor, tuple(padding_values), place_items, text_align, link=link)
+                top, left = self.output_text(display, child_text, left, top, width, height, parent_tag_name, color, backgroundColor, tuple(padding_values), place_items, text_align)
                 
                 time.sleep(self.sleeper)
                 
@@ -829,7 +829,7 @@ class Renderer:
                 horizontal_space = (maximum - line_length) // 2
         return horizontal_space
 
-    def output_text(self, display, element, left, top, width, height, tag_name, foregroundColor, backgroundColor, padding, place_items, text_align, new_block=False, link=""):
+    def output_text(self, display, element, left, top, width, height, tag_name, foregroundColor, backgroundColor, padding, place_items, text_align, new_block=False):
     
         original_top = top  # Save the original top position
         original_left = left  # Save the original top position
@@ -966,7 +966,12 @@ class Renderer:
         return top, left
 
 
-    def emit_href(self, length, link, x, y, height):
+    def emit_href(self, child_text, length, link, x, y, height):
+        if length == None:
+            length = len(child_text)+1
+        if height==None:
+            height = 1
+        
         """ Emit a socket event for an href link. """
         self.util.socketio.emit('a', {
             'href': link,
