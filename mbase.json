@@ -1,0 +1,45 @@
+{
+    "table": [
+        {
+            "Type": "13",
+            "Data": "",
+            "Key": "A",
+            "Sec": "",
+            "Groups": "",
+            "HideOnSec": ""
+        },
+        {
+            "Type": "11",
+            "Data": "",
+            "Key": "R",
+            "Sec": "",
+            "Groups": "",
+            "HideOnSec": ""
+        },
+        {
+            "Type": "12",
+            "Data": "",
+            "Key": "W",
+            "Sec": "",
+            "Groups": "",
+            "HideOnSec": "y"
+        },
+        {
+            "Type": "04",
+            "Data": "mbase",
+            "Key": "",
+            "Sec": "",
+            "Groups": "",
+            "HideOnSec": ""
+        },
+        {
+            "Type": "01",
+            "Data": "MAIN.MNU",
+            "Key": "-",
+            "Sec": "",
+            "Groups": "",
+            "HideOnSec": ""
+        }
+    ],
+    "ansi_data": ""
+}

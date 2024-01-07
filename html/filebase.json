@@ -1,56 +1,56 @@
 {
     "table": [
         {
-            "Type": "01",
-            "Data": "MBASE.MNU",
-            "Key": "F",
+            "Type": "21",
+            "Data": "",
+            "Key": "D",
             "Sec": "",
             "Groups": "",
             "HideOnSec": ""
         },
         {
-            "Type": "01",
-            "Data": "FILEBASE.MNU",
-            "Key": "M",
-            "Sec": "",
-            "Groups": "",
-            "HideOnSec": ""
-        },
-        {
-            "Type": "01",
-            "Data": "MULTI.MNU",
+            "Type": "22",
+            "Data": "",
             "Key": "U",
             "Sec": "",
             "Groups": "",
             "HideOnSec": ""
         },
         {
-            "Type": "31",
+            "Type": "23",
             "Data": "",
-            "Key": "P",
+            "Key": "L",
             "Sec": "",
             "Groups": "",
             "HideOnSec": ""
         },
         {
-            "Type": "82",
+            "Type": "24",
             "Data": "",
-            "Key": "O",
-            "Sec": "",
-            "Groups": "",
-            "HideOnSec": ""
-        },
-        {
-            "Type": "01",
-            "Data": "ADMIN.MNU",
             "Key": "A",
             "Sec": "",
             "Groups": "",
             "HideOnSec": ""
         },
         {
+            "Type": "01",
+            "Data": "MAIN.MNU",
+            "Key": "-",
+            "Sec": "",
+            "Groups": "",
+            "HideOnSec": ""
+        },
+        {
+            "Type": "25",
+            "Data": "",
+            "Key": "C",
+            "Sec": "",
+            "Groups": "",
+            "HideOnSec": ""
+        },
+        {
             "Type": "04",
-            "Data": "test_menu",
+            "Data": "filebase",
             "Key": "",
             "Sec": "",
             "Groups": "",

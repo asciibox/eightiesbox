@@ -1,56 +1,40 @@
 {
     "table": [
         {
-            "Type": "01",
-            "Data": "MBASE.MNU",
-            "Key": "F",
-            "Sec": "",
-            "Groups": "",
-            "HideOnSec": ""
-        },
-        {
-            "Type": "01",
-            "Data": "FILEBASE.MNU",
-            "Key": "M",
-            "Sec": "",
-            "Groups": "",
-            "HideOnSec": ""
-        },
-        {
-            "Type": "01",
-            "Data": "MULTI.MNU",
+            "Type": "51",
+            "Data": "",
             "Key": "U",
             "Sec": "",
             "Groups": "",
             "HideOnSec": ""
         },
         {
-            "Type": "31",
+            "Type": "56",
             "Data": "",
-            "Key": "P",
+            "Key": "W",
             "Sec": "",
             "Groups": "",
             "HideOnSec": ""
         },
         {
-            "Type": "82",
+            "Type": "52",
             "Data": "",
-            "Key": "O",
+            "Key": "C",
             "Sec": "",
             "Groups": "",
             "HideOnSec": ""
         },
         {
             "Type": "01",
-            "Data": "ADMIN.MNU",
-            "Key": "A",
+            "Data": "MAIN.MNU",
+            "Key": "-",
             "Sec": "",
             "Groups": "",
             "HideOnSec": ""
         },
         {
             "Type": "04",
-            "Data": "test_menu",
+            "Data": "multi",
             "Key": "",
             "Sec": "",
             "Groups": "",

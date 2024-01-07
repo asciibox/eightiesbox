@@ -19,7 +19,7 @@ class Renderer:
         self.active_callback = None
         self.previous_element_id = None
         self.processed_ids = set()
-        self.sleeper = 0.05
+        self.sleeper = 0
 
         self.inheritable_properties = [
             'color',

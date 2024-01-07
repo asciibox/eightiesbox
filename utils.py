@@ -450,8 +450,10 @@ class Utils:
 
     def launchMenuCallback(self):
         self.create_main_menu("MAIN")
-        self.create_main_menu("FILEADMI")
+        self.create_main_menu("ADMIN")
+        self.create_main_menu("MBASE")
         self.create_main_menu("FILEBASE")
+        self.create_main_menu("MULTI")
         
         self.check_for_new_messsages()
 
