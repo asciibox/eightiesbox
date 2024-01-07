@@ -20,6 +20,7 @@ class Renderer:
         self.previous_element_id = None
         self.processed_ids = set()
         self.sleeper = 0
+        self.is_current_line_empty=True
 
         self.inheritable_properties = [
             'color',
@@ -581,6 +582,7 @@ class Renderer:
             print("process_grid_container 1 with "+str(self.util.sid_data.yHeight-1))
             process_grid_container(container, self.util.sid_data.xWidth, self.util.sid_data.yHeight-1, top_position)
 
+        new_block = True
         last_char = ' '
         elements = self.soup.find_all(["div", "span", "p", "input", "button", "submit", "a"])  # Add more tags as needed
         for element in elements:
@@ -686,9 +688,12 @@ class Renderer:
 
             tag_name = element.name
             if tag_name == 'span':
-                new_block = False  # Span is an inline element
+                print("new_block = self.is_current_line_empty")
+                print("new_block = ")
+                print(self.is_current_line_empty)
             elif tag_name in ['div', 'p']:
-                new_block = True   # Div and P start new blocks
+                new_block = True
+                pass
 
             style = element.get('style', '')
 
@@ -769,7 +774,6 @@ class Renderer:
             if tag_name == 'p':
                 top += 1
                 left = 0
-                new_block = True
 
             for child in element.children:
                 if isinstance(child, bs4.element.Tag):
@@ -788,7 +792,7 @@ class Renderer:
                             else:
                                 self.util.emit_link(width, inherited_link, self.key_pressed, child.parent.get('uniqueid'), left, top, height)
                        
-                        top, left, last_char = self.output_text(display, child_text, left, top, width, height, tag_name, color, backgroundColor, tuple(padding_values), place_items, text_align, new_block=new_block, last_char=last_char)
+                        top, left, last_char, new_block = self.output_text(display, child_text, left, top, width, height, tag_name, color, backgroundColor, tuple(padding_values), place_items, text_align, new_block=new_block, last_char=last_char)
                         
                         time.sleep(self.sleeper)
                         # After text, it's no longer the start of a new block
@@ -809,7 +813,7 @@ class Renderer:
                             else:
                                 self.util.emit_link(width, inherited_link, self.key_pressed, element.get('uniqueid'), left, top, height)
                 
-                top, left, last_char = self.output_text(display, child_text, left, top, width, height, parent_tag_name, color, backgroundColor, tuple(padding_values), place_items, text_align, last_char=last_char)
+                top, left, last_char, new_block = self.output_text(display, child_text, left, top, width, height, parent_tag_name, color, backgroundColor, tuple(padding_values), place_items, text_align, last_char=last_char, new_block=new_block)
                 
                 time.sleep(self.sleeper)
                 
@@ -853,7 +857,7 @@ class Renderer:
          # Determine if a space is needed at the start of this element
         first_word_is_punctuation = words[0] in [",", ".", ":", ";", "!", "?"] if words else False
 
-        need_space = last_char and last_char != ' ' and not first_word_is_punctuation # and not new_block
+        need_space = True # last_char and last_char != ' ' # and not first_word_is_punctuation # and not new_block
 
         text = text + " " if need_space else text
         current_line = ""
@@ -912,11 +916,13 @@ class Renderer:
 
                 horizontal_space = self.get_horizontal_space( current_line, display, maximum, text_align)
                 self.util.output(" " * (padding_left + horizontal_space)  + current_line, foregroundColor, backgroundColor)
+                new_block = False
+            
+                print("is_current_line_empty set to false")
                 time.sleep(self.sleeper)
                 remaining_space = width - len(current_line) - horizontal_space if width is not None else self.util.sid_data.xWidth - len(current_line) - horizontal_space
                 # Output spaces until the specified width is reached
                 self.util.output(" " * remaining_space, foregroundColor, backgroundColor)
-
                 top += 1
                 if height != None and top - original_top >= height:
                     break  # Stop printing if height is exceeded
@@ -928,8 +934,7 @@ class Renderer:
                 link_start_x = left  # Reset the starting x position of the link
             else:
                 current_line += ("" if is_punctuation or new_block else " ") + word
-
-            new_block = False  # After the first word, it's no longer a new block
+                new_block = False
 
         if height == None or (current_line and top - original_top < height):
             horizontal_space = self.get_horizontal_space( current_line, display, maximum, text_align)
@@ -937,6 +942,7 @@ class Renderer:
             self.util.sid_data.startY = top
             self.util.output(" " * (padding_left + horizontal_space) , foregroundColor, backgroundColor)
             self.util.output(current_line, foregroundColor, backgroundColor)
+            new_block = False
             last_char = current_line[-1] if current_line else None
             time.sleep(self.sleeper)
             if display == 'grid':
@@ -975,7 +981,7 @@ class Renderer:
             left = self.util.sid_data.startX
         
         
-        return top, left, last_char
+        return top, left, last_char, new_block
 
 
     def emit_href(self, child_text, length, link, x, y, height):
