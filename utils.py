@@ -525,7 +525,7 @@ class Utils:
     def message_reader_new_messages_callback_on_exit(self):
         if self.sid_data.user_name=='sysop':
             self.goto_next_line()
-            self.askYesNo('Do you want to edit the menu? Otherwise we will take you to the ANSI editor.', self.menuCallback)    
+            self.askYesNo('Do you want to edit the menu?', self.menuCallback)    
         else:
             self.load_menu()
     
@@ -572,9 +572,20 @@ class Utils:
             self.sid_data.setMenu(Menu(self, [["" for _ in ['Type', 'Data', 'Key', 'Sec', 'Groups', 'HideOnSec']] for _ in range(50)], 50, None)) 
             self.sid_data.setMenuBox(MenuBox(self))
         else:
+            self.goto_next_line()
+            self.askYesNo('Do you want to edit users?', self.userEditorCallback)   
+
+
+    def userEditorCallback(self, input):
+        if input=='Y' or input=='y':
+            self.sid_data.setUserEditor(UserEditor(self, doNothing))
+        else:
             self.sid_data.setANSIEditor(ANSIEditor(self))
             self.sid_data.ansi_editor.start()
             self.sid_data.setCurrentAction("wait_for_ansieditor")
+
+    def doNothing(self):
+        pass
 
     def emit_ansi_mod_editor(self):
         sid = self.request_id  # Get the Session ID
