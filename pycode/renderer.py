@@ -307,7 +307,7 @@ class Renderer:
 
     def calculate_top_position(self, container, default_height):
         # Find the parent grid container using a lambda function for style filtering
-        parent_grid = container.find_parent(lambda tag: tag.name in ["div", "p", "input", "button", "submit", "a"] and self.has_display_grid_style(tag.get('style', '')))
+        parent_grid = container.find_parent(lambda tag: tag.name in ["div", "span", "p", "input", "button", "submit", "a"] and self.has_display_grid_style(tag.get('style', '')))
 
         # If there's no parent grid, return default height
         if not parent_grid:
@@ -434,7 +434,7 @@ class Renderer:
                 # Call the function to calculate the top position for nested items
                 self.calculate_nested_items_top(container, nested_row_heights)
                 self.calculate_left_positions(container, nested_width)
-                # debug_elements = container.find_all(["div", "p", "input", "button", "submit", "a"], recursive=False)
+                # debug_elements = container.find_all(["div", "span", "p", "input", "button", "submit", "a"], recursive=False)
                 # nested_items = container.find_all(recursive=False)  # Get the direct children (grid items)
                 
                 # Calculate the width and height each 'fr' unit represents in the nested grid
@@ -496,7 +496,7 @@ class Renderer:
 
             else:
                 container_style = container.get('style', '')
-
+                row_heights = []  # Initialize row_heights to an empty list
                 # Extract column styles
                 if 'grid-template-columns:' in container_style:
                     columns_style = container_style.split('grid-template-columns:')[1].split(';')[0].strip()
@@ -507,6 +507,7 @@ class Renderer:
                     fr_width = (total_width - fixed_width_columns) / total_fr_columns if total_fr_columns else 0
                     column_widths = [fr_width * float(c.split('fr')[0]) if 'fr' in c else int(re.findall(r'\d+', c)[0]) for c in grid_columns]
                 # Extract row styles
+                grid_rows = []  # Initialize grid_rows to an empty list
                 if 'grid-template-rows:' in container_style:
                     rows_style = container_style.split('grid-template-rows:')[1].split(';')[0].strip()
                     # Parse and expand the grid template
@@ -518,7 +519,6 @@ class Renderer:
                     fr_unit_height = (total_height - fixed_height_rows) / total_fr_units if total_fr_units else 0
 
                     # Generate the list of row heights
-                    row_heights = []
                     for r in grid_rows:
                         if 'fr' in r:
                             row_heights.append(fr_unit_height)
@@ -528,15 +528,16 @@ class Renderer:
                             raise ValueError(f"Invalid row height unit: {r}")
 
                 
-                elements = container.find_all(["div", "p", "input", "button", "submit", "a"], recursive=False)
+                elements = container.find_all(["div", "span", "p", "input", "button", "submit", "a"], recursive=False)
                 for index, element in enumerate(elements):
                     unique_id = element.get('uniqueid')
                     
                     column = index % len(grid_columns) if grid_columns else 0
                     row = index // len(grid_columns) if grid_columns else 0
-
+                    print("column_widths")
+                    print(column_widths)
                     left = sum(column_widths[:column]) if grid_columns else 0
-                    top = sum(row_heights[:row]) if grid_rows else 0
+                    top = sum(row_heights[:row]) if row_heights else 0
                     width = math.ceil(column_widths[column] if grid_columns and column < len(column_widths) else total_width)
                     height = row_heights[row] if grid_rows and row < len(row_heights) else total_height
 
@@ -573,14 +574,15 @@ class Renderer:
             return
 
         # Start processing with the outermost grid containers
-        grid_containers = self.soup.find_all(["div", "p", "input", "button", "submit", "a"], style=self.has_grid_style, recursive=True)
+        grid_containers = self.soup.find_all(["div", "span", "p", "input", "button", "submit", "a"], style=self.has_grid_style, recursive=True)
         
         for container in grid_containers:
             top_position =  self.calculate_top_position(container, 0)
             print("process_grid_container 1 with "+str(self.util.sid_data.yHeight-1))
             process_grid_container(container, self.util.sid_data.xWidth, self.util.sid_data.yHeight-1, top_position)
 
-        elements = self.soup.find_all(["div", "p", "input", "button", "submit", "a"])  # Add more tags as needed
+        last_char = ' '
+        elements = self.soup.find_all(["div", "span", "p", "input", "button", "submit", "a"])  # Add more tags as needed
         for element in elements:
             if self.first_input_element == None and element.name == 'input':
                 self.first_input_element = element
@@ -615,15 +617,15 @@ class Renderer:
             elif element_id != None:
                 element_value = self.input_values[element_id]
 
-            if element.name == 'div':
+            if element.name == 'div' or element.name =='span':
                 self.util.sid_data.startX = 0
-                mytop, myleft = self.render_element(element, self.util.sid_data.startX, self.util.sid_data.startY, None, None)
+                mytop, myleft, last_char, new_block = self.render_element(element, self.util.sid_data.startX, self.util.sid_data.startY, None, None, last_char=last_char)
                 self.util.sid_data.startY = mytop
                 self.util.sid_data.startX = myleft
             elif element.name == 'p':
                 self.util.sid_data.startX = 0
                 self.util.sid_data.startY += 1  # You might need to add logic to check if this increment is necessary
-                mytop, myleft = self.render_element(element, self.util.sid_data.startX, self.util.sid_data.startY, None, None)
+                mytop, myleft, last_char, new_block = self.render_element(element, self.util.sid_data.startX, self.util.sid_data.startY, None, None, last_char=last_char)
                 self.util.sid_data.startY = mytop
                 self.util.sid_data.startX = myleft
             elif element.name == 'button' or element.name=='submit':
@@ -676,11 +678,17 @@ class Renderer:
         # Return None if no <a> tag is found
         return None
     
-    def render_element(self, element, left, top, default_width, default_height, new_block=True):
+    def render_element(self, element, left, top, default_width, default_height, new_block=True, last_char=' '):
         if isinstance(element, bs4.element.Tag):
             unique_id = element.get('uniqueid')
             if unique_id in self.processed_ids:
-                return top, left
+                return top, left, last_char, new_block
+
+            tag_name = element.name
+            if tag_name == 'span':
+                new_block = False  # Span is an inline element
+            elif tag_name in ['div', 'p']:
+                new_block = True   # Div and P start new blocks
 
             style = element.get('style', '')
 
@@ -707,12 +715,17 @@ class Renderer:
 
             inherited_styles = self.gather_inherited_styles(element)
 
-            extracted_display = self.extract_style_value(style,'display', None)
-            display = extracted_display if extracted_display is not None else None
-            if display == None:
-                display = inherited_styles.get('display', None)  # Inherits color if not defined in own style
-            if display == None:
-                display = 'block'
+            tag_name = element.name
+            if tag_name == 'span':
+                # Handle span tags as inline elements
+                display = self.extract_style_value(element.get('style', ''), 'display', 'inline')
+                # Continue rendering inline, no new block context
+            else:
+                # For other elements, extract and handle display property as before
+                extracted_display = self.extract_style_value(style, 'display', None)
+                display = extracted_display if extracted_display else self.get_default_display(tag_name)
+
+            
 
             if display == 'grid':
                 extracted_left = self.extract_style_value(style,'left', None)
@@ -751,7 +764,6 @@ class Renderer:
 
 
             
-
             # Recursively process child elements (depth-first)
             tag_name = element.name
             if tag_name == 'p':
@@ -762,10 +774,9 @@ class Renderer:
             for child in element.children:
                 if isinstance(child, bs4.element.Tag):
                     # If the child is a Tag, recursively call render_element
-                    top, left = self.render_element(child, left, top, width, height, new_block=new_block)
+                    print(child)
+                    top, left, last_char, new_block = self.render_element(child, left, top, width, height, new_block=new_block, last_char=last_char)
                     # After a tag, it's no longer the start of a new block
-                    if display != 'grid':
-                        new_block = False
                 elif isinstance(child, bs4.NavigableString):
                     child_text = child.strip()
                     if child_text:
@@ -777,11 +788,10 @@ class Renderer:
                             else:
                                 self.util.emit_link(width, inherited_link, self.key_pressed, child.parent.get('uniqueid'), left, top, height)
                        
-                        top, left = self.output_text(display, child_text, left, top, width, height, tag_name, color, backgroundColor, tuple(padding_values), place_items, text_align, new_block=new_block)
+                        top, left, last_char = self.output_text(display, child_text, left, top, width, height, tag_name, color, backgroundColor, tuple(padding_values), place_items, text_align, new_block=new_block, last_char=last_char)
                         
                         time.sleep(self.sleeper)
                         # After text, it's no longer the start of a new block
-                        new_block = False
 
             # Mark this Tag element as processed
             self.processed_ids.add(unique_id)
@@ -799,16 +809,23 @@ class Renderer:
                             else:
                                 self.util.emit_link(width, inherited_link, self.key_pressed, element.get('uniqueid'), left, top, height)
                 
-                top, left = self.output_text(display, child_text, left, top, width, height, parent_tag_name, color, backgroundColor, tuple(padding_values), place_items, text_align)
+                top, left, last_char = self.output_text(display, child_text, left, top, width, height, parent_tag_name, color, backgroundColor, tuple(padding_values), place_items, text_align, last_char=last_char)
                 
                 time.sleep(self.sleeper)
                 
             
-        return top, left
+        return top, left, last_char, new_block
 
 
 
-
+    def get_default_display(self, tag_name):
+        # Define default display values for common tags
+        default_display_values = {
+            'div': 'block',
+            'span': 'inline',
+            'p': 'block',
+        }
+        return default_display_values.get(tag_name, 'block')  # Default to 'block' if tag not found
 
     def key_pressed(self, char):
         self.util.sid_data.menu.handle_key(char)
@@ -829,35 +846,30 @@ class Renderer:
                 horizontal_space = (maximum - line_length) // 2
         return horizontal_space
 
-    def output_text(self, display, element, left, top, width, height, tag_name, foregroundColor, backgroundColor, padding, place_items, text_align, new_block=False):
-    
+    def output_text(self, display, element, left, top, width, height, tag_name, foregroundColor, backgroundColor, padding, place_items, text_align, new_block=False, last_char=None):
+        text = element if isinstance(element, str) else element.get_text()
+        words = text.split()
+
+         # Determine if a space is needed at the start of this element
+        first_word_is_punctuation = words[0] in [",", ".", ":", ";", "!", "?"] if words else False
+
+        need_space = last_char and last_char != ' ' and not first_word_is_punctuation # and not new_block
+
+        text = text + " " if need_space else text
+        current_line = ""
+
         original_top = top  # Save the original top position
         original_left = left  # Save the original top position
         link_start_x = left  # Initialize the starting x position of the link
 
-
         padding_top, padding_right, padding_bottom, padding_left = padding
         
-        # Adjust starting positions for padding
-        #left += padding_left
-        #top += padding_top
-        # Initialize left with the current startX value.
-        #left = self.util.sid_data.startX
-        
+       
 
-        # Determine if the element is a string or needs text extraction
-        text = element if isinstance(element, str) else element.get_text()
-        # Split the text into words
-        words = text.split()
-
-        
-
-        current_line = ""
         if display == 'grid':
             max_width = width
         else: 
             max_width = self.util.sid_data.xWidth
-        
         
         if display == 'grid':
             total_lines = self.calculate_total_lines(words, width, padding_left, padding_right)
@@ -884,21 +896,19 @@ class Renderer:
             is_punctuation = word in [",", ".", ":", ";", "!", "?"]
 
             if display =='grid':
-                maximum = max_width - padding_left - padding_right
+                if max_width != None:
+                    maximum = max_width - padding_left - padding_right
+                else:
+                    maximum = 0
             else:
                 maximum = max_width - left
             if len(current_line) + len(word) + (0 if is_punctuation or new_block else 1) > maximum:
-                # Check if we're in a link and need to emit before wrapping
-                #if tag_name == 'a' and current_line:
-                #    self.emit_href(len(text), link, link_start_x, top)
-
-                # Output the current line and reset it
                 
                 if display  == "grid":                    
                     self.util.sid_data.startX = original_left
-                else:
+                elif display != 'inline':
                     self.util.sid_data.startX = left
-                self.util.sid_data.startY = top
+                    self.util.sid_data.startY = top
 
                 horizontal_space = self.get_horizontal_space( current_line, display, maximum, text_align)
                 self.util.output(" " * (padding_left + horizontal_space)  + current_line, foregroundColor, backgroundColor)
@@ -927,23 +937,24 @@ class Renderer:
             self.util.sid_data.startY = top
             self.util.output(" " * (padding_left + horizontal_space) , foregroundColor, backgroundColor)
             self.util.output(current_line, foregroundColor, backgroundColor)
-
+            last_char = current_line[-1] if current_line else None
             time.sleep(self.sleeper)
-            if width != None:
-                remaining_space = width - len(current_line) - horizontal_space
-                self.util.output(" " * remaining_space, foregroundColor, backgroundColor)
-            
-            #if tag_name == 'a':
-            #    self.emit_href(len(text), link, link_start_x, top)
-            # Fill the remaining vertical space with empty spaces
             if display == 'grid':
-                while height != None and top < height + original_top - 1:
+                if width != None:
+                    remaining_space = width - len(current_line) - horizontal_space
+                    self.util.output(" " * remaining_space, foregroundColor, backgroundColor)
+
+                if height != None and original_top != None:
+                    myheight = height + original_top - 1
+                else:
+                    myheight = 0
+
+                if myheight > self.util.sid_data.yHeight:
+                    myheight = self.util.sid_data.yHeight - original_top
+                while height != None and top < myheight:
                     self.util.sid_data.startX = left
                     self.util.sid_data.startY = top + 1
-                    print("INCREASING HEIGHT")
-                    print(height)
-                    print(top + 1)
-                    print(original_left)
+                   
                     self.util.output(" " * width, foregroundColor, backgroundColor)
                     top += 1
                     time.sleep(self.sleeper)
@@ -963,7 +974,8 @@ class Renderer:
         else:
             left = self.util.sid_data.startX
         
-        return top, left
+        
+        return top, left, last_char
 
 
     def emit_href(self, child_text, length, link, x, y, height):
@@ -1170,7 +1182,7 @@ class Renderer:
                 if using_mouse:
                     # Find the index of the next input element
                     next_input_index = None
-                    self.element_order = [e.get('id') for e in self.soup.find_all(["div", "p", "input", "button", "submit", "a"]) if e.get('id')]
+                    self.element_order = [e.get('id') for e in self.soup.find_all(["div", "span", "p", "input", "button", "submit", "a"]) if e.get('id')]
                     for i, el_id in enumerate(self.element_order):
                         print(el_id+"=="+element_id)
                         if el_id == element_id:
@@ -1279,7 +1291,7 @@ class Renderer:
     def focus_next_element(self):
         # Check if the elements list and current focus index are initialized
         if not hasattr(self, 'element_order'):
-            self.element_order = [e.get('id') for e in self.soup.find_all(["div", "p", "input", "button", "submit", "a"]) if e.get('id')]
+            self.element_order = [e.get('id') for e in self.soup.find_all(["div", "span", "p", "input", "button", "submit", "a"]) if e.get('id')]
             
         # Move to the next element in the list
         self.current_focus_index += 1
@@ -1299,7 +1311,7 @@ class Renderer:
     def focus_previous_element(self):
     # Check if the elements list and current focus index are initialized
         if not hasattr(self, 'element_order'):
-            self.element_order = [e.get('id') for e in self.soup.find_all(["div", "p", "input", "button", "submit", "a"]) if e.get('id')]
+            self.element_order = [e.get('id') for e in self.soup.find_all(["div", "span", "p", "input", "button", "submit", "a"]) if e.get('id')]
             
         # Move to the previous element in the list
         self.current_focus_index -= 1
@@ -1317,7 +1329,7 @@ class Renderer:
 
     def enter(self):
         if not hasattr(self, 'element_order'):
-            self.element_order = [e.get('id') for e in self.soup.find_all(["div", "p", "input", "button", "submit", "a"]) if e.get('id')]
+            self.element_order = [e.get('id') for e in self.soup.find_all(["div", "span", "p", "input", "button", "submit", "a"]) if e.get('id')]
             
         element_id = self.element_order[self.current_focus_index]
 
@@ -1373,8 +1385,14 @@ class Renderer:
             is_punctuation = word in [",", ".", ":", ";", "!", "?"]
             word_length = len(word)
 
-            # Calculate the available width considering padding
-            available_width = width - padding_left - padding_right
+            if width == None:
+                available_width = 0
+            else:
+                print(width)
+                print(padding_left)
+                print(padding_right)
+                # Calculate the available width considering padding
+                available_width = width - padding_left - padding_right
 
             # Check if the word fits in the current line
             if current_line_length + word_length + (0 if is_punctuation else 1) > available_width:
