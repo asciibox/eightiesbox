@@ -3,7 +3,7 @@
         {
             "Type": "01",
             "Data": "MBASE.MNU",
-            "Key": "F",
+            "Key": "M",
             "Sec": "",
             "Groups": "",
             "HideOnSec": ""
@@ -11,7 +11,7 @@
         {
             "Type": "01",
             "Data": "FILEBASE.MNU",
-            "Key": "M",
+            "Key": "F",
             "Sec": "",
             "Groups": "",
             "HideOnSec": ""

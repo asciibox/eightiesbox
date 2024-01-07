@@ -74,7 +74,7 @@ class BasicANSI:
         print(self.max_height)
         
         for idx in range(self.max_height):
-            if idx in menu_values:  # Check if idx is a valid key in menu_values
+            if menu_values != None and idx in menu_values:  # Check if idx is a valid key in menu_values
                 command_value = int(menu_values[idx][0]) if menu_values[idx][0] != '' else 0
                 
                 if command_value == 4:
