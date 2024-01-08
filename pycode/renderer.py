@@ -19,7 +19,7 @@ class Renderer:
         self.active_callback = None
         self.previous_element_id = None
         self.processed_ids = set()
-        self.sleeper = 0.1
+        self.sleeper = 0
         self.is_current_line_empty=True
 
         self.inheritable_properties = [
@@ -67,6 +67,7 @@ class Renderer:
 
 
     def render_page(self, filename, db_filename=''):
+   
         # Fetch user data from the database
         # Assuming 'self.util.sid_data.user_document['_id']' contains the current user's ID
 
@@ -535,8 +536,6 @@ class Renderer:
                     
                     column = index % len(grid_columns) if grid_columns else 0
                     row = index // len(grid_columns) if grid_columns else 0
-                    print("column_widths")
-                    print(column_widths)
                     left = sum(column_widths[:column]) if grid_columns else 0
                     top = sum(row_heights[:row]) if row_heights else 0
                     width = math.ceil(column_widths[column] if grid_columns and column < len(column_widths) else total_width)
@@ -560,6 +559,9 @@ class Renderer:
 
 
                     element['style'] = existing_style
+                    #for content in element.contents:
+                    #    if isinstance(content, bs4.NavigableString):
+                    #        content.replace_with(' ')
                 #nested_grids = element.find_all(["div"], style=self.has_grid_style, recursive=True)
                 
                 #print(nested_grids)
@@ -783,8 +785,9 @@ class Renderer:
                     top, left, last_char, new_block = self.render_element(child, left, top, width, height, new_block=new_block, last_char=last_char)
                     # After a tag, it's no longer the start of a new block
                 elif isinstance(child, bs4.NavigableString):
-                    child_text = child.strip()
+                    child_text = child
                     if child_text:
+                        child_text = child_text.strip()
                         inherited_link = self.gather_inherited_tags(child)
                         if inherited_link:
                             if len(inherited_link)>1:
@@ -792,7 +795,7 @@ class Renderer:
                                 self.emit_href(child_text, width, inherited_link, left, top, height)
                             else:
                                 self.util.emit_link(width, inherited_link, self.key_pressed, child.parent.get('uniqueid'), left, top, height)
-                       
+                        
                         top, left, last_char, new_block = self.output_text(display, child_text, left, top, width, height, tag_name, color, backgroundColor, tuple(padding_values), place_items, text_align, new_block=new_block, last_char=last_char)
                         
                         time.sleep(self.sleeper)
@@ -803,8 +806,9 @@ class Renderer:
 
         # If the element is a string (NavigableString), process it directly
         elif isinstance(element, bs4.NavigableString):
-            child_text = element.strip()
+            child_text = element
             if child_text:
+                child_text = child_text.strip()
                 # Output text with the color extracted from the parent Tag
                 parent_tag_name = element.parent.name if element.parent else None
                 inherited_link = self.gather_inherited_tags(element)
@@ -853,7 +857,7 @@ class Renderer:
 
     def output_text(self, display, element, left, top, width, height, tag_name, foregroundColor, backgroundColor, padding, place_items, text_align, new_block=False, last_char=None):
         text = element if isinstance(element, str) else element.get_text()
-        words = text.split()
+        words = text.split() or [" "]
 
          # Determine if a space is needed at the start of this element
         first_word_is_punctuation = words[0] in [",", ".", ":", ";", "!", "?"] if words else False
@@ -895,92 +899,92 @@ class Renderer:
                 self.util.output(" " * width, foregroundColor, backgroundColor)
                 top += 1
                 time.sleep(self.sleeper)
+   
+    
+        if height != None:
+            for i, word in enumerate(words):
 
-        for i, word in enumerate(words):
- 
-            is_punctuation = word in [",", ".", ":", ";", "!", "?"]
+                is_punctuation = word in [",", ".", ":", ";", "!", "?"]
 
-            if display =='grid':
-                if max_width != None:
-                    maximum = max_width - padding_left - padding_right
+                if display =='grid':
+                    if max_width != None:
+                        maximum = max_width - padding_left - padding_right
+                    else:
+                        maximum = 0
                 else:
-                    maximum = 0
-            else:
-                maximum = max_width - left
-            if len(current_line) + len(word) + (0 if is_punctuation or new_block else 1) > maximum:
+                    maximum = max_width - left
+                if len(current_line) + len(word) + (0 if is_punctuation or new_block else 1) > maximum:
+                    
+                    if display  == "grid":                    
+                        self.util.sid_data.startX = original_left
+                    else:
+                        self.util.sid_data.startX = left
+                    
+                    self.util.sid_data.startY = top
+
+                    horizontal_space = self.get_horizontal_space( current_line, display, maximum, text_align)
+                    self.util.output(" " * (padding_left + horizontal_space)  + current_line, foregroundColor, backgroundColor)
+                    new_block = False
                 
-                if display  == "grid":                    
-                    self.util.sid_data.startX = original_left
-                else:
-                    self.util.sid_data.startX = left
-                
-                self.util.sid_data.startY = top
 
-                horizontal_space = self.get_horizontal_space( current_line, display, maximum, text_align)
-                self.util.output(" " * (padding_left + horizontal_space)  + current_line, foregroundColor, backgroundColor)
-                new_block = False
-            
-
-                time.sleep(self.sleeper)
-                remaining_space = width - len(current_line) - horizontal_space if width is not None else self.util.sid_data.xWidth - len(current_line) - horizontal_space
-                # Output spaces until the specified width is reached
-                self.util.output(" " * remaining_space, foregroundColor, backgroundColor)
-                top += 1
-                if height != None and top - original_top >= height:
-                    break  # Stop printing if height is exceeded
-                if display == 'grid':
-                    left = original_left  # Reset left to original_left instead of 0
-                else:
-                    left = 0
-                current_line = word
-                link_start_x = left  # Reset the starting x position of the link
-            else:
-                current_line += ("" if is_punctuation or new_block else " ") + word
-                new_block = False
-
-        if height == None or (current_line and top - original_top < height):
-            horizontal_space = self.get_horizontal_space( current_line, display, maximum, text_align)
-            self.util.sid_data.startX = left
-            self.util.sid_data.startY = top
-            self.util.output(" " * (padding_left + horizontal_space) , foregroundColor, backgroundColor)
-            self.util.output(current_line, foregroundColor, backgroundColor)
-            new_block = False
-            last_char = current_line[-1] if current_line else None
-            time.sleep(self.sleeper)
-            if display == 'grid':
-                if width != None:
-                    remaining_space = width - len(current_line) - horizontal_space
-                    self.util.output(" " * remaining_space, foregroundColor, backgroundColor)
-
-                if height != None and original_top != None:
-                    myheight = height + original_top - 1
-                else:
-                    myheight = 0
-
-                if myheight > self.util.sid_data.yHeight:
-                    myheight = self.util.sid_data.yHeight - original_top
-                while height != None and top < myheight:
-                    self.util.sid_data.startX = left
-                    self.util.sid_data.startY = top + 1
-                   
-                    self.util.output(" " * width, foregroundColor, backgroundColor)
-                    top += 1
                     time.sleep(self.sleeper)
-                
-                # Update top and left for the next element
-                top = original_top + height if height is not None else top + 1
-
-                if width != None:
-                    left = original_left + width if original_left + width <= max_width else 0
+                    remaining_space = width - len(current_line) - horizontal_space if width is not None else self.util.sid_data.xWidth - len(current_line) - horizontal_space
+                    # Output spaces until the specified width is reached
+                    self.util.output(" " * remaining_space, foregroundColor, backgroundColor)
+                    top += 1
+                    if height != None and top - original_top >= height:
+                        break  # Stop printing if height is exceeded
+                    if display == 'grid':
+                        left = original_left  # Reset left to original_left instead of 0
+                    else:
+                        left = 0
+                    current_line = word
+                    link_start_x = left  # Reset the starting x position of the link
                 else:
-                    left = original_left
+                    current_line += ("" if is_punctuation or new_block else " ") + word
+                    new_block = False
+
+            if height == None or (current_line and top - original_top < height):
+                horizontal_space = self.get_horizontal_space( current_line, display, maximum, text_align)
+                self.util.sid_data.startX = left
+                self.util.sid_data.startY = top
+                self.util.output(" " * (padding_left + horizontal_space) , foregroundColor, backgroundColor)
+                self.util.output(current_line, foregroundColor, backgroundColor)
+                new_block = False
+                last_char = current_line[-1] if current_line else None
+                time.sleep(self.sleeper)
+                if display == 'grid':
+                    if width != None:
+                        remaining_space = width - len(current_line) - horizontal_space
+                        self.util.output(" " * remaining_space, foregroundColor, backgroundColor)
+
+                    if height != None and original_top != None:
+                        myheight = height + original_top - 1
+                    else:
+                        myheight = 0
+
+                    while height != None and top < myheight:
+                        self.util.sid_data.startX = left
+                        self.util.sid_data.startY = top + 1
+                    
+                        self.util.output(" " * width, foregroundColor, backgroundColor)
+                        top += 1
+                        time.sleep(self.sleeper)
+                    
+                    # Update top and left for the next element
+                    top = 0 # original_top + myheight-1 if height is not None else top + 0
+
+                    if width != None:
+                        left = original_left + width if original_left + width <= max_width else 0
+                    else:
+                        left = original_left
+                else:
+                    left = self.util.sid_data.startX
+
+                if left == 0 and display == 'grid':
+                        pass # top += 1  # Move down a row if we've hit the max width
             else:
                 left = self.util.sid_data.startX
-
-            if left == 0 and display == 'grid':
-                    top += 1  # Move down a row if we've hit the max width
-        else:
-            left = self.util.sid_data.startX
         
         
         return top, left, last_char, new_block
