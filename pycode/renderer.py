@@ -19,7 +19,7 @@ class Renderer:
         self.active_callback = None
         self.previous_element_id = None
         self.processed_ids = set()
-        self.sleeper = 0
+        self.sleeper = 0.0
         self.is_current_line_empty=True
 
         self.inheritable_properties = [
@@ -76,9 +76,6 @@ class Renderer:
             upload_html_collection = db['uploads_html']
             html_data = upload_html_collection.find_one({"filename": db_filename, 'chosen_bbs' : self.util.sid_data.chosen_bbs })
             html_content = base64.b64decode(html_data['file_data']);
-            print("***************")
-            print(html_content)
-            print("****************")
         else:
             with open(filename, "r") as file:
                 html_content = file.read()
@@ -232,7 +229,7 @@ class Renderer:
             size = float(match.group(2).strip('px'))
             # Add the size to row_fixed_sizes list 'repeats' number of times
             row_fixed_sizes = [size] * repeats
-        else:
+        elif 'grid-template-rows:' in grid_style:
             # Fallback to split method if 'repeat()' is not used
             rows_part = grid_style.split('grid-template-rows:')[1].split(';')[0].strip()
             for unit in rows_part.split():
@@ -478,23 +475,38 @@ class Renderer:
 
                     # Update the style for each nested item
                     item_style = item.get('style', '')
-                    # Check if 'height' is already in the item's style
-                    # Check if 'height' and 'width' are already in the item's style
-                    height_already_exists = 'height:' in item_style
-                    width_already_exists = 'width:' in item_style
 
-                    # Create a list of new styles, excluding 'width' (if it already exists), 'height' (if it already exists), 'left', and 'top'
-                    new_styles = [s for s in item_style.split(';') if not any(x in s for x in ['left', 'top'] or (x in s for x in ['height'] if not height_already_exists) or (x in s for x in ['width'] if not width_already_exists))]
+                    # Check if 'height' already exists
+                    height_already_exists = 'height' in item_style
+                    width_already_exists = 'width' in item_style
+
+                    # Filter out 'left', 'top', 'width' and 'height' from existing styles if they already exist
+                    new_styles = [s for s in item_style.split(';') if not any(x in s for x in ['left', 'top'] 
+                                    or (x in s for x in ['height'] if not height_already_exists) 
+                                    or (x in s for x in ['width'] if not width_already_exists))]
+
+                    # Process the height
+                    if height_already_exists:
+                        item_height = self.extract_height_value(item_style, nested_fr_height, item_height)
+                    else:
+                        item_height = nested_fr_height
+
+                    # Ensure that item_height is an integer
                     item_height = int(item_height)
-                    item_top = int(item_top)
+                    item_top = int(item_top)  # Assuming item_top is defined earlier
+
                     # Add 'width' style only if it doesn't already exist
                     if not width_already_exists:
-                        new_styles.append(f"width: {item_width}px;")
-                    new_styles += [f"left: {item_left}px;", f"top: {item_top}px;"]
+                        new_styles.append(f"width: {item_width}px;")  # Assuming item_width is defined
+
+                    new_styles += [f"left: {item_left}px;", f"top: {item_top}px;"]  # Assuming item_left is defined
+
                     # Add 'height' style only if it doesn't already exist
                     if not height_already_exists:
                         new_styles.append(f"height: {item_height}px;")
+
                     item['style'] = '; '.join(new_styles)
+                    print(item['style'])
           
 
             else:
@@ -545,27 +557,11 @@ class Renderer:
 
                     # Initialize the cumulative height with margin_top
                     cumulative_height = margin_top
-
+                    
+                    # Calculate the top position
                     # Apply the styles to the elements
                     for index, element in enumerate(elements):
-                        unique_id = element.get('uniqueid')
 
-                        # Calculate the top position for the current element
-                        if index == 0:
-                            # For the first element, the top is just the margin_top
-                            top = margin_top
-                        else:
-                            # For subsequent elements, add the height of the previous element
-                            previous_element = elements[index - 1]
-                            previous_height = self.extract_style_value(previous_element.get('style', ''), 'height', 0)
-                            cumulative_height += previous_height
-                            top = cumulative_height
-
-
-                        unique_id = element.get('uniqueid')
-
-                        # Calculate the top position
-        
                         # Calculate the left position and width based on grid-template-columns
                         left = sum(column_widths[:index % len(column_widths)]) if grid_columns else 0
                         width = column_widths[index % len(column_widths)] if grid_columns else total_width
@@ -576,7 +572,24 @@ class Renderer:
                             row = index // len(grid_columns) if grid_columns else 0
                             top = sum(row_heights[:row]) if row_heights else 0
                             height = row_heights[row] if grid_rows and row < len(row_heights) else total_height
+                        else:
+                            # Calculate the top position for the current element
+                            if index == 0:
+                                # For the first element, the top is just the margin_top
+                                top = margin_top
+                            else:
+                                # For subsequent elements, add the height of the previous element
+                                previous_element = elements[index - 1]
+                                # previous_height = self.extract_style_value(previous_element.get('style', ''), 'height', 0)
+                                inherited_previous_styles = self.gather_inherited_styles(previous_element)
+                                print("STYLE:"+str(previous_element.get('style', '')));
+                                print("HEIGHT:"+str(height))
 
+                                previous_height = self.extract_height_value(previous_element.get('style', ''), height, height)
+                                print("adding previous_height="+str(previous_height))
+                                cumulative_height += previous_height
+                                top = cumulative_height
+                                print("TOP:"+str(top))
 
                         # Update the element's style
                         existing_style = element.get('style', '')
@@ -592,6 +605,11 @@ class Renderer:
 
                         if 'height:' not in existing_style and 'height :' not in existing_style:
                             existing_style += f" height: {height}px;"
+                        else:
+                             print("height = "+str(height))
+                             height = self.extract_height_value(existing_style, 1, height)
+                             existing_style += f" height: {height}px;"
+
 
 
                         element['style'] = existing_style
@@ -637,7 +655,7 @@ class Renderer:
             self.util.sid_data.startY = top if top is not None else 0
 
             width = self.extract_width(style)
-            height = self.extract_style_value(style, 'height', 1)
+            height = self.extract_height_value(style, self.util.sid_data.yHeight-1, self.util.sid_data.yHeight-1)
             end_x = left + width
             end_y = top + height
 
@@ -656,13 +674,13 @@ class Renderer:
 
             if element.name == 'div' or element.name =='span':
                 self.util.sid_data.startX = 0
-                mytop, myleft, last_char, new_block = self.render_element(element, self.util.sid_data.startX, self.util.sid_data.startY, None, None, last_char=last_char)
+                mytop, myleft, last_char, new_block = self.render_element(element, self.util.sid_data.startX, self.util.sid_data.startY, width, height, last_char=last_char)
                 self.util.sid_data.startY = mytop
                 self.util.sid_data.startX = myleft
             elif element.name == 'p':
                 self.util.sid_data.startX = 0
                 self.util.sid_data.startY += 1  # You might need to add logic to check if this increment is necessary
-                mytop, myleft, last_char, new_block = self.render_element(element, self.util.sid_data.startX, self.util.sid_data.startY, None, None, last_char=last_char)
+                mytop, myleft, last_char, new_block = self.render_element(element, self.util.sid_data.startX, self.util.sid_data.startY, width, height, last_char=last_char)
                 self.util.sid_data.startY = mytop
                 self.util.sid_data.startX = myleft
             elif element.name == 'button' or element.name=='submit':
@@ -680,7 +698,7 @@ class Renderer:
                 self.util.sid_data.startX = left
                 self.util.sid_data.startY = top
                 self.util.output(padded_element_value, 6, 4)
-
+        print(elements)
         if self.first_input_element != None:
             ele_id = self.first_input_element.get('id', None)
             self.focus_on_element(ele_id, False)
@@ -715,18 +733,28 @@ class Renderer:
         # Return None if no <a> tag is found
         return None
     
-    def render_element(self, element, left, top, default_width, default_height, new_block=True, last_char=' '):
-        print(element)
+    def render_element(self, element, left, initial_top, default_width, default_height, new_block=True, last_char=' '):
+
+        cumulative_height = initial_top
+        top = self.util.sid_data.startY
+        print("PARENT")
+        print(element.parent)
+        if 'display: block' in element.parent.get('style', '') or 'display:block' in element.parent.get('style', ''):
+            tag_children = [child for child in element.parent.contents if isinstance(child, bs4.element.Tag)]
+            if tag_children and element is tag_children[0]:
+                top = self.calculate_top_position(element.parent, default_height) +13
+                print("************** TOP SET TO "+str(top))
+
         if isinstance(element, bs4.element.Tag):
             unique_id = element.get('uniqueid')
             if unique_id in self.processed_ids:
-                return top, left, last_char, new_block
+                return initial_top, left, last_char, new_block
+
+           
 
             tag_name = element.name
             if tag_name == 'span':
-                print("new_block = self.is_current_line_empty")
-                print("new_block = ")
-                print(self.is_current_line_empty)
+                pass
             elif tag_name in ['div', 'p']:
                 new_block = True
                 pass
@@ -752,13 +780,22 @@ class Renderer:
             extracted_background_image = self.extract_style_value(style, 'background-image',None)
             background_image = extracted_background_image if extracted_background_image is not None else ''
 
+             # Determine if 'element' is a nested grid container
+            if self.is_nested_grid(element):
+                # Calculate the total height of the nested grid container
+                total_height = self.get_main_grid_total_height(element, default_height)
+                current_height = total_height
+            else:
+                # Calculate the height of the current element based on its content
+                current_height = self.calculate_element_height(element, default_width)
 
+            # Set the top position for the current element
+            # top = cumulative_height
 
-            extracted_width = self.extract_style_value(style, 'width',None)
-            width = extracted_width if extracted_width is not None else default_width
-
-            extracted_height = self.extract_style_value(style,'height', None)
-            height = extracted_height if extracted_height is not None else default_height
+            # Update the cumulative height for the next element
+            cumulative_height += current_height
+            height = cumulative_height
+            
 
             inherited_styles = self.gather_inherited_styles(element)
 
@@ -771,29 +808,29 @@ class Renderer:
                 # For other elements, extract and handle display property as before
                 extracted_display = self.extract_style_value(style, 'display', None)
                 display = extracted_display if extracted_display else self.get_default_display(tag_name)
-            print(display)
 
-            if width == None:
-                width = default_width
-
-            if width == None:
-                width = self.util.sid_data.xWidth
-                default_width = self.util.sid_data.xWidth
             
+
+            extracted_margin_top = self.extract_style_value(style, 'margin-top',None)
+            margin_top = extracted_margin_top if extracted_margin_top is not None else None
+            if margin_top == None:
+                    margin_top = inherited_styles.get('margin-top', 0)  # Inherits margin-top if not defined in own style
 
             if display == 'grid':
                 extracted_left = self.extract_style_value(style,'left', None)
                 left = extracted_left if extracted_left is not None else None
                 if left == None:
-                    left = inherited_styles.get('left', 0)  # Inherits color if not defined in own style
+                    left = inherited_styles.get('left', 0)  # Inherits left if not defined in own style
 
                 extracted_top = self.extract_style_value(style,'top', None)
                 top = extracted_top if extracted_top is not None else None
-                
-                if top == None:
-                    top = inherited_styles.get('top', 0)  # Inherits color if not defined in own style
-                    
 
+                if top == None:
+                    top = inherited_styles.get('top', 0)  # Inherits top if not defined in own style
+                    
+            ##if height == None:
+            ##    height = inherited_styles.get('height', default_height)  # Inherits top if not defined in own style
+    
             if color == None:
                 color = inherited_styles.get('color', color)  # Inherits color if not defined in own style
             if color == None:
@@ -810,14 +847,15 @@ class Renderer:
             if backgroundColor == None:
                 backgroundColor = 0
 
-            if 'width' not in style:
-                width = inherited_styles.get('width', width)  # Inherits width if not defined in own style
+            extracted_width = self.extract_style_value(style,'width', None)
+            default_width = extracted_width if extracted_width is not None else None
+            if default_width == None:
+                default_width = inherited_styles.get('width', self.util.sid_data.xWidth)  # Inherits width if not defined in own style
 
-            if 'height' not in style:
-                height = inherited_styles.get('height', height)  # Inherits height
-
-
-            
+            extracted_height = self.extract_style_value(style,'height', None)
+            height = extracted_height if extracted_height is not None else None
+            if height == None:
+                height = inherited_styles.get('height', default_height)  # Inherits height
             # Recursively process child elements (depth-first)
             tag_name = element.name
             if tag_name == 'p':
@@ -827,8 +865,8 @@ class Renderer:
             for child in element.children:
                 if isinstance(child, bs4.element.Tag):
                     # If the child is a Tag, recursively call render_element
-                    print(child)
-                    top, left, last_char, new_block = self.render_element(child, left, top, width, height, new_block=new_block, last_char=last_char)
+                    
+                    top, left, last_char, new_block = self.render_element(child, left, top, default_width, height, new_block=new_block, last_char=last_char)
                     # After a tag, it's no longer the start of a new block
                 elif isinstance(child, bs4.NavigableString):
                     child_text = child
@@ -837,16 +875,17 @@ class Renderer:
                         inherited_link = self.gather_inherited_tags(child)
                         if inherited_link:
                             if len(inherited_link)>1:
-                                print("LINK:"+str(width)+"/"+inherited_link+"left:"+str(left)+"top:"+str(top)+"height:"+str(height))
-                                self.emit_href(child_text, width, inherited_link, left, top, height)
+                                self.emit_href(child_text, default_width, inherited_link, left, top, height)
                             else:
-                                self.util.emit_link(width, inherited_link, self.key_pressed, child.parent.get('uniqueid'), left, top, height)
+                                self.util.emit_link(default_width, inherited_link, self.key_pressed, child.parent.get('uniqueid'), left, top, height)
                        
                         if background_image != None and background_image != '':
                             cleaned_url = background_image.replace("url('", "").replace("')", "")
-                            self.emit_background_image(cleaned_url, left, top, width, height)
+                            self.emit_background_image(cleaned_url, left, top, default_width, height)
                         else:
-                            top, left, last_char, new_block = self.output_text(display, child_text, left, top, width, height, tag_name, color, backgroundColor, tuple(padding_values), place_items, text_align, new_block=new_block, last_char=last_char)
+                            if backgroundColor != 0 or len(child_text.strip())>0:
+                                print(backgroundColor+"*"+child_text.strip()+"*")
+                                top, left, last_char, new_block = self.output_text(display, child_text, left, top, default_width, height, tag_name, color, backgroundColor, tuple(padding_values), place_items, text_align, new_block=new_block, last_char=last_char)
                         
                         time.sleep(self.sleeper)
                         # After text, it's no longer the start of a new block
@@ -857,7 +896,6 @@ class Renderer:
         # If the element is a string (NavigableString), process it directly
         elif isinstance(element, bs4.NavigableString):
             child_text = element
-            print("*"+str(backgroundColor))
             if child_text and backgroundColor != None and backgroundColor != 0:
                 child_text = child_text.strip()
                 # Output text with the color extracted from the parent Tag
@@ -865,15 +903,18 @@ class Renderer:
                 inherited_link = self.gather_inherited_tags(element)
                 if inherited_link:
                             if len(inherited_link)>1:
-                                self.emit_href(child_text, width, inherited_link, left, top, height)
+                                self.emit_href(child_text,default_width, inherited_link, left, top, height)
                             else:
-                                self.util.emit_link(width, inherited_link, self.key_pressed, element.get('uniqueid'), left, top, height)
+                                self.util.emit_link(default_width, inherited_link, self.key_pressed, element.get('uniqueid'), left, top, height)
                 
                 if background_image != None and background_image != '':
                     cleaned_url = background_image.replace("url('", "").replace("')", "")
                     self.emit_background_image(cleaned_url, left, top, width, height)
                 else:
-                    top, left, last_char, new_block = self.output_text(display, child_text, left, top, width, height, parent_tag_name, color, backgroundColor, tuple(padding_values), place_items, text_align, last_char=last_char, new_block=new_block)
+                    print(str(left)+"/"+str(top)+" width: "+str(default_width)+" height: "+str(height))
+                    print(backgroundColor+"*"+child_text.strip()+"*")
+                    if backgroundColor != 0 or len(child_text.strip())>0 :
+                        top, left, last_char, new_block = self.output_text(display, child_text, left, top, default_width, height, parent_tag_name, backgroundColor, 4, tuple(padding_values), place_items, text_align, last_char=last_char, new_block=new_block)
                 
                 time.sleep(self.sleeper)
                 
@@ -1054,10 +1095,6 @@ class Renderer:
         if height is None:
             height = 0  # or some default value
 
-        print(str(x)+"/"+str(y))
-        print("width:"+str(width))
-        print("height:"+str(height))
-
         # Emit the background image data to the 'backgroundimage' event
         self.util.socketio.emit('backgroundimage', {
             'filename': filename,
@@ -1096,41 +1133,65 @@ class Renderer:
         return self.extract_style_value(style, 'width', default_width)
 
     def extract_style_value(self, style, attribute, default_value):
-        #print("Input style:", style)  # Debug: Print input style
+        properties = style.split(';')
+        last_value = default_value  # Initialize with the default value
+
+        for prop in properties:
+            prop = prop.strip()
+            colon_index = prop.find(':')
+            if colon_index != -1:
+                key = prop[:colon_index].strip()
+                value = prop[colon_index + 1:].strip()
+
+                if key == attribute:
+                    if 'calc' in value:
+                        last_value = self.calculate_css_calc(value)
+                    elif 'px' in value:
+                        last_value = int(float(value.split('px')[0].strip()))
+                    else:
+                        last_value = value
+
+        return last_value
+
+    def extract_height_value(self, style, default_value, current_height):
+        if current_height == None:
+            current_height = self.util.sid_data.yHeight -1
+        print("Input style:", style)  # Debug: Print input style
 
         properties = style.split(';')
-        
         #print("Properties after split:", properties)  # Debug: Print properties list
 
         for prop in properties:
             prop = prop.strip()
-            
             #print("Current property:", prop)  # Debug: Print the current property
 
             colon_index = prop.find(':')
             if colon_index != -1:
                 key = prop[:colon_index].strip()
                 value = prop[colon_index + 1:].strip()
-                
+
                 #print(f"Key: '{key}', Value: '{value}'")  # Debug: Print the key and value
 
-                if key == attribute:
-                    #print("Attribute found")  # Debug: Print when attribute is found
+                if key == 'height':
+                    print("Height attribute found")  # Debug: Print when height attribute is found
                     if 'calc' in value:
                         print("Processing calc() value:", value)  # Debug: Print the calc() value
                         return self.calculate_css_calc(value)
                     elif 'px' in value:
                         numeric_value = int(float(value.split('px')[0].strip()))
-                        #print(f"Returning numeric value: {numeric_value}")  # Debug: Print the numeric value
+                        print(f"Returning numeric value: {numeric_value}")  # Debug: Print the numeric value
                         return numeric_value
+                    elif '%' in value:
+                        percentage_value = float(value.split('%')[0].strip()) / 100
+                        calculated_height = current_height * percentage_value
+                        print(f"Returning calculated percentage height: {calculated_height}")  # Debug: Print the calculated percentage height
+                        return calculated_height
                     else:
-                        #print("Returning value:", value)  # Debug: Print the non-numeric value
-                        return value
+                        print("Returning default value:", default_value)  # Debug: Print the default value
+                        return default_value
 
-        
-        #print(f"Attribute not found, returning default value: {default_value}")  # Debug: Print when returning default
+        print(f"Height attribute not found, returning default value: {default_value}")  # Debug: Print when returning default
         return default_value
-
 
 
 
@@ -1523,3 +1584,49 @@ class Renderer:
 
         print('returning ' + str(result))
         return result
+
+    
+    def extract_text_content(self, element):
+        # Extract and return the text content of the element
+        # Handle any specific cases, like nested tags or special characters
+        return element.get_text()
+
+    def extract_padding_values(self, element):
+        # Extract padding values from the element's style
+        # Assuming you have a method for extracting specific style values
+        style = element.get('style', '')
+        padding_left = self.extract_style_value(style, 'padding-left', 0)
+        padding_right = self.extract_style_value(style, 'padding-right', 0)
+        return padding_left, padding_right
+
+    def calculate_element_height(self, element, width):
+            # Extract the text content of the element
+            text_content = self.extract_text_content(element)
+            words = text_content.split()
+
+            # Initialize variables for line calculation
+            total_lines = 0
+            current_line_length = 0
+
+            # Extract padding values (assuming a method to extract padding values)
+            padding_left, padding_right = self.extract_padding_values(element)
+
+            # Calculate the available width considering padding
+            available_width = width - padding_left - padding_right
+
+            for word in words:
+                is_punctuation = word in [",", ".", ":", ";", "!", "?"]
+                word_length = len(word)
+
+                # Check if the word fits in the current line
+                if current_line_length + word_length + (0 if is_punctuation else 1) > available_width:
+                    total_lines += 1  # Increment line count
+                    current_line_length = word_length  # Reset line length
+                else:
+                    current_line_length += word_length + (0 if is_punctuation else 1)
+
+            # Add the last line if there's any content in it
+            if current_line_length > 0:
+                total_lines += 1
+
+            return total_lines
