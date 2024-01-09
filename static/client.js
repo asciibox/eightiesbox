@@ -3,6 +3,7 @@ var chosen_bbs = 0;
 const protocol = window.location.protocol;
 var uploadFileType = 'ANS';
 var hrefs = [];  // Global array to store hrefs
+var loadedImages = [];
 
 var socket = io.connect(
   protocol + "//" + document.domain + ":" + location.port,
@@ -107,6 +108,8 @@ function setupSocketEventListeners(socket) {
  
   socket.on("draw", async (data) => {
     if (data.command && data.command === 'clear') {
+      loadedImages.forEach(image => image.destroy());
+      loadedImages=[];
       clearScreen();
       hrefs = [];
     } else {
@@ -144,7 +147,7 @@ function setupSocketEventListeners(socket) {
         currentScene.load.image('dynamicImage', filename);
         currentScene.load.once('complete', () => {
             let image = currentScene.add.image(pixelX, pixelY, 'dynamicImage').setDisplaySize(pixelWidth, pixelHeight);
-
+            loadedImages.push(image);
             // Set image origin to top-left corner
             image.setOrigin(0, 0);
         });
@@ -166,11 +169,15 @@ function setupSocketEventListeners(socket) {
   });
 
   socket.on("clear", (data) => {
+    loadedImages.forEach(image => image.destroy());
+    loadedImages=[];
     clearScreen();
     hrefs = []
   });
 
   socket.on("ansi_mod_editor", (data) => {
+    loadedImages.forEach(image => image.destroy());
+    loadedImages=[];
     clearScreen();
     hrefs = []
     enableTrackerKeyboard = true;
