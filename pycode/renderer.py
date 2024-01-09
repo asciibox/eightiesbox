@@ -19,7 +19,7 @@ class Renderer:
         self.active_callback = None
         self.previous_element_id = None
         self.processed_ids = set()
-        self.sleeper = 0.1
+        self.sleeper = 0.25
         self.is_current_line_empty=True
 
         self.inheritable_properties = [
@@ -369,7 +369,9 @@ class Renderer:
       
         # parent_grid = nested_container.find(lambda tag: 'display:grid' in tag.get('style', ''))
         # Get the 'top' property of the parent grid
-        parent_top_value = int(parent_grid.get('style', '').split('top:')[1].split('px')[0]) if 'top:' in parent_grid.get('style', '') else 0
+        parent_top_value_str = parent_grid.get('style', '').split('top:')[1].split('px')[0] if 'top:' in parent_grid.get('style', '') else '0'
+        parent_top_value = int(float(parent_top_value_str.strip()))
+
         # Get the row index of the nested grid within the parent grid
         parent_grid_row_index = int(parent_grid.get('data-grid-row', '0')) - 1
         # Calculate the sum of the heights of all rows before the nested grid in the parent grid
@@ -519,69 +521,80 @@ class Renderer:
                     fixed_height_rows = sum(int(re.findall(r'\d+', r)[0]) for r in grid_rows if 'px' in r)
                     fr_unit_height = (total_height - fixed_height_rows) / total_fr_units if total_fr_units else 0
 
-                    # Generate the list of row heights
+                    # Extract margin-top from the container style
+                    margin_top = self.extract_style_value(container_style, 'margin-top', 0)
+
+                    # Adjust the total height by subtracting the margin-top
+                    adjusted_height = total_height - margin_top
+
+                    # Find all grid elements
+                    elements = container.find_all(["div", "span", "p", "input", "button", "submit", "a"], recursive=False)
+                    num_elements = len(elements)
+
+                    # Calculate the height for each element based on grid-template-rows
+                    row_heights = []
                     for r in grid_rows:
                         if 'fr' in r:
-                            row_heights.append(fr_unit_height)
+                            fr_value = float(r.replace('fr', ''))
+                            row_height = (adjusted_height * fr_value) / total_fr_units
                         elif 'px' in r:
-                            row_heights.append(int(float(r.replace('px', ''))))
+                            row_height = float(r.replace('px', ''))
                         else:
                             raise ValueError(f"Invalid row height unit: {r}")
+                        row_heights.append(row_height)
 
-                
-                margin_top = self.extract_style_value(container_style, 'margin-top', 0)
+                    # Initialize the cumulative height with margin_top
+                    cumulative_height = margin_top
 
-                # Calculate the total available height (assuming total_height is defined elsewhere as the container's height)
-                available_height = total_height - margin_top
+                    # Apply the styles to the elements
+                    for index, element in enumerate(elements):
+                        unique_id = element.get('uniqueid')
 
-                elements = container.find_all(["div", "span", "p", "input", "button", "submit", "a"], recursive=False)
-                num_elements = len(elements)
-
-                # Calculate the height for each element
-                height_per_element = available_height / num_elements if num_elements > 0 else 0
-
-                for index, element in enumerate(elements):
-                    unique_id = element.get('uniqueid')
-                    
-
-                    # Set the top position
-                    if index == 0:
-                        top = margin_top
-                    else:
-                        previous_element = elements[index - 1]
-                        previous_top = self.extract_style_value(previous_element.get('style', ''), 'top', 0)
-                        previous_height = self.extract_style_value(previous_element.get('style', ''), 'height', height_per_element)
-                        # top = previous_top + previous_height                        
-
-                    
-                    column = index % len(grid_columns) if grid_columns else 0
-                    row = index // len(grid_columns) if grid_columns else 0
-                    top = sum(row_heights[:row]) if row_heights else 0
-                    print("column_widths")
-                    print(column_widths)
-                    left = sum(column_widths[:column]) if grid_columns else 0
-                    width = math.ceil(column_widths[column] if grid_columns and column < len(column_widths) else total_width)
-                    height = row_heights[row] if grid_rows and row < len(row_heights) else total_height
-                    # height = height_per_element
-
-                    # print(f"Debug: Updated style for {unique_id}: {element['style']}")
-
-                    existing_style = element.get('style', '')
-
-                    if 'left:' not in existing_style and 'left :' not in existing_style:
-                        existing_style += f" left: {left}px;"
-
-                    if 'top:' not in existing_style and 'top :' not in existing_style:
-                        existing_style += f" top: {top}px;"
-
-                    if 'width:' not in existing_style and 'width :' not in existing_style:
-                        existing_style += f" width: {width}px;"
-
-                    if 'height:' not in existing_style and 'height :' not in existing_style:
-                        existing_style += f" height: {height}px;"
+                        # Calculate the top position for the current element
+                        if index == 0:
+                            # For the first element, the top is just the margin_top
+                            top = margin_top
+                        else:
+                            # For subsequent elements, add the height of the previous element
+                            previous_element = elements[index - 1]
+                            previous_height = self.extract_style_value(previous_element.get('style', ''), 'height', 0)
+                            cumulative_height += previous_height
+                            top = cumulative_height
 
 
-                    element['style'] = existing_style
+                        unique_id = element.get('uniqueid')
+
+                        # Calculate the top position
+        
+                        # Calculate the left position and width based on grid-template-columns
+                        left = sum(column_widths[:index % len(column_widths)]) if grid_columns else 0
+                        width = column_widths[index % len(column_widths)] if grid_columns else total_width
+                        height_per_element = adjusted_height / num_elements
+                        height = height_per_element
+                        if margin_top == 0:
+                            column = index % len(grid_columns) if grid_columns else 0
+                            row = index // len(grid_columns) if grid_columns else 0
+                            top = sum(row_heights[:row]) if row_heights else 0
+                            height = row_heights[row] if grid_rows and row < len(row_heights) else total_height
+
+
+                        # Update the element's style
+                        existing_style = element.get('style', '')
+
+                        if 'left:' not in existing_style and 'left :' not in existing_style:
+                            existing_style += f" left: {left}px;"
+
+                        if 'top:' not in existing_style and 'top :' not in existing_style:
+                            existing_style += f" top: {top}px;"
+
+                        if 'width:' not in existing_style and 'width :' not in existing_style:
+                            existing_style += f" width: {width}px;"
+
+                        if 'height:' not in existing_style and 'height :' not in existing_style:
+                            existing_style += f" height: {height}px;"
+
+
+                        element['style'] = existing_style
                 #nested_grids = element.find_all(["div"], style=self.has_grid_style, recursive=True)
                 
                 #print(nested_grids)
