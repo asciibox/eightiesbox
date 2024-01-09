@@ -19,7 +19,7 @@ class Renderer:
         self.active_callback = None
         self.previous_element_id = None
         self.processed_ids = set()
-        self.sleeper = 0
+        self.sleeper = 0.1
         self.is_current_line_empty=True
 
         self.inheritable_properties = [
@@ -499,6 +499,7 @@ class Renderer:
             else:
                 container_style = container.get('style', '')
                 row_heights = []  # Initialize row_heights to an empty list
+                height = total_height
                 # Extract column styles
                 if 'grid-template-columns:' in container_style:
                     columns_style = container_style.split('grid-template-columns:')[1].split(';')[0].strip()
@@ -529,20 +530,37 @@ class Renderer:
                         else:
                             raise ValueError(f"Invalid row height unit: {r}")
 
-                
+               
+                margin_top = self.extract_style_value(container_style, 'margin-top', 0)
+
+                # Calculate the total available height (assuming total_height is defined elsewhere as the container's height)
+                available_height = total_height - margin_top
+
                 elements = container.find_all(["div", "span", "p", "input", "button", "submit", "a"], recursive=False)
+                num_elements = len(elements)
+
+                # Calculate the height for each element
+                height_per_element = available_height / num_elements if num_elements > 0 else 0
+
                 for index, element in enumerate(elements):
                     unique_id = element.get('uniqueid')
-                    
+
+                    # Set the top position
+                    if index == 0:
+                        top = margin_top
+                    else:
+                        previous_element = elements[index - 1]
+                        previous_top = self.extract_style_value(previous_element.get('style', ''), 'top', 0)
+                        previous_height = self.extract_style_value(previous_element.get('style', ''), 'height', height_per_element)
+                        top = previous_top + previous_height
+
                     column = index % len(grid_columns) if grid_columns else 0
                     row = index // len(grid_columns) if grid_columns else 0
                     left = sum(column_widths[:column]) if grid_columns else 0
-                    top = sum(row_heights[:row]) if row_heights else 0
                     width = math.ceil(column_widths[column] if grid_columns and column < len(column_widths) else total_width)
-                    height = row_heights[row] if grid_rows and row < len(row_heights) else total_height
+                    height = height_per_element
 
-                    # print(f"Debug: Updated style for {unique_id}: {element['style']}")
-
+                    # Update the style string
                     existing_style = element.get('style', '')
 
                     if 'left:' not in existing_style and 'left :' not in existing_style:
@@ -557,8 +575,12 @@ class Renderer:
                     if 'height:' not in existing_style and 'height :' not in existing_style:
                         existing_style += f" height: {height}px;"
 
-
                     element['style'] = existing_style
+
+
+                    print("************-----------+++++++++++++++")
+                    print(element)
+                    print("************-----------+++++++++++++++")
                     #for content in element.contents:
                     #    if isinstance(content, bs4.NavigableString):
                     #        content.replace_with(' ')
@@ -605,6 +627,9 @@ class Renderer:
 
             width = self.extract_width(style)
             height = self.extract_style_value(style, 'height', 1)
+            print("height")
+            print(height)
+
             end_x = left + width
             end_y = top + height
 
@@ -647,6 +672,9 @@ class Renderer:
                 self.util.sid_data.startX = left
                 self.util.sid_data.startY = top
                 self.util.output(padded_element_value, 6, 4)
+
+        print(elements)
+
 
         if self.first_input_element != None:
             ele_id = self.first_input_element.get('id', None)
@@ -715,6 +743,10 @@ class Renderer:
             color = extracted_color if extracted_color is not None else None
             extracted_backgroundColor = self.extract_style_value(style, 'background-color', None)
             backgroundColor = extracted_backgroundColor if extracted_backgroundColor is not None else None
+
+            extracted_background_image = self.extract_style_value(style, 'background-image',None)
+            background_image = extracted_background_image if extracted_background_image is not None else ''
+
             extracted_width = self.extract_style_value(style, 'width',None)
             width = extracted_width if extracted_width is not None else default_width
 
@@ -781,7 +813,6 @@ class Renderer:
             for child in element.children:
                 if isinstance(child, bs4.element.Tag):
                     # If the child is a Tag, recursively call render_element
-                    print(child)
                     top, left, last_char, new_block = self.render_element(child, left, top, width, height, new_block=new_block, last_char=last_char)
                     # After a tag, it's no longer the start of a new block
                 elif isinstance(child, bs4.NavigableString):
@@ -796,7 +827,11 @@ class Renderer:
                             else:
                                 self.util.emit_link(width, inherited_link, self.key_pressed, child.parent.get('uniqueid'), left, top, height)
                         
-                        top, left, last_char, new_block = self.output_text(display, child_text, left, top, width, height, tag_name, color, backgroundColor, tuple(padding_values), place_items, text_align, new_block=new_block, last_char=last_char)
+                        if background_image != None and background_image != '':
+                            cleaned_url = background_image.replace("url('", "").replace("')", "")
+                            self.emit_background_image(cleaned_url, left, top, width, height)
+                        else:
+                            top, left, last_char, new_block = self.output_text(display, child_text, left, top, width, height, tag_name, color, backgroundColor, tuple(padding_values), place_items, text_align, new_block=new_block, last_char=last_char)
                         
                         time.sleep(self.sleeper)
                         # After text, it's no longer the start of a new block
@@ -817,8 +852,11 @@ class Renderer:
                                 self.emit_href(child_text, width, inherited_link, left, top, height)
                             else:
                                 self.util.emit_link(width, inherited_link, self.key_pressed, element.get('uniqueid'), left, top, height)
-                
-                top, left, last_char, new_block = self.output_text(display, child_text, left, top, width, height, parent_tag_name, color, backgroundColor, tuple(padding_values), place_items, text_align, last_char=last_char, new_block=new_block)
+                if background_image != None and background_image != '':
+                    cleaned_url = background_image.replace("url('", "").replace("')", "")
+                    self.emit_background_image(cleaned_url, left, top, width, height)
+                else:
+                    top, left, last_char, new_block = self.output_text(display, child_text, left, top, width, height, parent_tag_name, color, backgroundColor, tuple(padding_values), place_items, text_align, last_char=last_char, new_block=new_block)
                 
                 time.sleep(self.sleeper)
                 
@@ -857,6 +895,7 @@ class Renderer:
 
     def output_text(self, display, element, left, top, width, height, tag_name, foregroundColor, backgroundColor, padding, place_items, text_align, new_block=False, last_char=None):
         text = element if isinstance(element, str) else element.get_text()
+        print(text+str(top))
         words = text.split() or [" "]
 
          # Determine if a space is needed at the start of this element
@@ -901,92 +940,78 @@ class Renderer:
                 time.sleep(self.sleeper)
    
     
-        if height != None:
-            for i, word in enumerate(words):
+        if height != None or display!='grid':
+            # Set the width if not defined
+            if width is None:
+                width = self.util.sid_data.xWidth
+                max_width = width
 
+            # Calculate the available space for the current line
+            maximum = width - padding_left - padding_right if display == 'grid' else max_width
+
+            # Process each word to build lines
+            for i, word in enumerate(words):
                 is_punctuation = word in [",", ".", ":", ";", "!", "?"]
 
-                if display =='grid':
-                    if max_width != None:
-                        maximum = max_width - padding_left - padding_right
-                    else:
-                        maximum = 0
-                else:
-                    maximum = max_width - left
+                # Check if the current word fits in the remaining line space
                 if len(current_line) + len(word) + (0 if is_punctuation or new_block else 1) > maximum:
-                    
-                    if display  == "grid":                    
-                        self.util.sid_data.startX = original_left
-                    else:
-                        self.util.sid_data.startX = left
-                    
+                    # Output the current line with padding
+                    self.util.sid_data.startX = left
                     self.util.sid_data.startY = top
-
-                    horizontal_space = self.get_horizontal_space( current_line, display, maximum, text_align)
-                    self.util.output(" " * (padding_left + horizontal_space)  + current_line, foregroundColor, backgroundColor)
-                    new_block = False
-                
-
+                    horizontal_space = self.get_horizontal_space(current_line, display, maximum, text_align)
+                    self.util.output("x" * (padding_left + horizontal_space) + current_line, foregroundColor, backgroundColor)
                     time.sleep(self.sleeper)
-                    remaining_space = width - len(current_line) - horizontal_space if width is not None else self.util.sid_data.xWidth - len(current_line) - horizontal_space
-                    # Output spaces until the specified width is reached
+
+                    # Output remaining spaces to fill the line
+                    remaining_space = width - len(current_line) - horizontal_space
                     self.util.output(" " * remaining_space, foregroundColor, backgroundColor)
                     top += 1
-                    if height != None and top - original_top >= height:
-                        break  # Stop printing if height is exceeded
-                    if display == 'grid':
-                        left = original_left  # Reset left to original_left instead of 0
-                    else:
-                        left = 0
-                    current_line = word
-                    link_start_x = left  # Reset the starting x position of the link
+                    new_block = True
+
+                    # Check if we've filled the desired height
+                    if height is not None and top - original_top >= height:
+                        break  # Stop printing if height is reached
+
+                    # Prepare for the new line
+                    current_line = word if not is_punctuation else ""
+
                 else:
+                    # Add the word to the current line
                     current_line += ("" if is_punctuation or new_block else " ") + word
                     new_block = False
 
-            if height == None or (current_line and top - original_top < height):
-                horizontal_space = self.get_horizontal_space( current_line, display, maximum, text_align)
+            # Output the last line if there's remaining text and we have not reached the height
+            if current_line and (height is None or top - original_top < height):
+                horizontal_space = self.get_horizontal_space(current_line, display, maximum, text_align)
                 self.util.sid_data.startX = left
                 self.util.sid_data.startY = top
-                self.util.output(" " * (padding_left + horizontal_space) , foregroundColor, backgroundColor)
-                self.util.output(current_line, foregroundColor, backgroundColor)
-                new_block = False
-                last_char = current_line[-1] if current_line else None
+                self.util.output("y" * (padding_left + horizontal_space) + current_line, foregroundColor, backgroundColor)
                 time.sleep(self.sleeper)
-                if display == 'grid':
-                    if width != None:
-                        remaining_space = width - len(current_line) - horizontal_space
-                        self.util.output(" " * remaining_space, foregroundColor, backgroundColor)
 
-                    if height != None and original_top != None:
-                        myheight = height + original_top - 1
-                    else:
-                        myheight = 0
+                # Output remaining spaces to fill the line
+                remaining_space = width - len(current_line) - horizontal_space
+                self.util.output("z" * remaining_space, foregroundColor, backgroundColor)
+                top += 1
 
-                    while height != None and top < myheight:
-                        self.util.sid_data.startX = left
-                        self.util.sid_data.startY = top + 1
-                    
-                        self.util.output(" " * width, foregroundColor, backgroundColor)
-                        top += 1
-                        time.sleep(self.sleeper)
-                    
-                    # Update top and left for the next element
-                    top = 0 # original_top + myheight-1 if height is not None else top + 0
+            # Fill up any remaining vertical space with empty lines to reach the specified height
+            target_height = original_top + height if height is not None else top
+            while top < target_height:
+                self.util.sid_data.startX = left
+                self.util.sid_data.startY = top
 
-                    if width != None:
-                        left = original_left + width if original_left + width <= max_width else 0
-                    else:
-                        left = original_left
-                else:
-                    left = self.util.sid_data.startX
+                # Output empty spaces for the whole width
+                self.util.output("a" * width, foregroundColor, backgroundColor)
+                top += 1
+                time.sleep(self.sleeper)
 
-                if left == 0 and display == 'grid':
-                        pass # top += 1  # Move down a row if we've hit the max width
-            else:
-                left = self.util.sid_data.startX
-        
-        
+                if top >= target_height or top >= self.util.sid_data.yHeight-2:
+                    break  # Exit the loop if we've reached the target height
+
+            # Reset the left position for the next element if we're in a grid
+            if display == 'grid':
+                left = original_left + width if original_left + width <= max_width else 0
+
+                        
         return top, left, last_char, new_block
 
 
@@ -1006,6 +1031,29 @@ class Renderer:
         }, room=self.util.request_id)
 
 
+
+
+    def emit_background_image(self, filename, x, y, width, height):
+        """ Emit a socket event for a background image. """
+
+        # Ensure width and height have default values if None
+        if width is None:
+            width = 0  # or some default value
+        if height is None:
+            height = 0  # or some default value
+
+        print(str(x)+"/"+str(y))
+        print("width:"+str(width))
+        print("height:"+str(height))
+
+        # Emit the background image data to the 'backgroundimage' event
+        self.util.socketio.emit('backgroundimage', {
+            'filename': filename,
+            'x': x,
+            'y': y,
+            'width': width,
+            'height': height
+        }, room=self.util.request_id)
 
     
 
@@ -1037,30 +1085,37 @@ class Renderer:
 
     def extract_style_value(self, style, attribute, default_value):
         #print("Input style:", style)  # Debug: Print input style
-        #print("Searching for attribute:", attribute)  # Debug: Print the attribute to be searched
 
         properties = style.split(';')
+        
         #print("Properties after split:", properties)  # Debug: Print properties list
 
         for prop in properties:
             prop = prop.strip()
+            
             #print("Current property:", prop)  # Debug: Print the current property
 
-            key_value = prop.split(':')
-            if len(key_value) == 2:
-                key, value = key_value[0].strip(), key_value[1].strip()
+            colon_index = prop.find(':')
+            if colon_index != -1:
+                key = prop[:colon_index].strip()
+                value = prop[colon_index + 1:].strip()
+                
                 #print(f"Key: '{key}', Value: '{value}'")  # Debug: Print the key and value
 
                 if key == attribute:
                     #print("Attribute found")  # Debug: Print when attribute is found
-                    if 'px' in value:
+                    if 'calc' in value:
+                        print("Processing calc() value:", value)  # Debug: Print the calc() value
+                        return self.calculate_css_calc(value)
+                    elif 'px' in value:
                         numeric_value = int(float(value.split('px')[0].strip()))
                         #print(f"Returning numeric value: {numeric_value}")  # Debug: Print the numeric value
                         return numeric_value
                     else:
-                        #print(f"Returning value: {value}")  # Debug: Print the non-numeric value
+                        #print("Returning value:", value)  # Debug: Print the non-numeric value
                         return value
-            
+
+        
         #print(f"Attribute not found, returning default value: {default_value}")  # Debug: Print when returning default
         return default_value
 
@@ -1421,3 +1476,38 @@ class Renderer:
 
         return total_lines
 
+
+    def calculate_css_calc(self, calc_expression):
+        # Remove 'calc' and unnecessary characters
+        calc_expression = calc_expression.replace('calc', '').replace('(', '').replace(')', '').strip()
+
+        # Split by '+' and '-' operators
+        tokens = re.split('(\+|\-)', calc_expression)
+
+        result = 0
+        operator = '+'
+        for token in tokens:
+            token = token.strip()
+            if token in ['+', '-']:
+                operator = token
+            else:
+                # Handle different units
+                if 'px' in token:
+                    value = math.ceil(float(token.replace('px', '').strip()))
+                elif 'vh' in token:
+                    vh_value = float(token.replace('vh', '').strip())
+                    value = math.ceil((vh_value / 100) * self.util.sid_data.yHeight)
+                elif 'vw' in token:
+                    vw_value = float(token.replace('vw', '').strip())
+                    value = math.ceil((vw_value / 100) * self.util.sid_data.xWidth)
+                else:
+                    value = 0  # Or handle other units if necessary
+
+                # Apply the operation
+                if operator == '+':
+                    result += value
+                elif operator == '-':
+                    result -= value
+
+        print('returning ' + str(result))
+        return result

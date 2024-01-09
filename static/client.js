@@ -121,6 +121,42 @@ function setupSocketEventListeners(socket) {
     }
   });
 
+  socket.on("backgroundimage", async (data) => {
+    // Extracting properties from the data object
+    const { filename, x, y, width, height } = data;
+
+    // Constants for tile dimensions in pixels
+    const tileWidthInPixels = 8;
+    const tileHeightInPixels = 16;
+
+    // Convert tile coordinates and dimensions to pixels
+    // Removed subtraction of 1 from x and y
+    const pixelX = x * tileWidthInPixels;
+    const pixelY = y * tileHeightInPixels;
+    const pixelWidth = width * tileWidthInPixels;
+    const pixelHeight = height * tileHeightInPixels;
+
+    // Access the current scene
+    let currentScene = game.scene.getScenes(true)[0];
+
+    // Load and display the image
+    if (currentScene) {
+        currentScene.load.image('dynamicImage', filename);
+        currentScene.load.once('complete', () => {
+            let image = currentScene.add.image(pixelX, pixelY, 'dynamicImage').setDisplaySize(pixelWidth, pixelHeight);
+
+            // Set image origin to top-left corner
+            image.setOrigin(0, 0);
+        });
+        currentScene.load.start();
+    } else {
+        console.error("No active scene found to load the image.");
+    }
+});
+
+
+
+
   socket.on("draw_to_status_bar", async (data) => {
     await writeAsciiToStatusBar(
       data.ascii_codes,

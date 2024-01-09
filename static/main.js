@@ -83,6 +83,7 @@ var specialKeyCharacterSet = 0;
 var shiftPressed = false;
 var ctrlKeyPressed = false;
 var altgrPressed = false;
+var game;
 
 function initPage(dataArray) {
   // Sort the array based on minWidth for easy comparison.
@@ -378,6 +379,8 @@ function create() {
       //}
     }
   });
+
+
 
   this.input.on("pointerup", function () {
     isDraggingVertical = false;
