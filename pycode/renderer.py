@@ -19,7 +19,7 @@ class Renderer:
         self.active_callback = None
         self.previous_element_id = None
         self.processed_ids = set()
-        self.sleeper = 0.25
+        self.sleeper = 0
         self.is_current_line_empty=True
 
         self.inheritable_properties = [
@@ -748,6 +748,12 @@ class Renderer:
             color = extracted_color if extracted_color is not None else None
             extracted_backgroundColor = self.extract_style_value(style, 'background-color', None)
             backgroundColor = extracted_backgroundColor if extracted_backgroundColor is not None else None
+
+            extracted_background_image = self.extract_style_value(style, 'background-image',None)
+            background_image = extracted_background_image if extracted_background_image is not None else ''
+
+
+
             extracted_width = self.extract_style_value(style, 'width',None)
             width = extracted_width if extracted_width is not None else default_width
 
@@ -836,7 +842,11 @@ class Renderer:
                             else:
                                 self.util.emit_link(width, inherited_link, self.key_pressed, child.parent.get('uniqueid'), left, top, height)
                        
-                        top, left, last_char, new_block = self.output_text(display, child_text, left, top, width, height, tag_name, color, backgroundColor, tuple(padding_values), place_items, text_align, new_block=new_block, last_char=last_char)
+                        if background_image != None and background_image != '':
+                            cleaned_url = background_image.replace("url('", "").replace("')", "")
+                            self.emit_background_image(cleaned_url, left, top, width, height)
+                        else:
+                            top, left, last_char, new_block = self.output_text(display, child_text, left, top, width, height, tag_name, color, backgroundColor, tuple(padding_values), place_items, text_align, new_block=new_block, last_char=last_char)
                         
                         time.sleep(self.sleeper)
                         # After text, it's no longer the start of a new block
@@ -859,7 +869,11 @@ class Renderer:
                             else:
                                 self.util.emit_link(width, inherited_link, self.key_pressed, element.get('uniqueid'), left, top, height)
                 
-                top, left, last_char, new_block = self.output_text(display, child_text, left, top, width, height, parent_tag_name, color, backgroundColor, tuple(padding_values), place_items, text_align, last_char=last_char, new_block=new_block)
+                if background_image != None and background_image != '':
+                    cleaned_url = background_image.replace("url('", "").replace("')", "")
+                    self.emit_background_image(cleaned_url, left, top, width, height)
+                else:
+                    top, left, last_char, new_block = self.output_text(display, child_text, left, top, width, height, parent_tag_name, color, backgroundColor, tuple(padding_values), place_items, text_align, last_char=last_char, new_block=new_block)
                 
                 time.sleep(self.sleeper)
                 
