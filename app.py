@@ -617,7 +617,7 @@ if os.path.exists(google_key_file):
     bucket = storage_client.get_bucket('eightiesbox')
 
     # Initialize Pub/Sub client
-
+    subscriber = pubsub_v1.SubscriberClient()
     # Initialize a subscriber client with the key file
     subscription_path = subscriber.subscription_path('animated-moon-403620', 'projects/animated-moon-403620/subscriptions/bbs-file-upload-notification')
     

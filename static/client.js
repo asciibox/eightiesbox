@@ -147,7 +147,9 @@ function setupSocketEventListeners(socket) {
         currentScene.load.image('dynamicImage', filename);
         currentScene.load.once('complete', () => {
             let image = currentScene.add.image(pixelX, pixelY, 'dynamicImage').setDisplaySize(pixelWidth, pixelHeight);
+            image.setDepth(IMAGE_LAYER_DEPTH)
             loadedImages.push(image);
+            
             // Set image origin to top-left corner
             image.setOrigin(0, 0);
         });

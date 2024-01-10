@@ -17,6 +17,11 @@ let enableTrackerKeyboard = false;
 let initCalled = false;
 let popupOpened = false;
 
+const BACKGROUND_LAYER_DEPTH = 0;  // Lowest depth
+const IMAGE_LAYER_DEPTH = 10;      // Depth higher than background but lower than bglayer
+const BGLAYER_DEPTH = 20;          // Highest depth
+
+
 function updateSizes(x, y) {
   TOTAL_WIDTH = x;
   VISIBLE_WIDTH_CHARACTERS = x;
@@ -240,6 +245,7 @@ function create() {
     map.push(rowY);
   }
 
+
   map = this.make.tilemap({
     data: map,
     tileWidth: 8,
@@ -249,7 +255,7 @@ function create() {
   });
   tiles = map.addTilesetImage("tiles");
   layer = map.createDynamicLayer(0, tiles, 0, 0);
-
+  layer.setDepth(BACKGROUND_LAYER_DEPTH);
   var map2 = [];
 
   for (var y = 0; y < 16 * 8 * 2; y++) {
@@ -260,6 +266,9 @@ function create() {
     map2.push(rowY2);
   }
 
+  
+  
+
   bgmap = this.make.tilemap({
     data: map2,
     tileWidth: 8,
@@ -269,7 +278,10 @@ function create() {
   });
   bg = bgmap.addTilesetImage("ansibgs");
   bglayer = bgmap.createDynamicLayer(0, bg, 0, 0);
+  bglayer.setDepth(BGLAYER_DEPTH);
   console.log("Created bglayer");
+
+
   sprite = this.add.sprite(4, 8, "underscore_white");
 
   cursorInterval = setInterval(function () {
