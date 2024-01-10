@@ -19,7 +19,7 @@ class Renderer:
         self.active_callback = None
         self.previous_element_id = None
         self.processed_ids = set()
-        self.sleeper = 0.0
+        self.sleeper = 0.1
         self.is_current_line_empty=True
 
         self.inheritable_properties = [
@@ -106,10 +106,6 @@ class Renderer:
                 html_content = html_content_str.encode('utf-8')
         
             except AttributeError as e:
-                print("*********************************************************")
-                print("An error occured inserting document")
-                print("*********************************************************")
-                print(e)
                 self.return_function()
                 # Handle the case where html_content is not byte-like or other AttributeErrors
                 pass
@@ -506,7 +502,6 @@ class Renderer:
                         new_styles.append(f"height: {item_height}px;")
 
                     item['style'] = '; '.join(new_styles)
-                    print(item['style'])
           
 
             else:
@@ -582,14 +577,10 @@ class Renderer:
                                 previous_element = elements[index - 1]
                                 # previous_height = self.extract_style_value(previous_element.get('style', ''), 'height', 0)
                                 inherited_previous_styles = self.gather_inherited_styles(previous_element)
-                                print("STYLE:"+str(previous_element.get('style', '')));
-                                print("HEIGHT:"+str(height))
 
                                 previous_height = self.extract_height_value(previous_element.get('style', ''), height, height)
-                                print("adding previous_height="+str(previous_height))
                                 cumulative_height += previous_height
                                 top = cumulative_height
-                                print("TOP:"+str(top))
 
                         # Update the element's style
                         existing_style = element.get('style', '')
@@ -606,7 +597,6 @@ class Renderer:
                         if 'height:' not in existing_style and 'height :' not in existing_style:
                             existing_style += f" height: {height}px;"
                         else:
-                             print("height = "+str(height))
                              height = self.extract_height_value(existing_style, 1, height)
                              existing_style += f" height: {height}px;"
 
@@ -632,7 +622,6 @@ class Renderer:
         
         for container in grid_containers:
             top_position =  self.calculate_top_position(container, 0)
-            print("process_grid_container 1 with "+str(self.util.sid_data.yHeight-1))
             process_grid_container(container, self.util.sid_data.xWidth, self.util.sid_data.yHeight-1, top_position)
 
         new_block = True
@@ -698,7 +687,6 @@ class Renderer:
                 self.util.sid_data.startX = left
                 self.util.sid_data.startY = top
                 self.util.output(padded_element_value, 6, 4)
-        print(elements)
         if self.first_input_element != None:
             ele_id = self.first_input_element.get('id', None)
             self.focus_on_element(ele_id, False)
@@ -737,13 +725,10 @@ class Renderer:
 
         cumulative_height = initial_top
         top = self.util.sid_data.startY
-        print("PARENT")
-        print(element.parent)
         if 'display: block' in element.parent.get('style', '') or 'display:block' in element.parent.get('style', ''):
             tag_children = [child for child in element.parent.contents if isinstance(child, bs4.element.Tag)]
             if tag_children and element is tag_children[0]:
                 top = self.calculate_top_position(element.parent, default_height) +13
-                print("************** TOP SET TO "+str(top))
 
         if isinstance(element, bs4.element.Tag):
             unique_id = element.get('uniqueid')
@@ -884,8 +869,11 @@ class Renderer:
                             self.emit_background_image(cleaned_url, left, top, default_width, height)
                         else:
                             if backgroundColor != 0 or len(child_text.strip())>0:
-                                print(backgroundColor+"*"+child_text.strip()+"*")
-                                top, left, last_char, new_block = self.output_text(display, child_text, left, top, default_width, height, tag_name, color, backgroundColor, tuple(padding_values), place_items, text_align, new_block=new_block, last_char=last_char)
+                                print(str(top) + "/ "+str(left)+" width: "+str(default_width)+" height: "+str(height))
+                                print(element.get('uniqueid'))
+                                if unique_id not in self.processed_ids:
+                                    self.processed_ids.add(unique_id)
+                                    top, left, last_char, new_block = self.output_text(display, child_text, left, top, default_width, height, tag_name, color, backgroundColor, tuple(padding_values), place_items, text_align, new_block=new_block, last_char=last_char)
                         
                         time.sleep(self.sleeper)
                         # After text, it's no longer the start of a new block
@@ -905,16 +893,19 @@ class Renderer:
                             if len(inherited_link)>1:
                                 self.emit_href(child_text,default_width, inherited_link, left, top, height)
                             else:
+                                print(element.get('uniqueid'))
                                 self.util.emit_link(default_width, inherited_link, self.key_pressed, element.get('uniqueid'), left, top, height)
                 
                 if background_image != None and background_image != '':
                     cleaned_url = background_image.replace("url('", "").replace("')", "")
                     self.emit_background_image(cleaned_url, left, top, width, height)
                 else:
-                    print(str(left)+"/"+str(top)+" width: "+str(default_width)+" height: "+str(height))
-                    print(backgroundColor+"*"+child_text.strip()+"*")
                     if backgroundColor != 0 or len(child_text.strip())>0 :
-                        top, left, last_char, new_block = self.output_text(display, child_text, left, top, default_width, height, parent_tag_name, backgroundColor, 4, tuple(padding_values), place_items, text_align, last_char=last_char, new_block=new_block)
+                        print(str(top) + "/ "+str(left)+" width: "+str(defaullt_width)+" height: "+str(height))
+                        print(element.get('uniqueid'))
+                        if unique_id not in self.processed_ids:
+                            self.processed_ids.add(unique_id)
+                            top, left, last_char, new_block = self.output_text(display, child_text, left, top, default_width, height, parent_tag_name, backgroundColor, 4, tuple(padding_values), place_items, text_align, last_char=last_char, new_block=new_block)
                 
                 time.sleep(self.sleeper)
                 
@@ -1156,7 +1147,6 @@ class Renderer:
     def extract_height_value(self, style, default_value, current_height):
         if current_height == None:
             current_height = self.util.sid_data.yHeight -1
-        print("Input style:", style)  # Debug: Print input style
 
         properties = style.split(';')
         #print("Properties after split:", properties)  # Debug: Print properties list
@@ -1175,22 +1165,17 @@ class Renderer:
                 if key == 'height':
                     print("Height attribute found")  # Debug: Print when height attribute is found
                     if 'calc' in value:
-                        print("Processing calc() value:", value)  # Debug: Print the calc() value
                         return self.calculate_css_calc(value)
                     elif 'px' in value:
                         numeric_value = int(float(value.split('px')[0].strip()))
-                        print(f"Returning numeric value: {numeric_value}")  # Debug: Print the numeric value
                         return numeric_value
                     elif '%' in value:
                         percentage_value = float(value.split('%')[0].strip()) / 100
                         calculated_height = current_height * percentage_value
-                        print(f"Returning calculated percentage height: {calculated_height}")  # Debug: Print the calculated percentage height
                         return calculated_height
                     else:
-                        print("Returning default value:", default_value)  # Debug: Print the default value
                         return default_value
 
-        print(f"Height attribute not found, returning default value: {default_value}")  # Debug: Print when returning default
         return default_value
 
 
@@ -1281,7 +1266,6 @@ class Renderer:
         self.redraw_elements(False)
 
     def update_previous_element(self):
-        print("Updating previous element:", self.previous_element_id)
         if self.previous_element_id is not None:
             previous_element = self.extract_element_for_id(self.previous_element_id)
             if previous_element:
@@ -1440,11 +1424,8 @@ class Renderer:
         if self.current_focus_index > len(self.element_order)-1:
             self.current_focus_index = 0
 
-        print("going down to "+str(self.current_focus_index))
-
         # Get the ID of the next element to focus
         next_element_id = self.element_order[self.current_focus_index]
-        print("focus_on_element")
         # Call the existing focus function
         self.focus_on_element(next_element_id, False)
     
@@ -1528,9 +1509,6 @@ class Renderer:
             if width == None:
                 available_width = 0
             else:
-                print(width)
-                print(padding_left)
-                print(padding_right)
                 # Calculate the available width considering padding
                 available_width = width - padding_left - padding_right
 
@@ -1582,7 +1560,6 @@ class Renderer:
                 elif operator == '-':
                     result -= value
 
-        print('returning ' + str(result))
         return result
 
     
