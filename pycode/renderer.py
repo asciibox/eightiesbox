@@ -500,13 +500,25 @@ class Renderer:
                     if not width_already_exists:
                         new_styles.append(f"width: {item_width}px;")  # Assuming item_width is defined
 
-                    new_styles += [f"left: {item_left}px;", f"top: {item_top}px;"]  # Assuming item_left is defined
+                    extracted_position = self.extract_style_value(style, 'position',None)
+                    position = extracted_position if extracted_position is not None else None
+                    
+                    if position == 'relative':
+                        extracted_margin_top = self.extract_style_value(style, 'top',None)
+                        margin_top = extracted_margin_top if extracted_margin_top is not None else None
+                        if margin_top == None:
+                            margin_top = inherited_styles.get('top', 0)  # Inherits margin-top if not defined in own style
+                        top = 0
+
+                    new_styles += [f"left: {item_left}px;", f"top: {item_top}px;", f"relative_top: {margin_top}px;"]  # Assuming item_left is defined
 
                     # Add 'height' style only if it doesn't already exist
                     if not height_already_exists:
                         new_styles.append(f"height: {item_height}px;")
 
                     item['style'] = '; '.join(new_styles)
+                    print("ITEM_STYLE")
+                    print(item['style'])
           
 
             else:
@@ -599,6 +611,9 @@ class Renderer:
                         if 'width:' not in existing_style and 'width :' not in existing_style:
                             existing_style += f" width: {width}px;"
 
+                        if 'relative_top:' not in existing_style and 'relative_top :' not in existing_style:
+                            existing_style += f" relative_top: {margin_top}px;"
+
                         if 'height:' not in existing_style and 'height :' not in existing_style:
                             existing_style += f" height: {height}px;"
                         else:
@@ -608,6 +623,7 @@ class Renderer:
 
 
                         element['style'] = existing_style
+                        print(element['style'])
                 #nested_grids = element.find_all(["div"], style=self.has_grid_style, recursive=True)
                 
                 #print(nested_grids)
@@ -644,13 +660,12 @@ class Renderer:
             style = element.get('style', '')
             
             # Non-grid element positioning logic
-            top, left = self.extract_position(style)
+            margin_top, top, left = self.extract_position(style)
             self.util.sid_data.startX = left if left is not None else 0
             self.util.sid_data.startY = top if top is not None else 0
 
             width = self.extract_percentage_value('width', style, self.util.sid_data.xWidth, self.util.sid_data.xWidth)
             height = self.extract_percentage_value('height', style, self.util.sid_data.yHeight-1, self.util.sid_data.yHeight-1)
-            print("width:"+str(width))
             end_x = left + width
             end_y = top + height
 
@@ -669,13 +684,13 @@ class Renderer:
 
             if element.name == 'div' or element.name =='span':
                 self.util.sid_data.startX = 0
-                mytop, myleft, last_char, new_block = self.render_element(element, self.util.sid_data.startX, self.util.sid_data.startY, width, height, last_char=last_char)
+                mytop, myleft, last_char, new_block = self.render_element(element, self.util.sid_data.startX, self.util.sid_data.startY, width, height, margin_top, last_char=last_char)
                 self.util.sid_data.startY = mytop
                 self.util.sid_data.startX = myleft
             elif element.name == 'p':
                 self.util.sid_data.startX = 0
                 self.util.sid_data.startY += 1  # You might need to add logic to check if this increment is necessary
-                mytop, myleft, last_char, new_block = self.render_element(element, self.util.sid_data.startX, self.util.sid_data.startY, width, height, last_char=last_char)
+                mytop, myleft, last_char, new_block = self.render_element(element, self.util.sid_data.startX, self.util.sid_data.startY, width, height, margin_top, last_char=last_char)
                 self.util.sid_data.startY = mytop
                 self.util.sid_data.startX = myleft
             elif element.name == 'button' or element.name=='submit':
@@ -701,7 +716,6 @@ class Renderer:
                 self.util.sid_data.startY = top
                 self.util.output(padded_element_value, 6, 4)
 
-        print(elements)
         if self.first_input_element != None:
             ele_id = self.first_input_element.get('id', None)
             self.focus_on_element(ele_id, False)
@@ -801,9 +815,6 @@ class Renderer:
             
 
             inherited_styles = self.gather_inherited_styles(element)
-            print("IMG INHERITAGE:")
-            print(element)
-            print(inherited_styles)
             if tag_name == 'span':
                 # Handle span tags as inline elements
                 display = self.extract_style_value(element.get('style', ''), 'display', 'inline')
@@ -826,12 +837,21 @@ class Renderer:
                 if left == None:
                     left = inherited_styles.get('left', 0)  # Inherits left if not defined in own style
 
+                extracted_position = self.extract_style_value(style,'position', None)
+                position = extracted_position if extracted_position is not None else None
+
+
                 extracted_top = self.extract_style_value(style,'top', None)
                 top = extracted_top if extracted_top is not None else None
-
                 if top == None:
                     top = inherited_styles.get('top', 0)  # Inherits top if not defined in own style
-                    
+
+                if position == 'relative':
+                    extracted_margin_top = self.extract_style_value(style,'top', None)
+                    margin_top = extracted_margin_top if extracted_margin_top is not None else None
+                    # margin_top = inherited_styles.get('relative_top', 0)  # Inherits top if not defined in own style
+                    top = inherited_styles.get('top', 0)  # Inherits top if not defined in own style'''
+
             
             if color == None:
                 color = inherited_styles.get('color', color)  # Inherits color if not defined in own style
@@ -869,13 +889,8 @@ class Renderer:
                 imgheight = self.extract_percentage_value('height', element.get('style', ''), height, original_height)
                 imgurl = element.get('src')
 
-                if place_items:
-                    print("IMG PLACE_ITEMS:"+place_items)
-                else:
-                    print("IMG PLACITEMS NONE")
                 if place_items == "center" and height is not None:
                     # Calculate center of the div
-                    print(default_width)
                     center_x = left + original_width / 2
                     center_y = top + original_height / 2
 
@@ -887,10 +902,8 @@ class Renderer:
                     # Ensure the image does not go out of the div's boundaries
                     img_left = max(left, img_left)
                     img_top = max(top, img_top)
-                    print("EMIT BACKGROUND IMAGE"+imgurl)
                     self.emit_background_image(imgurl, img_left, img_top, imgwidth, imgheight)
                 else:
-                    print("EMIT BACKGROUND IMAGE"+imgurl)
                     self.emit_background_image(imgurl, left, top, imgwidth, imgheight)
                 return initial_top, left, last_char, new_block
           
@@ -920,11 +933,9 @@ class Renderer:
                             self.emit_background_image(cleaned_url, left, top, default_width, height)
                         else:
                             if backgroundColor != 0 or len(child_text.strip())>0:
-                                print(str(top) + "/ "+str(left)+" width: "+str(default_width)+" height: "+str(height))
-                                print(element.get('uniqueid'))
                                 if unique_id not in self.processed_ids:
                                     self.processed_ids.add(unique_id)
-                                    top, left, last_char, new_block = self.output_text(display, child_text, left, top, default_width, height, tag_name, color, backgroundColor, tuple(padding_values), place_items, text_align, new_block=new_block, last_char=last_char)
+                                    top, left, last_char, new_block = self.output_text(display, child_text, left, top, default_width, height, tag_name, color, backgroundColor, tuple(padding_values), place_items, text_align, margin_top, new_block=new_block, last_char=last_char)
                         
                         time.sleep(self.sleeper)
                         # After text, it's no longer the start of a new block
@@ -944,7 +955,6 @@ class Renderer:
                             if len(inherited_link)>1:
                                 self.emit_href(child_text,default_width, inherited_link, left, top, height)
                             else:
-                                print(element.get('uniqueid'))
                                 self.util.emit_link(default_width, inherited_link, self.key_pressed, element.get('uniqueid'), left, top, height)
                 
                 if background_image != None and background_image != '':
@@ -952,11 +962,9 @@ class Renderer:
                     self.emit_background_image(cleaned_url, left, top, width, height)
                 else:
                     if backgroundColor != 0 or len(child_text.strip())>0 :
-                        print(str(top) + "/ "+str(left)+" width: "+str(defaullt_width)+" height: "+str(height))
-                        print(element.get('uniqueid'))
                         if unique_id not in self.processed_ids:
                             self.processed_ids.add(unique_id)
-                            top, left, last_char, new_block = self.output_text(display, child_text, left, top, default_width, height, parent_tag_name, backgroundColor, 4, tuple(padding_values), place_items, text_align, last_char=last_char, new_block=new_block)
+                            top, left, last_char, new_block = self.output_text(display, child_text, left, top, default_width, height, parent_tag_name, backgroundColor, 4, tuple(padding_values), place_items, text_align, margin_top, last_char=last_char, new_block=new_block)
                 
                 time.sleep(self.sleeper)
                 
@@ -993,7 +1001,7 @@ class Renderer:
                 horizontal_space = (maximum - line_length) // 2
         return horizontal_space
 
-    def output_text(self, display, element, left, top, width, height, tag_name, foregroundColor, backgroundColor, padding, place_items, text_align, new_block=False, last_char=None):
+    def output_text(self, display, element, left, top, width, height, tag_name, foregroundColor, backgroundColor, padding, place_items, text_align, margin_top, new_block=False, last_char=None):
         text = element if isinstance(element, str) else element.get_text()
         words = text.split() or [" "]
 
@@ -1026,6 +1034,13 @@ class Renderer:
                     lines_to_center = min(total_lines, height)
                     vertical_space = height - lines_to_center
                     for _ in range(vertical_space // 2):
+                        self.util.sid_data.startX = left
+                        self.util.sid_data.startY = top
+                        self.util.output(" " * width, foregroundColor, backgroundColor)
+                        top += 1
+                print(margin_top)
+                if margin_top > 0:
+                    for _ in range(margin_top):
                         self.util.sid_data.startX = left
                         self.util.sid_data.startY = top
                         self.util.output(" " * width, foregroundColor, backgroundColor)
@@ -1162,13 +1177,21 @@ class Renderer:
         return start[0] <= x <= end[0] and start[1] <= y <= end[1]
 
     def extract_position(self, style):
+
+        margin_top = 0
         top = self.extract_style_value(style, 'top', None)
+
+        position = self.extract_style_value(style, 'position', None)
+        if position == 'relative':
+            relative_top = self.extract_style_value(style, 'relative_top', None)
+            margin_top = relative_top
+
         left = self.extract_style_value(style, 'left', None)
         if top == None:
             top = self.util.sid_data.startY
         if left == None:
             left = self.util.sid_data.startX
-        return top, left 
+        return margin_top, top, left 
 
 
     def extract_width(self, style, default_width=35):
@@ -1374,7 +1397,7 @@ class Renderer:
                 elif focused_element.name == 'button':
                     self.input_values[element_id] = input_data
                     style = focused_element.get('style', '')
-                    top, left = self.extract_position(style)
+                    margin_top, top, left = self.extract_position(style)
                     width = self.extract_width(style, 35)
                     element_value = focused_element.get('value')
                     
@@ -1411,7 +1434,7 @@ class Renderer:
         # You might change the color, text style, etc.
         # Example:
         style = button_element.get('style', '')
-        top, left = self.extract_position(style)
+        margin_top, top, left = self.extract_position(style)
         width = self.extract_width(style, 35)
         # Pad the element_value to match the width
         element_value = button_element.get('value')
@@ -1426,7 +1449,7 @@ class Renderer:
         # Code to handle button element
         button_element = self.extract_element_for_id(element_id)
         style = button_element.get('style', '')
-        top, left = self.extract_position(style)
+        margin_top, top, left = self.extract_position(style)
         width = self.extract_width(style, 35)
         # Pad the element_value to match the width
         element_value = button_element.get('value')
@@ -1490,10 +1513,8 @@ class Renderer:
         if self.current_focus_index < 0:
             self.current_focus_index = len(self.element_order) - 1
 
-        print("going up to "+str(self.current_focus_index))
         # Get the ID of the previous element to focus
         previous_element_id = self.element_order[self.current_focus_index]
-        print("focus_on_element")
         # Call the existing focus function
         self.focus_on_element(previous_element_id, False)
 
