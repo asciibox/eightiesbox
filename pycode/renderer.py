@@ -19,8 +19,9 @@ class Renderer:
         self.active_callback = None
         self.previous_element_id = None
         self.processed_ids = set()
-        self.sleeper = 0.1
+        self.sleeper = 0.01
         self.is_current_line_empty=True
+        self.tags = ["div", "span", "p", "input", "button", "submit", "a", "img"]
 
         self.inheritable_properties = [
             'color',
@@ -28,7 +29,8 @@ class Renderer:
             'left',
             'background-color',
             'width',
-            'display'
+            'display',
+            'place-items'
         ]
 
         self.current_focus_index = 0
@@ -301,7 +303,7 @@ class Renderer:
 
     def calculate_top_position(self, container, default_height):
         # Find the parent grid container using a lambda function for style filtering
-        parent_grid = container.find_parent(lambda tag: tag.name in ["div", "span", "p", "input", "button", "submit", "a"] and self.has_display_grid_style(tag.get('style', '')))
+        parent_grid = container.find_parent(lambda tag: tag.name in self.tags and self.has_display_grid_style(tag.get('style', '')))
 
         # If there's no parent grid, return default height
         if not parent_grid:
@@ -430,7 +432,7 @@ class Renderer:
                 # Call the function to calculate the top position for nested items
                 self.calculate_nested_items_top(container, nested_row_heights)
                 self.calculate_left_positions(container, nested_width)
-                # debug_elements = container.find_all(["div", "span", "p", "input", "button", "submit", "a"], recursive=False)
+                # debug_elements = container.find_all(self.tags, recursive=False)
                 # nested_items = container.find_all(recursive=False)  # Get the direct children (grid items)
                 
                 # Calculate the width and height each 'fr' unit represents in the nested grid
@@ -483,7 +485,7 @@ class Renderer:
 
                     # Process the height
                     if height_already_exists:
-                        item_height = self.extract_height_value(item_style, nested_fr_height, item_height)
+                        item_height = self.extract_percentage_value('height', item_style, nested_fr_height, item_height)
                     else:
                         item_height = nested_fr_height
 
@@ -535,7 +537,7 @@ class Renderer:
                     adjusted_height = total_height - margin_top
 
                     # Find all grid elements
-                    elements = container.find_all(["div", "span", "p", "input", "button", "submit", "a"], recursive=False)
+                    elements = container.find_all(self.tags, recursive=False)
                     num_elements = len(elements)
 
                     # Calculate the height for each element based on grid-template-rows
@@ -578,7 +580,7 @@ class Renderer:
                                 # previous_height = self.extract_style_value(previous_element.get('style', ''), 'height', 0)
                                 inherited_previous_styles = self.gather_inherited_styles(previous_element)
 
-                                previous_height = self.extract_height_value(previous_element.get('style', ''), height, height)
+                                previous_height = self.extract_percentage_value('height', previous_element.get('style', ''), height, height)
                                 cumulative_height += previous_height
                                 top = cumulative_height
 
@@ -597,7 +599,7 @@ class Renderer:
                         if 'height:' not in existing_style and 'height :' not in existing_style:
                             existing_style += f" height: {height}px;"
                         else:
-                             height = self.extract_height_value(existing_style, 1, height)
+                             height = self.extract_percentage_value('height', existing_style, 1, height)
                              existing_style += f" height: {height}px;"
 
 
@@ -618,7 +620,7 @@ class Renderer:
             return
 
         # Start processing with the outermost grid containers
-        grid_containers = self.soup.find_all(["div", "span", "p", "input", "button", "submit", "a"], style=self.has_grid_style, recursive=True)
+        grid_containers = self.soup.find_all(self.tags, style=self.has_grid_style, recursive=True)
         
         for container in grid_containers:
             top_position =  self.calculate_top_position(container, 0)
@@ -626,7 +628,7 @@ class Renderer:
 
         new_block = True
         last_char = ' '
-        elements = self.soup.find_all(["div", "span", "p", "input", "button", "submit", "a"])  # Add more tags as needed
+        elements = self.soup.find_all(self.tags)  # Add more tags as needed
         for element in elements:
             if self.first_input_element == None and element.name == 'input':
                 self.first_input_element = element
@@ -643,8 +645,9 @@ class Renderer:
             self.util.sid_data.startX = left if left is not None else 0
             self.util.sid_data.startY = top if top is not None else 0
 
-            width = self.extract_width(style)
-            height = self.extract_height_value(style, self.util.sid_data.yHeight-1, self.util.sid_data.yHeight-1)
+            width = self.extract_percentage_value('width', style, self.util.sid_data.xWidth, self.util.sid_data.xWidth)
+            height = self.extract_percentage_value('height', style, self.util.sid_data.yHeight-1, self.util.sid_data.yHeight-1)
+            print("width:"+str(width))
             end_x = left + width
             end_y = top + height
 
@@ -679,6 +682,13 @@ class Renderer:
                 centered_text = self.center_text(element.text, width)
                 self.util.output(centered_text, 14, 6)
 
+            elif element.name == 'img':
+                pass
+                #self.util.startX = left
+                #self.util.startY = mytop
+                # self.emit_background_image(element.get('src', ''), left, top, width, height)
+                #
+                #mytop, myleft, last_char, new_block = self.render_element(element, self.util.sid_data.startX, self.util.sid_data.startY, width, height, last_char=last_char)
             elif element.name == 'input':
                 width = self.extract_width(style, default_width=35 if element.name == 'input' else 35)
                 # Pad the element_value to match the width
@@ -687,6 +697,8 @@ class Renderer:
                 self.util.sid_data.startX = left
                 self.util.sid_data.startY = top
                 self.util.output(padded_element_value, 6, 4)
+
+        print(elements)
         if self.first_input_element != None:
             ele_id = self.first_input_element.get('id', None)
             self.focus_on_element(ele_id, False)
@@ -700,11 +712,12 @@ class Renderer:
             parent_style = parent.get('style', '')
             for inheritable_attribute in self.inheritable_properties:
                 value = self.extract_style_value(parent_style, inheritable_attribute, None)
+                if value != None:
+                    pass
                 if value is not None:
                     inherited_styles[inheritable_attribute] = value
 
             parent = parent.parent
-
         return inherited_styles
     
     def gather_inherited_tags(self, element):
@@ -723,6 +736,9 @@ class Renderer:
     
     def render_element(self, element, left, initial_top, default_width, default_height, new_block=True, last_char=' '):
 
+        original_width = default_width
+        original_height = default_height
+
         cumulative_height = initial_top
         top = self.util.sid_data.startY
         if 'display: block' in element.parent.get('style', '') or 'display:block' in element.parent.get('style', ''):
@@ -735,10 +751,8 @@ class Renderer:
             if unique_id in self.processed_ids:
                 return initial_top, left, last_char, new_block
 
-           
-
             tag_name = element.name
-            if tag_name == 'span':
+            if tag_name == 'span' or tag_name=='img':
                 pass
             elif tag_name in ['div', 'p']:
                 new_block = True
@@ -770,6 +784,7 @@ class Renderer:
                 # Calculate the total height of the nested grid container
                 total_height = self.get_main_grid_total_height(element, default_height)
                 current_height = total_height
+
             else:
                 # Calculate the height of the current element based on its content
                 current_height = self.calculate_element_height(element, default_width)
@@ -783,8 +798,9 @@ class Renderer:
             
 
             inherited_styles = self.gather_inherited_styles(element)
-
-            tag_name = element.name
+            print("IMG INHERITAGE:")
+            print(element)
+            print(inherited_styles)
             if tag_name == 'span':
                 # Handle span tags as inline elements
                 display = self.extract_style_value(element.get('style', ''), 'display', 'inline')
@@ -801,7 +817,7 @@ class Renderer:
             if margin_top == None:
                     margin_top = inherited_styles.get('margin-top', 0)  # Inherits margin-top if not defined in own style
 
-            if display == 'grid':
+            if display == 'grid' or element.name == 'img':
                 extracted_left = self.extract_style_value(style,'left', None)
                 left = extracted_left if extracted_left is not None else None
                 if left == None:
@@ -813,9 +829,7 @@ class Renderer:
                 if top == None:
                     top = inherited_styles.get('top', 0)  # Inherits top if not defined in own style
                     
-            ##if height == None:
-            ##    height = inherited_styles.get('height', default_height)  # Inherits top if not defined in own style
-    
+            
             if color == None:
                 color = inherited_styles.get('color', color)  # Inherits color if not defined in own style
             if color == None:
@@ -823,6 +837,9 @@ class Renderer:
 
             extracted_place_items = self.extract_style_value(style,'place-items', None)
             place_items = extracted_place_items if extracted_place_items is not None else None
+            if place_items == None:
+                place_items = inherited_styles.get('place-items', None)  # Inherits width if not defined in own style
+
 
             extracted_text_align = self.extract_style_value(style,'text-align', None)
             text_align = extracted_text_align if extracted_text_align is not None else None
@@ -843,6 +860,38 @@ class Renderer:
                 height = inherited_styles.get('height', default_height)  # Inherits height
             # Recursively process child elements (depth-first)
             tag_name = element.name
+
+            if tag_name == 'img':
+                imgwidth = self.extract_percentage_value('width', element.get('style', ''), default_width, original_width)
+                imgheight = self.extract_percentage_value('height', element.get('style', ''), height, original_height)
+                imgurl = element.get('src')
+
+                if place_items:
+                    print("IMG PLACE_ITEMS:"+place_items)
+                else:
+                    print("IMG PLACITEMS NONE")
+                if place_items == "center" and height is not None:
+                    # Calculate center of the div
+                    print(default_width)
+                    center_x = left + original_width / 2
+                    center_y = top + original_height / 2
+
+                    # Calculate the position to start the image to make it centered
+                    # Assuming imgwidth and imgheight are the dimensions of the image
+                    img_left = center_x - imgwidth / 2
+                    img_top = center_y - imgheight / 2
+
+                    # Ensure the image does not go out of the div's boundaries
+                    img_left = max(left, img_left)
+                    img_top = max(top, img_top)
+                    print("EMIT BACKGROUND IMAGE"+imgurl)
+                    self.emit_background_image(imgurl, img_left, img_top, imgwidth, imgheight)
+                else:
+                    print("EMIT BACKGROUND IMAGE"+imgurl)
+                    self.emit_background_image(imgurl, left, top, imgwidth, imgheight)
+                return initial_top, left, last_char, new_block
+          
+
             if tag_name == 'p':
                 top += 1
                 left = 0
@@ -850,7 +899,6 @@ class Renderer:
             for child in element.children:
                 if isinstance(child, bs4.element.Tag):
                     # If the child is a Tag, recursively call render_element
-                    
                     top, left, last_char, new_block = self.render_element(child, left, top, default_width, height, new_block=new_block, last_char=last_char)
                     # After a tag, it's no longer the start of a new block
                 elif isinstance(child, bs4.NavigableString):
@@ -1144,7 +1192,7 @@ class Renderer:
 
         return last_value
 
-    def extract_height_value(self, style, default_value, current_height):
+    def extract_percentage_value(self, attribute, style, default_value, current_height):
         if current_height == None:
             current_height = self.util.sid_data.yHeight -1
 
@@ -1162,8 +1210,7 @@ class Renderer:
 
                 #print(f"Key: '{key}', Value: '{value}'")  # Debug: Print the key and value
 
-                if key == 'height':
-                    print("Height attribute found")  # Debug: Print when height attribute is found
+                if key == attribute:
                     if 'calc' in value:
                         return self.calculate_css_calc(value)
                     elif 'px' in value:
@@ -1171,11 +1218,10 @@ class Renderer:
                         return numeric_value
                     elif '%' in value:
                         percentage_value = float(value.split('%')[0].strip()) / 100
-                        calculated_height = current_height * percentage_value
+                        calculated_height = int(current_height * percentage_value)
                         return calculated_height
                     else:
                         return default_value
-
         return default_value
 
 
@@ -1306,7 +1352,7 @@ class Renderer:
                 if using_mouse:
                     # Find the index of the next input element
                     next_input_index = None
-                    self.element_order = [e.get('id') for e in self.soup.find_all(["div", "span", "p", "input", "button", "submit", "a"]) if e.get('id')]
+                    self.element_order = [e.get('id') for e in self.soup.find_all(self.tags) if e.get('id')]
                     for i, el_id in enumerate(self.element_order):
                         print(el_id+"=="+element_id)
                         if el_id == element_id:
@@ -1415,7 +1461,7 @@ class Renderer:
     def focus_next_element(self):
         # Check if the elements list and current focus index are initialized
         if not hasattr(self, 'element_order'):
-            self.element_order = [e.get('id') for e in self.soup.find_all(["div", "span", "p", "input", "button", "submit", "a"]) if e.get('id')]
+            self.element_order = [e.get('id') for e in self.soup.find_all(self.tags) if e.get('id')]
             
         # Move to the next element in the list
         self.current_focus_index += 1
@@ -1432,7 +1478,7 @@ class Renderer:
     def focus_previous_element(self):
     # Check if the elements list and current focus index are initialized
         if not hasattr(self, 'element_order'):
-            self.element_order = [e.get('id') for e in self.soup.find_all(["div", "span", "p", "input", "button", "submit", "a"]) if e.get('id')]
+            self.element_order = [e.get('id') for e in self.soup.find_all(self.tags) if e.get('id')]
             
         # Move to the previous element in the list
         self.current_focus_index -= 1
@@ -1450,7 +1496,7 @@ class Renderer:
 
     def enter(self):
         if not hasattr(self, 'element_order'):
-            self.element_order = [e.get('id') for e in self.soup.find_all(["div", "span", "p", "input", "button", "submit", "a"]) if e.get('id')]
+            self.element_order = [e.get('id') for e in self.soup.find_all(self.tags) if e.get('id')]
             
         element_id = self.element_order[self.current_focus_index]
 
