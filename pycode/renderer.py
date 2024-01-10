@@ -30,7 +30,8 @@ class Renderer:
             'background-color',
             'width',
             'display',
-            'place-items'
+            'place-items',
+            'margin-top'
         ]
 
         self.current_focus_index = 0
@@ -302,12 +303,14 @@ class Renderer:
         return nested_height
 
     def calculate_top_position(self, container, default_height):
+        inherited_styles = self.gather_inherited_styles(container)
+        add_top = inherited_styles.get('margin-top', 0)
         # Find the parent grid container using a lambda function for style filtering
         parent_grid = container.find_parent(lambda tag: tag.name in self.tags and self.has_display_grid_style(tag.get('style', '')))
 
         # If there's no parent grid, return default height
         if not parent_grid:
-            return default_height
+            return default_height + add_top
 
         # Extract row heights from the parent grid
         parent_row_fr_units, parent_row_fixed_sizes = self.extract_row_fr_units_and_fixed_sizes(parent_grid.get('style', ''))
@@ -317,7 +320,7 @@ class Renderer:
         grid_row = int(container.get('data-grid-row', 1)) - 1  # Default to 1 if not specified, adjust for 0-based indexing
 
         # Calculate the top position based on the row heights up to the grid row
-        top_position = sum(parent_row_heights[:grid_row])
+        top_position = sum(parent_row_heights[:grid_row]) + add_top
 
         return top_position
 
@@ -744,7 +747,7 @@ class Renderer:
         if 'display: block' in element.parent.get('style', '') or 'display:block' in element.parent.get('style', ''):
             tag_children = [child for child in element.parent.contents if isinstance(child, bs4.element.Tag)]
             if tag_children and element is tag_children[0]:
-                top = self.calculate_top_position(element.parent, default_height) +13
+                top = self.calculate_top_position(element.parent, default_height)
 
         if isinstance(element, bs4.element.Tag):
             unique_id = element.get('uniqueid')
