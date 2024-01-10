@@ -31,6 +31,8 @@ import re
 
 from uploadeditor import UploadEditor
 
+# Path to your service account key file
+google_key_file = 'animated-moon-403620-a91bc66243a8.json'
 
 MAX_FILE_SIZE = 1024 * 102  # 1MB in bytes
 util = None
@@ -609,13 +611,16 @@ def handle_keypress(data):
 
 
 # Initialize Google Cloud
-storage_client = storage.Client()
-bucket = storage_client.get_bucket('eightiesbox')
+# Check if the key file exists
+if os.path.exists(google_key_file):
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket('eightiesbox')
 
-# Initialize Pub/Sub client
-subscriber = pubsub_v1.SubscriberClient()
-subscription_path = subscriber.subscription_path('animated-moon-403620', 'projects/animated-moon-403620/subscriptions/bbs-file-upload-notification')
+    # Initialize Pub/Sub client
 
+    # Initialize a subscriber client with the key file
+    subscription_path = subscriber.subscription_path('animated-moon-403620', 'projects/animated-moon-403620/subscriptions/bbs-file-upload-notification')
+    
 # When a click on a link happens (not on a href element)
 @socketio.on('link_callback')
 def link_callback(callback_name):
@@ -640,7 +645,7 @@ def link_callback(callback_name):
 @app.route('/getSignedUrl', methods=['GET'])
 
 def get_signed_url():
-    global mongo_client
+    global mongo_client, google_key_file
     bucket_name = "eightiesbox"
      # Split the filename into name and extension
     object_name = request.args.get('filename')
@@ -674,7 +679,7 @@ def get_signed_url():
     
     # Load the service account credentials
     credentials = service_account.Credentials.from_service_account_file(
-    "animated-moon-403620-a91bc66243a8.json",
+    google_key_file,
     scopes=["https://www.googleapis.com/auth/iam", "https://www.googleapis.com/auth/cloud-platform"]
     )
     googleAccessId = credentials.service_account_email
