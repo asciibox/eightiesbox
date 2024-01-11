@@ -19,7 +19,7 @@ class Renderer:
         self.active_callback = None
         self.previous_element_id = None
         self.processed_ids = set()
-        self.sleeper = 0.01
+        self.sleeper = 0.00
         self.is_current_line_empty=True
         self.tags = ["div", "span", "p", "input", "button", "submit", "a", "img"]
 

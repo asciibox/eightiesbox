@@ -192,7 +192,8 @@ class MessageReader :
 
         # Query read_messages to find messages that have been read by the user
         read_messages = db['read_messages'].find({
-            "user_id": self.util.sid_data.user_document['_id']
+            "user_id": self.util.sid_data.user_document['_id'],
+            'chosen_bbs' : self.util.sid_data.chosen_bbs
         })
         read_message_ids = [msg['message_id'] for msg in read_messages]
 
@@ -368,7 +369,8 @@ class MessageReader :
         # Query read_messages for the current user and area
         read_messages_cursor = db['read_messages'].find({
             "user_id": user_id,
-            "area_id": area_id
+            "area_id": area_id,
+            'chosen_bbs' : self.util.sid_data.chosen_bbs
         })
 
         # Convert the cursor to a list of message IDs that have been read
@@ -377,7 +379,8 @@ class MessageReader :
         # Count unread messages
         count = db['messages'].count_documents({
             "area_id": area_id,
-            "_id": {'$nin': read_message_ids}
+            "_id": {'$nin': read_message_ids},
+            'chosen_bbs' : self.util.sid_data.chosen_bbs
         })
 
         return count
