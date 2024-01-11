@@ -144,9 +144,10 @@ function setupSocketEventListeners(socket) {
 
     // Load and display the image
     if (currentScene) {
-        currentScene.load.image('dynamicImage', filename);
+      console.log("IMAGEURL:"+filename);
+        currentScene.load.image(filename, filename);
         currentScene.load.once('complete', () => {
-            let image = currentScene.add.image(pixelX, pixelY, 'dynamicImage').setDisplaySize(pixelWidth, pixelHeight);
+            let image = currentScene.add.image(pixelX, pixelY, filename).setDisplaySize(pixelWidth, pixelHeight);
             image.setDepth(IMAGE_LAYER_DEPTH)
             loadedImages.push(image);
             

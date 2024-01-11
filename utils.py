@@ -624,7 +624,7 @@ class Utils:
 
     def userEditorCallback(self, input):
         if input=='Y' or input=='y':
-            self.sid_data.setUserEditor(UserEditor(self, doNothing))
+            self.sid_data.setUserEditor(UserEditor(self, self.doNothing))
         else:
             self.sid_data.setANSIEditor(ANSIEditor(self))
             self.sid_data.ansi_editor.start()
