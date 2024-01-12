@@ -55,6 +55,14 @@
             "Sec": "",
             "Groups": "",
             "HideOnSec": ""
+        },
+        {
+            "Type": "41",
+            "Data": "",
+            "Key": "L",
+            "Sec": "",
+            "Groups": "",
+            "HideOnSec": ""
         }
     ],
     "ansi_data": ""
