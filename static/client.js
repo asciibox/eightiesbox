@@ -96,6 +96,13 @@ function setupSocketEventListeners(socket) {
     }
   });
 
+  socket.on("getJWTToken", function(data) {
+
+    let jwtToken = getCookie('jwtToken'+data.chosen_bbs);
+    socket.emit("set_user_and_login", { jwtToken : jwtToken, chosen_bbs : data.chosen_bbs });
+
+  })
+
   socket.on("connect", function () {
     console.log("Connected with SID:", window.socket.id);
   });
@@ -337,8 +344,9 @@ document.addEventListener('paste', (event) => {
 
 socket.on('authentication', function(data) {
   let jwtToken = data.jwt_token;
+  let chosen_bbs = data.chosen_bbs;
   // Store the token in cookies or local storage
-  setCookie('jwtToken', jwtToken, 30); // Set a cookie named 'jwtToken' that expires in 7 days
+  setCookie('jwtToken'+chosen_bbs, jwtToken, 30); // Set a bbs-based cookie named 'jwtToken' that expires in 30 days
 });
 
 function setCookie(name, value, daysToExpire) {

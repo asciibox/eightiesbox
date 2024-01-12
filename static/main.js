@@ -315,11 +315,12 @@ function create() {
 
 
 
-  let jwtToken = getCookie('jwtToken');
 
-  socket.emit("onload", { x: TOTAL_WIDTH, y: TOTAL_HEIGHT_CHARACTERS, jwtToken : jwtToken });
+  socket.emit("onload", { x: TOTAL_WIDTH, y: TOTAL_HEIGHT_CHARACTERS });
 
-  
+
+
+
   this.input.on("pointerdown", function (pointer) {
 
      // Check for click in the last 16px of the screen

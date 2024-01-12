@@ -238,12 +238,16 @@ class BasicANSI:
                     display_text = key_value
 
                 if display_text:
+
                     self.util.output(display_text, 6, 0)
                     self.util.output(" ", 6, 0)
                     # Call display_menu_name only when the condition for not showing the menu name is not met
-                    if not (start_idx != -1 and end_idx != -1 and end_idx > start_idx):
-                        self.display_menu_name(int(action_value[0]), int(action_value[1]), self.util.menu_structure)
-                    self.util.goto_next_line()
+                    if action_value=="01":
+                        self.util.output("Go to "+comment_value.replace(".MNU", "")+" menu", 6, 0)
+                    else:
+                        if not (start_idx != -1 and end_idx != -1 and end_idx > start_idx):
+                            self.display_menu_name(int(action_value[0]), int(action_value[1]), self.util.menu_structure)
+                        self.util.goto_next_line()
 
     def display_menu_name(self, first_field, second_field, menu_structure):
         # Validate first_field and second_field

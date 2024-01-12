@@ -1251,7 +1251,7 @@ class Utils:
             # You can add more claims here
             }
         token = jwt.encode(payload, self.secret_key, algorithm="HS256")
-        self.socketio.emit('authentication', {'jwt_token': token}, room=self.request_id)
+        self.socketio.emit('authentication', {'jwt_token': token, 'chosen_bbs' : self.sid_data.chosen_bbs}, room=self.request_id)
 
     def emit_clear_cookie(self, chosen_bbs):
         self.socketio.emit('clear_cookie', {

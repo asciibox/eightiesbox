@@ -196,7 +196,7 @@ class BBSChooser(BasicANSI):
         # Now you can emit the event with the string ID
         self.util.socketio.emit('set_chosen_bbs', {'chosen_bbs': self.sid_data.chosen_bbs})
 
-        self.login()
+        self.util.socketio.emit('getJWTToken', {'chosen_bbs': self.sid_data.chosen_bbs}) 
 
     def login(self):
         
