@@ -129,33 +129,6 @@ def onload(data):
     y = data.get('y')
     sid_data[request.sid].setYHeight(y)
 
-    if data.get('jwtToken'):
-        try:
-            token = data.get('jwtToken')
-            print("token:"+token)
-            if token:
-                payload = jwt.decode(token, secret_key, algorithms=["HS256"])
-                user_id = payload['user_id']
-                print(user_id)
-                users_collection = db['users']
-                user_document = users_collection.find_one({"_id": ObjectId(user_id)})
-                print("user doc")
-                print(user_document)
-                if user_document:
-                    sid_data[request.sid].user_document = user_document
-                    sid_data[request.sid].chosen_bbs = payload['chosen_bbs']
-                    print("Calling OnelinerBBS")
-                    bbs = OnelinerBBS(sid_data[request.sid].util)
-                    bbs.show_oneliners()
-                    return
-            # Proceed with user-specific actions
-        except jwt.ExpiredSignatureError:
-            # Handle expired token
-            pass
-        except jwt.InvalidTokenError:
-            # Handle invalid token
-            pass
-
     sid_data[request.sid].util.choose_bbs(data)
     return
 
@@ -910,6 +883,38 @@ def check_upload_date(today, processed_bucket, file_path, processed_bucket_name,
         print(f"File {new_file_path} does not exist in the bucket.")
     return status
 
+@socketio.on('set_user_and_login')
+def set_user_and_login(data):
+
+    if data.get('jwtToken'):
+        try:
+            token = data.get('jwtToken')
+            print("token:"+token)
+            if token:
+                payload = jwt.decode(token, secret_key, algorithms=["HS256"])
+                user_id = payload['user_id']
+                print(user_id)
+                users_collection = db['users']
+                user_document = users_collection.find_one({"_id": ObjectId(user_id)})
+                print("user doc")
+                print(user_document)
+                if user_document:
+                    sid_data[request.sid].user_document = user_document
+                    sid_data[request.sid].chosen_bbs = payload['chosen_bbs']
+                    print("Calling OnelinerBBS")
+                    bbs = OnelinerBBS(sid_data[request.sid].util)
+                    bbs.show_oneliners()
+                    return
+            # Proceed with user-specific actions
+        except jwt.ExpiredSignatureError:
+            # Handle expired token
+            pass
+        except jwt.InvalidTokenError:
+            # Handle invalid token
+            pass
+
+    sid_data[request.sid].chosen_bbs = data.get('chosen_bbs')
+    sid_data[request.sid].bbschooser.login()
 
 if __name__ == '__main__':
    socketio.run(app, host='0.0.0.0', port=5000, debug=True, use_reloader=True)
