@@ -131,13 +131,6 @@ def onload(data):
     y = data.get('y')
     sid_data[request.sid].setYHeight(y)
 
-                sid_data[request.sid].user_name = user_document['username']
-                    if sid_data[request.sid].user_name=='sysop':
-                        sid_data[request.sid].util.askYesNo('Do you want to edit the menu?', sid_data[request.sid].util.menuCallback)    
-                    else:
-                        print("Calling OnelinerBBS")
-                        bbs = OnelinerBBS(sid_data[request.sid].util)
-                        bbs.show_oneliners()
     sid_data[request.sid].util.choose_bbs()
     return
 
