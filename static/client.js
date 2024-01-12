@@ -351,3 +351,13 @@ function setCookie(name, value, daysToExpire) {
   document.cookie = name + "=" + (value || "") + expires + "; path=/; Secure";
 
 }
+
+socket.on('clear_cookie', function(data) {
+  let chosenBBS = data.chosen_bbs;
+  // Store the token in cookies or local storage
+  clearCookie('jwtToken'+chosenBBS);
+});
+
+function clearCookie(name) {
+  document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; Secure";
+}

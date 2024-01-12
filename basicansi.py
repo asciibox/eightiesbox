@@ -120,6 +120,7 @@ class BasicANSI:
                                 return
 
                     print("No suitable file found or render conditions not met")
+                    self.util.choose_bbs()
 
         if self.sid_data.xWidth < 50 and menu_values is not None:
             self.process_small_menu_values(menu_values)

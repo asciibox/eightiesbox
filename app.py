@@ -139,14 +139,18 @@ def onload(data):
                 print(user_id)
                 users_collection = db['users']
                 user_document = users_collection.find_one({"_id": ObjectId(user_id)})
+                sid_data[request.sid].user_name = user_document['username']
                 print("user doc")
                 print(user_document)
                 if user_document:
                     sid_data[request.sid].user_document = user_document
                     sid_data[request.sid].chosen_bbs = payload['chosen_bbs']
-                    print("Calling OnelinerBBS")
-                    bbs = OnelinerBBS(sid_data[request.sid].util)
-                    bbs.show_oneliners()
+                    if sid_data[request.sid].user_name=='sysop':
+                        sid_data[request.sid].util.askYesNo('Do you want to edit the menu?', sid_data[request.sid].util.menuCallback)    
+                    else:
+                        print("Calling OnelinerBBS")
+                        bbs = OnelinerBBS(sid_data[request.sid].util)
+                        bbs.show_oneliners()
                     return
             # Proceed with user-specific actions
         except jwt.ExpiredSignatureError:
@@ -156,7 +160,7 @@ def onload(data):
             # Handle invalid token
             pass
 
-    sid_data[request.sid].util.choose_bbs(data)
+    sid_data[request.sid].util.choose_bbs()
     return
 
 @socketio.on('pointerdown')

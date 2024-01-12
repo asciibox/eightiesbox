@@ -214,6 +214,6 @@ class BBSChooser(BasicANSI):
 
 
     # Usage
-    def choose_bbs(self, data):
+    def choose_bbs(self):
         self.sid_data.setBBSChooser(BBSChooser(self))
         self.sid_data.bbsChooser.draw_frame()

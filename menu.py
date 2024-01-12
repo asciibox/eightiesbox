@@ -223,6 +223,11 @@ class Menu(BasicANSI):
                 self.sid_data.setProfileRenderer(ProfileRenderer(self.util, self.profilerenderer_callback_on_exit))
                 self.sid_data.profile_renderer.render_page("html/profile.html")
                 return
+            elif action_code == "41":
+                self.util.clear_screen()
+                self.util.emit_clear_cookie(self.sid_data.chosen_bbs)
+                self.util.choose_bbs()
+                return
             elif action_code == "51":
                 
                 who_is_online = WhoIsOnline(self.util, self.who_is_online_callback_on_exit)

@@ -628,6 +628,16 @@ class Utils:
         if input=='Y' or input=='y':
             self.sid_data.setUserEditor(UserEditor(self, self.doNothing))
         else:
+            self.goto_next_line()
+            self.askYesNo('Do you want to logout?', self.logoutCallback)   
+            
+
+    def logoutCallback(self, input):
+        if input=='Y' or input=='y':
+            self.emit_clear_cookie(self.sid_data.chosen_bbs)
+            self.choose_bbs()
+            pass
+        else:
             self.sid_data.setANSIEditor(ANSIEditor(self))
             self.sid_data.ansi_editor.start()
             self.sid_data.setCurrentAction("wait_for_ansieditor")
@@ -1200,7 +1210,7 @@ class Utils:
         else:
             return filename[:8]+"."+extension
 
-    def choose_bbs(self, data):
+    def choose_bbs(self):
         self.sid_data.setBBSChooser(BBSChooser(self))
         return
     
@@ -1233,7 +1243,6 @@ class Utils:
     def get_callback(self, callback_name):
         """ Retrieve a callback function by its name. """
         return self.sid_data.callbacks.get(callback_name, None)
-    
 
     def handle_authentication(self):
         payload = {
@@ -1244,3 +1253,7 @@ class Utils:
         token = jwt.encode(payload, self.secret_key, algorithm="HS256")
         self.socketio.emit('authentication', {'jwt_token': token}, room=self.request_id)
 
+    def emit_clear_cookie(self, chosen_bbs):
+        self.socketio.emit('clear_cookie', {
+            'chosen_bbs': chosen_bbs
+        }, room=self.request_id)
