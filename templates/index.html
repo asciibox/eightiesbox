@@ -22,6 +22,9 @@
       rel="stylesheet"
       href="{{ url_for('static', filename='simplekeyboard.css') }}"
     />
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='cookieconsent.css') }}">
+
 
     <script>
       var buildNumber = new Date().getTime();
@@ -907,5 +910,8 @@
         ANSIUploadDiv.style.display = "inline";
       });
     </script>
+    <script src="{{ url_for('static', filename='cookieconsent.js') }}"></script>
+    <script src="{{ url_for('static', filename='cookieconsent-config.js') }}"></script>
+    <button type="button" data-cc="c-settings">Manage cookie settings</button>
   </body>
 </html>

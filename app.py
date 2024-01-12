@@ -103,11 +103,13 @@ def upload_finished(data):
     siddata.upload_editor.start()
 
 
-    
-
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/privacypolicy')
+def privacypolicy():
+    return render_template('privacypolicy.html')
 
 @socketio.on('connect')
 def handle_connect():
