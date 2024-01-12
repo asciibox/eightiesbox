@@ -48,6 +48,11 @@ function updateSizes(x, y) {
       mode: Phaser.Scale.NONE, // Use custom scaling
       autoCenter: Phaser.Scale.CENTER_BOTH, // Center the canvas in both horizontal and vertical
     },
+    input: {
+      touch: {
+          capture: false
+      }
+    }
   };
 }
 
