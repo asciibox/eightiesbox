@@ -152,7 +152,7 @@ On Linux Python is pre-installed, on Windows you must make sure to download the 
 2. Install the required Python packages:
 
 ```bash
-pip install ochre flask pymongo flask_socketio bcrypt google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client google-cloud-storage google-cloud-pubsub email_validator dukpy bs4
+pip install ochre flask pymongo flask_socketio bcrypt google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client google-cloud-storage google-cloud-pubsub email_validator dukpy bs4 PyJWT
 ```
 
 (Install any other missing packages as needed.)

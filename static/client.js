@@ -334,3 +334,20 @@ document.addEventListener('paste', (event) => {
 
   alert(pastedText);
 });
+
+socket.on('authentication', function(data) {
+  let jwtToken = data.jwt_token;
+  // Store the token in cookies or local storage
+  setCookie('jwtToken', jwtToken, 30); // Set a cookie named 'jwtToken' that expires in 7 days
+});
+
+function setCookie(name, value, daysToExpire) {
+  var expires = "";
+  if (daysToExpire) {
+      var date = new Date();
+      date.setTime(date.getTime() + (daysToExpire * 24 * 60 * 60 * 1000));
+      expires = "; expires=" + date.toUTCString();
+  }
+  document.cookie = name + "=" + (value || "") + expires + "; path=/; Secure";
+
+}

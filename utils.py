@@ -21,9 +21,10 @@ from threading import Timer
 import uuid
 import random
 from bbschooser import BBSChooser
+import jwt
 
 class Utils:
-    def __init__(self, sio, my_client, mylist1, mylist2, sdata, Sauce, request_id, menu_structure):
+    def __init__(self, sio, my_client, mylist1, mylist2, sdata, Sauce, request_id, menu_structure, secret_key):
         self.socketio = sio
         self.mongo_client = my_client
         self.sid_data = sdata.get(request_id)
@@ -34,6 +35,7 @@ class Utils:
         self.passwordRetries = 0
         self.request_id = request_id
         self.menu_structure = menu_structure
+        self.secret_key = secret_key
 
     def askinput(self, mylen, callback, accept_keys, default_value=''):
         if self.sid_data.startX + mylen >= self.sid_data.xWidth:
@@ -276,7 +278,7 @@ class Utils:
                     
 
                     self.create_defaults(user_document['_id'], db)
-
+                    self.handle_authentication()
                     # Now proceed to initialize OnelinerBBS
                     bbs = OnelinerBBS(self)
                     bbs.show_oneliners()
@@ -1231,3 +1233,14 @@ class Utils:
     def get_callback(self, callback_name):
         """ Retrieve a callback function by its name. """
         return self.sid_data.callbacks.get(callback_name, None)
+    
+
+    def handle_authentication(self):
+        payload = {
+            "user_id": str(self.sid_data.user_document['_id']),  # or any other user-specific information
+            "chosen_bbs" : self.sid_data.chosen_bbs
+            # You can add more claims here
+            }
+        token = jwt.encode(payload, self.secret_key, algorithm="HS256")
+        self.socketio.emit('authentication', {'jwt_token': token}, room=self.request_id)
+

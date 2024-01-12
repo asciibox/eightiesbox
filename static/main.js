@@ -313,7 +313,11 @@ function create() {
     thumbHorizontal.fillRect(0, baseHeight - 5, thumbWidth, 5);
   }
 
-  socket.emit("onload", { x: TOTAL_WIDTH, y: TOTAL_HEIGHT_CHARACTERS });
+
+
+  let jwtToken = getCookie('jwtToken');
+
+  socket.emit("onload", { x: TOTAL_WIDTH, y: TOTAL_HEIGHT_CHARACTERS, jwtToken : jwtToken });
 
   
   this.input.on("pointerdown", function (pointer) {
@@ -706,4 +710,20 @@ function redrawCursor() {
       sprite.visible = false;
     }
   }, 600);
+}
+
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          // Does this cookie string begin with the name we want?
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+              break;
+          }
+      }
+  }
+  return cookieValue;
 }

@@ -200,6 +200,7 @@ class UserRegistration:
 
                 self.goto_next_line()
                 self.output("User created successfully.", 6, 0)
+                self.util.handle_authentication()
                 bbs = OnelinerBBS(self.util)
                 bbs.show_oneliners()
             else:

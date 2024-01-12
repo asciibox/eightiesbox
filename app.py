@@ -33,6 +33,7 @@ from uploadeditor import UploadEditor
 
 # Path to your service account key file
 google_key_file = 'animated-moon-403620-a91bc66243a8.json'
+secret_key = "-4VBi48jALgwNTe2a3d7IKeDBLSAcw0wkP3IrRnMkX0="
 
 MAX_FILE_SIZE = 1024 * 102  # 1MB in bytes
 util = None
@@ -73,11 +74,11 @@ for i, value in enumerate(list2):
 
 # When a new connection occurs
 def on_new_connection():
-    global sid_data
+    global sid_data, secret_key
     request_sid = request.sid
     sid_data[request_sid] = SessionData()
     global util
-    sid_data[request_sid].util = Utils(socketio, mongo_client, list1, list2, sid_data, Sauce, request_sid, menu_structure)
+    sid_data[request_sid].util = Utils(socketio, mongo_client, list1, list2, sid_data, Sauce, request_sid, menu_structure, secret_key)
     
 
 # When a connection closes
@@ -122,11 +123,39 @@ def handle_connect():
 
 @socketio.on('onload')
 def onload(data):
-    #login(data)
+    global secret_key, db
     x = data.get('x')
     sid_data[request.sid].setXWidth(x)
     y = data.get('y')
     sid_data[request.sid].setYHeight(y)
+
+    if data.get('jwtToken'):
+        try:
+            token = data.get('jwtToken')
+            print("token:"+token)
+            if token:
+                payload = jwt.decode(token, secret_key, algorithms=["HS256"])
+                user_id = payload['user_id']
+                print(user_id)
+                users_collection = db['users']
+                user_document = users_collection.find_one({"_id": ObjectId(user_id)})
+                print("user doc")
+                print(user_document)
+                if user_document:
+                    sid_data[request.sid].user_document = user_document
+                    sid_data[request.sid].chosen_bbs = payload['chosen_bbs']
+                    print("Calling OnelinerBBS")
+                    bbs = OnelinerBBS(sid_data[request.sid].util)
+                    bbs.show_oneliners()
+                    return
+            # Proceed with user-specific actions
+        except jwt.ExpiredSignatureError:
+            # Handle expired token
+            pass
+        except jwt.InvalidTokenError:
+            # Handle invalid token
+            pass
+
     sid_data[request.sid].util.choose_bbs(data)
     return
 
