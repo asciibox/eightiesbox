@@ -126,7 +126,7 @@ class MessageEditor(ANSIEditor):
             self.util.sid_data.setStartX(0)
             self.util.sid_data.setStartY(4)
             self.util.emit_gotoXY(0, 4)
-            self.current_line_index = 3
+            self.current_line_index = 4
             self.sid_data.setCurrentAction("wait_for_messageeditor")
 
         self.output("Subject: ", 6, 0)
@@ -138,16 +138,37 @@ class MessageEditor(ANSIEditor):
         self.ensure_page_index_exists(self.current_page, default_value=self.current_line_index)
         self.current_line_index_page[self.current_page] = self.current_line_index
         
-        if self.current_line_index >= self.max_height - 2:
+        if self.current_line_index >= self.max_height - 1:
             self.save_current_page_data()
             self.current_page += 1
             self.current_line_index = 0
             self.update_page_data()
 
+   
+
+    def arrow_up_pressed(self):
+        super().arrow_up_pressed()
+        
+        self.ensure_page_index_exists(self.current_page, default_value=self.current_line_index)
+        self.current_line_index_page[self.current_page] = self.current_line_index
+        print(self.current_line_index)
+        print("CURRENT LINE INDEX:"+str(self.current_line_index))
+        if self.current_line_index < 0 and self.current_page > 0:
+            self.save_current_page_data()
+            self.current_page -= 1
+            self.update_page_data()
+            self.current_line_index = self.current_line_index_page[self.current_page]
+            print("self.current_line_index restored: "+str(self.current_line_index))
+            self.util.emit_gotoXY(0, self.util.sid_data.yHeight - 2)
+
+    def ensure_page_index_exists(self, index, default_value=0):
+        while len(self.current_line_index_page) <= index:
+            self.current_line_index_page.append(default_value)
+
     def arrow_down_pressed(self):
         if self.current_line_index < self.max_height - 2:
             self.current_line_index += 1
-            self.emit_gotoXY(self.current_line_x, self.current_line_index + 1)
+            self.set_cursor_y(self.current_line_index)
             
             self.ensure_page_index_exists(self.current_page, default_value=self.current_line_index)
             self.current_line_index_page[self.current_page] = self.current_line_index
@@ -157,25 +178,6 @@ class MessageEditor(ANSIEditor):
             self.current_page += 1
             self.current_line_index = 0
             self.update_page_data()
-
-    def arrow_up_pressed(self):
-        super().arrow_up_pressed()
-        
-        self.ensure_page_index_exists(self.current_page, default_value=self.current_line_index)
-        self.current_line_index_page[self.current_page] = self.current_line_index
-        print(self.current_line_index)
-        
-        if self.current_line_index <= 6 and self.current_page > 0:
-            self.save_current_page_data()
-            self.current_page -= 1
-            self.update_page_data()
-            self.current_line_index = self.current_line_index_page[self.current_page]
-            print("self.current_line_index restored: "+str(self.current_line_index))
-            self.util.emit_gotoXY(0, self.util.sid_data.yHeight - 4)
-
-    def ensure_page_index_exists(self, index, default_value=0):
-        while len(self.current_line_index_page) <= index:
-            self.current_line_index_page.append(default_value)
 
     def update_page_data(self):
          # Ensure the current page exists in the arrays
@@ -193,10 +195,51 @@ class MessageEditor(ANSIEditor):
         self.input_values = self.sid_data.input_values
         self.color_array = self.sid_data.color_array
         self.color_bgarray = self.sid_data.color_bgarray
-        print("CLEARED")
         self.sid_data.message_editor.display_editor(self.current_page == 0)
 
     def save_current_page_data(self):
         self.input_values_page[self.current_page] = self.sid_data.input_values
         self.color_array_page[self.current_page] = self.sid_data.color_array
         self.color_bgarray_page[self.current_page] = self.sid_data.color_bgarray
+
+    def draw_line(self, line_index):
+        # self.sid_data.setMapCharacterSet(True)
+        self.sid_data.setStartX(0)
+        self.sid_data.setStartY(line_index+self.yOffsetOnDraw)
+        if line_index < len(self.input_values):
+            self.output_with_color(0, line_index, self.input_values[line_index], None, 0)
+
+    def process_key_input(self, current_line_index, current_line_x, key, foregroundColor, backgroundColor):
+        if self.sid_data.insert:
+            self.draw_line(current_line_index)
+            self.emit_gotoXY(current_line_x, current_line_index )
+        else:
+            self.sid_data.setStartX(current_line_x)
+            self.sid_data.setStartY(current_line_index)
+            self.output(key, foregroundColor, backgroundColor)
+
+    def set_cursor_x(self, current_line_x):
+        self.emit_gotoXY(current_line_x, self.current_line_index)
+
+    def set_cursor_y(self, current_line_y):
+        self.emit_gotoXY(self.current_line_x, current_line_y)
+
+    def enter_pressed(self):
+        self.current_line_x = 0  # Reset x coordinate to 0
+
+        if self.max_height < self.sid_data.yHeight - 1:
+            self.current_line_index += 1
+            if self.current_line_index >= self.max_height:
+                self.max_height = self.current_line_index + 1
+                self.sid_data.sauceHeight = self.max_height
+                self.update_first_line()
+                self.set_cursor_y(self.current_line_index)  # Go to next line
+                return
+
+            self.set_cursor_y(self.current_line_index)  # Go to next line
+            return
+        else:
+            if self.current_line_index < self.sid_data.yHeight - 1:
+                self.current_line_index += 1  # Increment line index
+
+            self.set_cursor_y(self.current_line_index)  # Go to next line

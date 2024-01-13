@@ -895,15 +895,12 @@ def set_user_and_login(data):
             if token:
                 payload = jwt.decode(token, secret_key, algorithms=["HS256"])
                 user_id = payload['user_id']
-                print(user_id)
                 users_collection = db['users']
                 user_document = users_collection.find_one({"_id": ObjectId(user_id)})
-                print("user doc")
-                print(user_document)
                 if user_document:
                     sid_data[request.sid].user_document = user_document
+                    sid_data[request.sid].user_name = user_document['username']
                     sid_data[request.sid].chosen_bbs = payload['chosen_bbs']
-                    print("Calling OnelinerBBS")
                     bbs = OnelinerBBS(sid_data[request.sid].util)
                     bbs.show_oneliners()
                     return

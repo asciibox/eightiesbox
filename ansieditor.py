@@ -188,7 +188,8 @@ class ANSIEditor(BasicANSI):
 
                 # Additional check to see if the string is too short
                 if current_x >= len(current_str):
-                    self.emit_gotoXY(self.current_line_x-1, self.current_line_index + 1)
+                    self.set_cursor_x(self.current_line_x-1)
+                    #self.emit_gotoXY(self.current_line_x-1, self.current_line_index + 1)
                     self.current_line_x = self.current_line_x - 1
                     return
 
@@ -207,8 +208,8 @@ class ANSIEditor(BasicANSI):
 
                 self.clear_line(self.current_line_index+1)
                 self.draw_line(self.current_line_index)
-                self.emit_gotoXY(self.current_line_x-1, self.current_line_index + 1)
                 self.current_line_x = self.current_line_x - 1
+                self.set_cursor_x(self.current_line_x)
                 return
 
         elif key == 'Tab':
@@ -246,17 +247,20 @@ class ANSIEditor(BasicANSI):
                 self.draw_line(cur_y)
 
                 # Move the cursor back to its original position
-                self.emit_gotoXY(self.current_line_x, self.current_line_index + 1)
+                self.set_cursor_x(self.current_line_x)
+                #self.emit_gotoXY(self.current_line_x, self.current_line_index + 1)
             return
        
         elif key == 'Home':
              self.current_line_x = 0
-             self.emit_gotoXY(self.current_line_x, self.current_line_index + 1)
+             self.set_cursor_x(self.current_line_x)
+             # self.emit_gotoXY(self.current_line_x, self.current_line_index + 1)
              return
 
         elif key == 'End':
              self.current_line_x = self.sid_data.sauceWidth
-             self.emit_gotoXY(self.current_line_x, self.current_line_index + 1)
+             self.set_cursor_x(self.current_line_x)
+             # self.emit_gotoXY(self.current_line_x, self.current_line_index + 1)
              return
 
         elif key == 'F11':
@@ -336,14 +340,8 @@ class ANSIEditor(BasicANSI):
             #print("new_str:"+new_str)
             self.set_color_at_position(current_x+1, self.current_line_index, self.foregroundColor, self.backgroundColor)
             
-            if self.sid_data.insert:
-                self.draw_line(self.current_line_index)
-                self.emit_gotoXY(self.current_line_x, self.current_line_index + 1)
-            else:
-                self.sid_data.setStartX(self.current_line_x)
-                self.sid_data.setStartY(self.current_line_index + 1)
-                self.output(key, self.foregroundColor, self.backgroundColor)
-                
+            self.process_key_input(self.current_line_index, self.current_line_x, key, self.foregroundColor, self.backgroundColor)
+
     # Additional logic for cursor movement could go here...
 
             self.go_to_the_right_horizontally()
@@ -366,6 +364,21 @@ class ANSIEditor(BasicANSI):
                 self.foregroundColor = fkey_num - 1  # Set foreground to one of the colors 0-7
             self.update_first_line()
             self.emit_gotoXY(self.current_line_x, self.current_line_index + 1)
+
+    def set_cursor_x(self, current_line_x):
+        self.emit_gotoXY(current_line_x, self.current_line_index + 1)
+
+    def set_cursor_y(self, current_line_y):
+        self.emit_gotoXY(self.current_line_x, current_line_y+1)
+
+    def process_key_input(self, current_line_index, current_line_x, key, foregroundColor, backgroundColor):
+        if self.sid_data.insert:
+            self.draw_line(current_line_index)
+            self.emit_gotoXY(current_line_x, current_line_index + 1)
+        else:
+            self.sid_data.setStartX(current_line_x)
+            self.sid_data.setStartY(current_line_index + 1)
+            self.output(key, foregroundColor, backgroundColor)
 
     def shift_color_attributes_right_from(self, start_x, line_index):
         # Check if the line exists in color_array and color_bgarray
@@ -490,42 +503,42 @@ class ANSIEditor(BasicANSI):
                 self.max_height = self.current_line_index + 1
                 self.sid_data.sauceHeight = self.max_height
                 self.update_first_line()
-                self.emit_gotoXY(self.current_line_x, self.current_line_index + 1)
+                self.set_cursor_y(self.current_line_index)  # Go to next line
                 return
 
-            self.emit_gotoXY(self.current_line_x, self.current_line_index + 1)
+            self.set_cursor_y(self.current_line_index)  # Go to next line
             return
         else:
             if self.current_line_index < self.sid_data.yHeight - 3:
                 self.current_line_index += 1  # Increment line index
 
-            self.emit_gotoXY(self.current_line_x, self.current_line_index + 1)  # Go to next line
+            self.set_cursor_y(self.current_line_index)  # Go to next line
             
     def arrow_down_pressed(self):
         if self.current_line_index < self.max_height:
             self.current_line_index += 1
-            self.emit_gotoXY(self.current_line_x, self.current_line_index+1)
+            self.set_cursor_y(self.current_line_index)
         
     def arrow_up_pressed(self):
 
-        if self.sid_data.current_action == "wait_for_messageeditor":
+        if self.sid_data.current_action == "wait_for_messageeditor" and self.current_page == 0:
                 if self.current_line_index < 4:
                     return
 
-        if self.current_line_index > 0:
+        if self.current_line_index > 0 or self.current_page > 0:
             self.current_line_index -= 1
-            self.emit_gotoXY(self.current_line_x, self.current_line_index+1)
+            self.set_cursor_y(self.current_line_index)
         
     def arrow_right_pressed(self):
         if self.current_line_x < self.sid_data.sauceWidth - 1:
             self.current_line_x += 1
-            self.emit_gotoXY(self.current_line_x, self.current_line_index+1)
+            self.set_cursor_x(self.current_line_x)
         return
     
     def arrow_left_pressed(self):
         if self.current_line_x > self.startX:
             self.current_line_x -= 1
-            self.emit_gotoXY(self.current_line_x, self.current_line_index+1)
+            self.set_cursor_x(self.current_line_x)
         return
     
     def go_to_the_right_horizontally(self):
@@ -533,7 +546,7 @@ class ANSIEditor(BasicANSI):
             if not self.sid_data.insert:
                 self.current_line_x += 1
         else:
-            self.emit_gotoXY(self.sid_data.sauceWidth-1, self.current_line_index+1)
+           self.set_cursor_x(self.sid_data.sauceWidth-1) # Todo check why this is only setting the cursor pos to sauceWidth - 1
     
     def insert_into_string(self, current_str, current_x, key):
         # Make sure adding a character doesn't exceed the xWidth limit
