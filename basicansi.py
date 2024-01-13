@@ -66,7 +66,7 @@ class BasicANSI:
 
 
     def display_editor(self, color_array, color_bgarray, input_values, menu_values):
-        
+        print("CALLED DISPLAY_EDITOR")
         self.color_array = color_array
         self.color_bgarray = color_bgarray
         self.input_values = input_values
@@ -125,7 +125,7 @@ class BasicANSI:
         if self.sid_data.xWidth < 50 and menu_values is not None:
             self.process_small_menu_values(menu_values)
             return
-
+        print("NO MATCHING FILE FOUND")
         # No matching file found, handle accordingly
         if isinstance(menu_values, list):
             self.process_values(menu_values, self.max_height, None)
@@ -141,11 +141,12 @@ class BasicANSI:
                 counter += 1
 
         else:
+            self.process_values(menu_values, self.max_height, None)
             pass  # Handle the case when menu_values is neither a list nor a dictionary.
 
 
     def process_values(self, values, num_rows, idx2):
-    
+        print("PROCESS_VALUES")
         for idx in range(num_rows):
             # Initialize variables
             security_value = 0
@@ -166,7 +167,7 @@ class BasicANSI:
 
             # Condition to check group membership if value_y_condition is "y"
             is_user_in_groups = self.is_user_in_required_groups(user_groups, required_groups) if value_y_condition else True
-
+            print("DRAW_HOTKEYS")
             if not hasattr(self, 'draw_hotkeys'):
                 # Check for user's security level and combined condition
                 if (values is None or security_value <= self.sid_data.user_document['user_level']) and is_user_in_groups:

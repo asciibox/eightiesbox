@@ -134,7 +134,7 @@ class MessageEditor(ANSIEditor):
         self.ask(35, subject_input_callback)
 
     def enter_pressed(self):
-        super().enter_pressed()
+        self.enter_pressed2()
         self.ensure_page_index_exists(self.current_page, default_value=self.current_line_index)
         self.current_line_index_page[self.current_page] = self.current_line_index
         
@@ -224,7 +224,7 @@ class MessageEditor(ANSIEditor):
     def set_cursor_y(self, current_line_y):
         self.emit_gotoXY(self.current_line_x, current_line_y)
 
-    def enter_pressed(self):
+    def enter_pressed2(self):
         self.current_line_x = 0  # Reset x coordinate to 0
 
         if self.max_height < self.sid_data.yHeight - 1:
@@ -239,7 +239,6 @@ class MessageEditor(ANSIEditor):
             self.set_cursor_y(self.current_line_index)  # Go to next line
             return
         else:
-            if self.current_line_index < self.sid_data.yHeight - 1:
-                self.current_line_index += 1  # Increment line index
+            self.current_line_index += 1  # Increment line index
 
             self.set_cursor_y(self.current_line_index)  # Go to next line
