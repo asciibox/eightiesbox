@@ -1,13 +1,15 @@
 from ansieditor import ANSIEditor
-from pymongo import MongoClient
-from userpicker import UserPicker
 
-class MessageEditor(ANSIEditor):
+class Timeline(ANSIEditor):
     def __init__(self, util, callback_on_exit):
         super().__init__(util)
+        # Initialize common rendering properties
+        self.util = util
+
+        self.output = self.util.output
         self.callback_on_exit = callback_on_exit
         self.current_page = 0
-        self.setup_interface()
+        self.sid_data = util.sid_data
         self.max_height = self.sid_data.yHeight
 
         self.input_values_page = [[]]
@@ -15,8 +17,64 @@ class MessageEditor(ANSIEditor):
         self.color_bgarray_page = [[]]
         self.current_line_index_page = []
 
+
+    def show_timeline(self):
+        db = self.util.mongo_client['bbs']
+        timeline_entries_collection = db['timeline_entries']
+
+        # Fetch timeline entries, assuming they are sorted by time
+        entries = timeline_entries_collection.find().sort("time")
+
+        # Calculate screen dimensions and layout
+        max_width = 128
+        max_height = 60
+        separator_pos = max_width // 2  # Position of the vertical separator
+
+        # Current positions for rendering
+        current_x_left = 0
+        current_x_right = separator_pos + 1
+        current_y = 0
+
+        # Keep track of the previous date for headline display
+        previous_date = None
+
+        for entry in entries:
+            # Check if the date has changed
+            if previous_date != entry['time'].strftime("%Y-%m-%d"):
+                previous_date = entry['time'].strftime("%Y-%m-%d")
+                self.util.setStartX(0)
+                self.util.setStartY(current_y)
+                self.util.output(previous_date.center(max_width), fg_color, bg_color)
+                current_y += 1  # Move to the next line after the headline
+
+            # Determine which side to render the message
+            if current_x_left < separator_pos:
+                self.util.setStartX(current_x_left)
+                self.util.setStartY(current_y)
+                self.util.output(entry['message'], fg_color, bg_color)
+                current_x_left += len(entry['message']) + 1
+            else:
+                self.util.setStartX(current_x_right)
+                self.util.setStartY(current_y)
+                self.util.output(entry['message'], fg_color, bg_color)
+                current_x_right += len(entry['message']) + 1
+
+            # Move to next line if right side is filled or display separator
+            if current_x_right >= max_width:
+                current_y += 1
+                current_x_left = 0
+                current_x_right = separator_pos + 1
+
+                # Draw separator if not at a headline
+                self.util.setStartX(separator_pos)
+                self.util.setStartY(current_y)
+                self.util.output('|', fg_color, bg_color)
+
+            # Check if we reached the bottom of the screen
+            if current_y >= max_height:
+                break  # Implement pagination or scrolling if needed
+
     def display_editor(self, write_header=True):
-        print("DISPLY EDITOR CALLED")
         # Displaying "From:"
 
         if write_header:
@@ -59,79 +117,14 @@ class MessageEditor(ANSIEditor):
         self.util.sid_data.setStartX(0)
         self.util.sid_data.setStartY(0)
         # Output "From:" in different colors, let's say fg=2 and bg=0
-        from_user = self.sid_data.user_name
-        self.output("From: ", 6,0)
-        self.output(from_user, 11, 0)
-
-        # Go to the next line for "To:"
-        self.goto_next_line()
-
-        # Callback method after receiving the input for "To:"
         
+        self.output("Press ESC to stop typing in a timeline entry", 6, 0)
+
+        self.util.sid_data.setCurrentAction("wait_for_timelineeditor")
+        self.util.emit_gotoXY(0, 1)
+        self.current_line_index = 1
+        self.sid_data.sauceWidth = 60
         
-        # Ask for "To:"
-        self.output("To (type 'All' for everybody): ", 6, 0)
-        self.ask(35, self.to_input_callback)
-
-    def to_input_callback(self, response):
-    # Assume you've connected to MongoDB and got the users_collection object
-    # client = MongoClient("mongodb://localhost:27017/")
-    # users_collection = client.my_database.users
-        if response.upper() == 'ALL':
-            self.sid_data.message_data["To"] = response
-            self.ask_subject()
-            return
-
-        db = self.util.mongo_client['bbs']
-        users_collection = db['users']
-
-        existing_user = users_collection.find_one({"username": response, 'chosen_bbs' : self.sid_data.chosen_bbs})
-        
-        if existing_user is None:
-            # If the user does not exist, redirect to UserPicker class
-            self.goto_user_picker(response)
-        else:
-            # If the user exist, proceed to ask_subject
-            self.sid_data.message_data["To"] = response
-            self.ask_subject()
-
-
-    def user_picker_callback(self, username):
-        self.sid_data.message_data["To"] = username
-        self.clear_screen()
-        self.util.sid_data.setStartX(0)
-        self.util.sid_data.setStartY(0)
-        self.util.output("From: ", 6,0 )
-        self.util.output(self.util.sid_data.user_name, 11, 0)
-        self.util.goto_next_line()
-        self.util.output("To: "+username, 6, 0)
-        self.ask_subject()
-
-    def goto_user_picker(self, username):
-        # You could initialize a UserPicker instance here, or however you've planned to navigate to UserPicker
-        # Assume UserPicker is another class handling user picking functionalities
-        self.util.sid_data.user_picker = UserPicker(self.util, username, self.user_picker_callback)
-        self.util.sid_data.user_picker.show_options()
-
-    def ask_subject(self):
-        # Go to the next line for "Subject:"
-        self.goto_next_line()
-
-        # Callback method after receiving the input for "Subject:"
-        def subject_input_callback(response):
-            self.util.sid_data.setStartX(0)
-            self.util.sid_data.setStartY(3)
-            self.output("Press ESC and use cursor keys (< and >) to save", 6, 0)    
-            self.sid_data.message_data["Subject"] = response
-            self.util.sid_data.setStartX(0)
-            self.util.sid_data.setStartY(4)
-            self.util.emit_gotoXY(0, 4)
-            self.current_line_index = 4
-            self.sid_data.setCurrentAction("wait_for_messageeditor")
-
-        self.output("Subject: ", 6, 0)
-        # Ask for "Subject:"
-        self.ask(35, subject_input_callback)
 
     def enter_pressed(self):
         self.enter_pressed2()
@@ -166,19 +159,13 @@ class MessageEditor(ANSIEditor):
             self.current_line_index_page.append(default_value)
 
     def arrow_down_pressed(self):
-        if self.current_line_index < self.max_height - 2:
+        if self.current_line_index < self.max_height -2:
             self.current_line_index += 1
             self.set_cursor_y(self.current_line_index)
             
             self.ensure_page_index_exists(self.current_page, default_value=self.current_line_index)
             self.current_line_index_page[self.current_page] = self.current_line_index
-            
-        elif self.current_page < len(self.input_values_page) - 1:
-            self.save_current_page_data()
-            self.current_page += 1
-            self.current_line_index = 0
-            self.update_page_data()
-
+        
     def update_page_data(self):
          # Ensure the current page exists in the arrays
         while len(self.input_values_page) <= self.current_page:
@@ -210,6 +197,7 @@ class MessageEditor(ANSIEditor):
             self.output_with_color(0, line_index, self.input_values[line_index], None, 0)
 
     def process_key_input(self, current_line_index, current_line_x, key, foregroundColor, backgroundColor):
+        print("PROCESS OK")
         if self.sid_data.insert:
             self.draw_line(current_line_index)
             self.emit_gotoXY(current_line_x, current_line_index )
@@ -225,25 +213,13 @@ class MessageEditor(ANSIEditor):
         self.emit_gotoXY(self.current_line_x, current_line_y)
 
     def enter_pressed2(self):
-        self.current_line_x = 0  # Reset x coordinate to 0
-
-        if self.max_height < self.sid_data.yHeight - 1:
-            self.current_line_index += 1
-            if self.current_line_index >= self.max_height:
-                self.max_height = self.current_line_index + 1
-                self.sid_data.sauceHeight = self.max_height
-                self.update_first_line()
-                self.set_cursor_y(self.current_line_index)  # Go to next line
-                return
-
-            self.set_cursor_y(self.current_line_index)  # Go to next line
-            return
-        else:
+        if self.current_line_index < self.max_height - 2:
+            self.current_line_x = 0  # Reset x coordinate to 0
             self.current_line_index += 1  # Increment line index
 
             self.set_cursor_y(self.current_line_index)  # Go to next line
 
-
+    
     def clear_current_line(self, cur_y):
-        print("MESSAGEEDITOR")
+        print("CLEAR LINE "+str(cur_y-1))
         self.clear_line(cur_y)

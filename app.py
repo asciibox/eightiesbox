@@ -54,7 +54,7 @@ menu_structure = {
             'Goto & Gosub': ['Goto new menu', 'Gosub new menu', 'Return from gosub', 'Auto-show HTML file'],
             'Message base': ['Read message', 'Write message', 'Area change'],
             'File base': ['Download files', 'Upload files', 'List visible files', 'Select file area', 'Comment uploaded files', 'List invisible files [admin]', 'Download invisible files [admin]', 'Delete files [admin]'],
-            'Other options': ['Change profile'],
+            'Social media': ['Change profile', 'Timeline'],
             'Login/Logout': ['Logout', 'Show oneliners'],
             'Multiline options': ['Users online', 'Chat between nodes', 'Add conference', 'Join conference', 'Delete conference', 'Watch other lines'],
             'Text': ['Display ANS / ASC', 'Display ANS / ASC and wait', 'Display text from Data and wait', 'Modify start ANSI [admin]'],
@@ -251,7 +251,6 @@ def handle_keypress(data):
     
     # Create an array (list in Python) with these values
     keyStatusArray = [shiftPressed, ctrlKeyPressed, altgrPressed]
-
     key = data['key']
     if key == 'F10':
        siddata.setF10ActionHandler(F10ActionHandler(siddata.util))
@@ -431,7 +430,7 @@ def handle_keypress(data):
         
         return
 
-    if siddata.current_action == "wait_for_menubar_menueditor" or siddata.current_action == "wait_for_menubar_ansieditor" or siddata.current_action == "wait_for_menubar_menutexteditor" or siddata.current_action == "wait_for_menubar_messageeditor":
+    if siddata.current_action == "wait_for_menubar_menueditor" or siddata.current_action == "wait_for_menubar_ansieditor" or siddata.current_action == "wait_for_menubar_timelineeditor" or siddata.current_action == "wait_for_menubar_menutexteditor" or siddata.current_action == "wait_for_menubar_messageeditor":
         key = data['key']
         
         if key == 'ArrowLeft':
@@ -477,6 +476,9 @@ def handle_keypress(data):
         return
     elif (siddata.current_action == "wait_for_messageeditor"):
         siddata.message_editor.handle_key(data['key'], [False, False, False])
+        return
+    elif (siddata.current_action == "wait_for_timelineeditor"):
+        siddata.timeline.handle_key(data['key'], [False, False, False])
         return
     elif (siddata.current_action == "wait_for_input") or (siddata.current_action == "wait_for_profile_renderer"):
         key = data['key']

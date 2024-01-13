@@ -20,6 +20,7 @@ from deletefile import Deletefile
 from watchlines import WatchLines
 from groupeditor import GroupEditor
 from pycode.profilerenderer import ProfileRenderer
+from pycode.timeline import Timeline
 
 class Menu(BasicANSI):
     def __init__(self, util, values, num_rows, callback_on_exit):
@@ -28,9 +29,15 @@ class Menu(BasicANSI):
         self.values = values
         self.num_rows = num_rows
         self.callback_on_exit = callback_on_exit
+        self.util.sid_data.setCurrentAction("wait_for_menu")
         self.menu_stack = []  # Initialize the menu stack
 
     def profilerenderer_callback_on_exit(self):
+        self.util.sid_data.setCurrentAction("wait_for_menu")
+        self.util.clear_screen()
+        self.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values, self.values)
+
+    def timeline_callback_on_exit(self):
         self.util.sid_data.setCurrentAction("wait_for_menu")
         self.util.clear_screen()
         self.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values, self.values)
@@ -80,29 +87,31 @@ class Menu(BasicANSI):
             return
             
         key = key.lower()
+        print(str(len(key)))
         if len(key) == 1:  # Check if it's a single character input
-            
             if isinstance(self.values, list):
                 for row_idx in range(self.num_rows):
                     if row_idx >= len(self.values):  # Check if row_idx is out of bounds
-                        # print(f"Row {row_idx} is out of range of self.values")
+                        print(f"Row {row_idx} is out of range of self.values")
                         continue
 
                     element = self.values[row_idx]
                     # Process element which is either a dictionary or a list
+                    print("HANDLEELEMENTR")
                     self.handle_element(element, key)
 
             elif isinstance(self.values, dict):
                 for row_idx in range(self.num_rows):
                     if row_idx not in self.values:  # Check if row_idx exists in the dictionary
-                        # print(f"Row {row_idx} not found in values")
+                        print(f"Row {row_idx} not found in values")
                         continue
 
                     element = self.values[row_idx]
                     # Process element which should be a value corresponding to the key in the dictionary
+                    print("HANDLEELEMENTR2")
                     self.handle_element(element, key)
             else:
-                pass # print("self.values is neither a list nor a dictionary.")
+                print("self.values is neither a list nor a dictionary.")
 
     def is_user_in_required_groups(self, user_groups, required_groups):
         """
@@ -124,6 +133,7 @@ class Menu(BasicANSI):
     # Remove text in brackets from self.values[row_idx][1]
     def handle_element(self, element, key):
         
+        print(element[2].lower()+"=="+key)
         if element[2].lower() == key:
             key_value = element[1]
             action_value = element[0]
@@ -147,6 +157,7 @@ class Menu(BasicANSI):
 
             # Use modified_value instead of element[1]
             action_code = element[0]
+            print(action_code)
             if action_code == "01":
                 filename = key_value
                 self.load_menu(filename)
@@ -222,6 +233,13 @@ class Menu(BasicANSI):
                 self.util.clear_screen()
                 self.sid_data.setProfileRenderer(ProfileRenderer(self.util, self.profilerenderer_callback_on_exit))
                 self.sid_data.profile_renderer.render_page("html/profile.html")
+                return
+            elif action_code == "32":
+                self.append_gosub()
+                
+                self.util.clear_screen()
+                self.sid_data.setTimeline(Timeline(self.util, self.timeline_callback_on_exit))
+                self.sid_data.timeline.setup_interface()
                 return
             elif action_code == "41":
                 self.util.clear_screen()
@@ -484,7 +502,6 @@ class Menu(BasicANSI):
             self.util.clear_screen()
             self.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values, self.values)
 
-            
         else:
             self.util.goto_next_line()
             self.util.output_wrap("File "+filename+" not found!", 6, 0)

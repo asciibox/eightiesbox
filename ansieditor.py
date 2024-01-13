@@ -5,6 +5,7 @@ import datetime
 from basicansi import *
 import random
 from menubar_uploadeditor import *
+from menubar_timelineeditor import *
 
 class ANSIEditor(BasicANSI):
     def __init__(self, util):
@@ -128,7 +129,6 @@ class ANSIEditor(BasicANSI):
                 self.sid_data.ansi_editor.update_first_line()
                 self.sid_data.ansi_editor.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values, None)
             elif self.sid_data.current_action == "wait_for_menubar_menueditor":
-                print("RETURNING FROM MENUEDITOR")
             elif self.sid_data.current_action == "wait_for_messageeditor":
                 sub_menus = {
                     'File': ['Send message', 'Exit message editor without saving'],
@@ -145,7 +145,14 @@ class ANSIEditor(BasicANSI):
                 self.sid_data.setMenuBar(MenuBarTextEditor(sub_menus, self.util))
                 self.sid_data.setCurrentAction("wait_for_menubar_messageeditor")
                 return
-                
+            elif self.sid_data.current_action == "wait_for_timelineeditor":
+                sub_menus = {
+                    'File': ['Save timeline entry', 'Exit without saving'],
+                    'Edit': ['Clear timeline entry', 'Leave menu bar'],
+                }
+                self.sid_data.setMenuBar(MenuBarTimelineEditor(sub_menus, self.util))
+                self.sid_data.setCurrentAction("wait_for_menubar_timelineeditor")
+                return    
             elif self.sid_data.current_action == "wait_for_ansieditor":
                 sub_menus = {
                         'File': ['Exit editor', 'Load ANSI', 'Save ANSI', 'Delete ANSI', 'Upload ANSI','Import uploaded ANSI','Delete uploaded ANSI'],
@@ -178,7 +185,6 @@ class ANSIEditor(BasicANSI):
 
         elif key == 'Backspace':
             if self.current_line_x > self.startX:
-                
                 if self.current_line_index >= len(self.sid_data.input_values):
                     # If the current_line_index is out of range, simply return
                     return
@@ -205,8 +211,7 @@ class ANSIEditor(BasicANSI):
                     self.sid_data.color_bgarray[cur_y][idx] = self.sid_data.color_bgarray[cur_y][idx + 1]
                 self.sid_data.color_array[cur_y][-1] = None  # Clear the last position
                 self.sid_data.color_bgarray[cur_y][-1] = None  # Clear the last position
-
-                self.clear_line(self.current_line_index+1)
+                self.clear_current_line(cur_y)
                 self.draw_line(self.current_line_index)
                 self.current_line_x = self.current_line_x - 1
                 self.set_cursor_x(self.current_line_x)
@@ -243,8 +248,8 @@ class ANSIEditor(BasicANSI):
 
                 # Use draw_line to redraw the entire line
                 
-                self.clear_line(cur_y+1)
-                self.draw_line(cur_y)
+                self.clear_current_line(cur_y)
+                #self.draw_line(cur_y)
 
                 # Move the cursor back to its original position
                 self.set_cursor_x(self.current_line_x)
@@ -342,7 +347,7 @@ class ANSIEditor(BasicANSI):
             
             self.process_key_input(self.current_line_index, self.current_line_x, key, self.foregroundColor, self.backgroundColor)
 
-    # Additional logic for cursor movement could go here...
+            # Additional logic for cursor movement could go here...
 
             self.go_to_the_right_horizontally()
 
@@ -521,6 +526,11 @@ class ANSIEditor(BasicANSI):
         
     def arrow_up_pressed(self):
 
+        if self.sid_data.current_action == "wait_for_timelineeditor":
+            if self.current_line_index <= 1:
+                return
+          
+
         if self.sid_data.current_action == "wait_for_messageeditor" and self.current_page == 0:
                 if self.current_line_index < 4:
                     return
@@ -627,6 +637,9 @@ class ANSIEditor(BasicANSI):
             self.output(message, 7, 0)
             self.color_chooser()
 
+    def clear_current_line(self, cur_y):
+        self.clear_line(cur_y+1)
+
     def background_color_callback(self, input):
         if input == '':
             input = '0'
@@ -640,6 +653,7 @@ class ANSIEditor(BasicANSI):
                 self.sid_data.ansi_editor.clear_screen()
                 self.sid_data.ansi_editor.update_first_line()
                 self.sid_data.ansi_editor.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values, None)
+
             else:
                 message = "Invalid input. Please enter a number (0-7)."
                 self.sid_data.setStartX((self.sid_data.xWidth - len(message)) // 2)
