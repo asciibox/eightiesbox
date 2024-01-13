@@ -75,42 +75,13 @@ class Timeline(ANSIEditor):
                 break  # Implement pagination or scrolling if needed
 
     def display_editor(self, write_header=True):
-        # Displaying "From:"
-
-        if write_header:
-            self.sid_data.setStartX(0)
-            self.sid_data.setStartY(0)
-            from_user = self.sid_data.user_name
-            self.output("From: ", 6, 0)
-            self.output(from_user, 11, 0)
-
-            # Moving to next line and displaying "To:"
-            self.goto_next_line()
-            self.sid_data.setStartX(0)
-            self.sid_data.setStartY(1)  # Assuming Y index is 0-based
-            to_user = self.sid_data.message_data.get("To", "data")
-            self.output("To: ", 6, 0)
-            self.output(to_user, 14, 4)
-
-            # Moving to next line and displaying "Subject:"
-            self.goto_next_line()
-            self.sid_data.setStartX(0)
-            self.sid_data.setStartY(2)  # Assuming Y index is 0-based
-            subject = self.sid_data.message_data.get("Subject", "data")
-            self.output("Subject: ", 6, 0)
-            self.output(subject, 14, 4)
-
-            self.current_line_index = 3  # For navigating vertically among characters
-            self.current_line_x = 0
-
-            for idx in range(3, self.max_height):
-                self.draw_line(idx)
-            self.emit_gotoXY(0, 4)
-        else:
-            for idx in range(0, self.max_height):
-                self.draw_line(idx)
-            self.emit_gotoXY(0, 0)
-
+        self.util.sid_data.startX = 0
+        self.util.sid_data.startY = 0
+        self.output("Press ESC to stop typing in a timeline entry", 6, 0)
+        for idx in range(0, self.max_height):
+            self.draw_line(idx)
+        self.emit_gotoXY(0, 1)
+        
     def setup_interface(self):
         # Setting cursor position for "From:"
         self.util.clear_screen()
@@ -137,21 +108,17 @@ class Timeline(ANSIEditor):
             self.current_line_index = 0
             self.update_page_data()
 
-   
-
     def arrow_up_pressed(self):
         super().arrow_up_pressed()
         
         self.ensure_page_index_exists(self.current_page, default_value=self.current_line_index)
         self.current_line_index_page[self.current_page] = self.current_line_index
         print(self.current_line_index)
-        print("CURRENT LINE INDEX:"+str(self.current_line_index))
         if self.current_line_index < 0 and self.current_page > 0:
             self.save_current_page_data()
             self.current_page -= 1
             self.update_page_data()
             self.current_line_index = self.current_line_index_page[self.current_page]
-            print("self.current_line_index restored: "+str(self.current_line_index))
             self.util.emit_gotoXY(0, self.util.sid_data.yHeight - 2)
 
     def ensure_page_index_exists(self, index, default_value=0):
@@ -197,7 +164,6 @@ class Timeline(ANSIEditor):
             self.output_with_color(0, line_index, self.input_values[line_index], None, 0)
 
     def process_key_input(self, current_line_index, current_line_x, key, foregroundColor, backgroundColor):
-        print("PROCESS OK")
         if self.sid_data.insert:
             self.draw_line(current_line_index)
             self.emit_gotoXY(current_line_x, current_line_index )
@@ -221,5 +187,4 @@ class Timeline(ANSIEditor):
 
     
     def clear_current_line(self, cur_y):
-        print("CLEAR LINE "+str(cur_y-1))
         self.clear_line(cur_y)

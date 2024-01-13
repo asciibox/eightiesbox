@@ -129,6 +129,7 @@ class ANSIEditor(BasicANSI):
                 self.sid_data.ansi_editor.update_first_line()
                 self.sid_data.ansi_editor.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values, None)
             elif self.sid_data.current_action == "wait_for_menubar_menueditor":
+                pass
             elif self.sid_data.current_action == "wait_for_messageeditor":
                 sub_menus = {
                     'File': ['Send message', 'Exit message editor without saving'],

@@ -77,6 +77,7 @@ class SessionData:
         self.group_chooser = None
         self.profile_renderer = None
         self.renderer = None
+        self.timeline = None
         self.callbacks = {}
     
         
@@ -265,3 +266,6 @@ class SessionData:
     def get_callback(self, callback_name):
         """ Retrieve a callback function and its parameter by its name. """
         return self.callbacks.get(callback_name, None)
+    
+    def setTimeline(self, value):
+        self.timeline = value
