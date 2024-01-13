@@ -1,4 +1,6 @@
 from ansieditor import ANSIEditor
+from datetime import datetime
+import pymongo
 
 class Timeline(ANSIEditor):
     def __init__(self, util, callback_on_exit):
@@ -18,61 +20,92 @@ class Timeline(ANSIEditor):
         self.current_line_index_page = []
 
 
+   
+
     def show_timeline(self):
         db = self.util.mongo_client['bbs']
         timeline_entries_collection = db['timeline_entries']
 
-        # Fetch timeline entries, assuming they are sorted by time
-        entries = timeline_entries_collection.find().sort("time")
+        # Fetch timeline entries, sorted by timestamp
+        entries = list(timeline_entries_collection.find().sort("timestamp"))
 
-        # Calculate screen dimensions and layout
-        max_width = 128
-        max_height = 60
+    # Calculate screen dimensions and layout
+        max_width = self.util.sid_data.xWidth
         separator_pos = max_width // 2  # Position of the vertical separator
 
         # Current positions for rendering
         current_x_left = 0
         current_x_right = separator_pos + 1
-        current_y = 0
 
-        # Keep track of the previous date for headline display
-        previous_date = None
+        # Initialize counters
+        lines_on_left = 0
+        lines_on_right = 0
+        left_side = True  # Start with the left side
 
         for entry in entries:
-            # Check if the date has changed
-            if previous_date != entry['time'].strftime("%Y-%m-%d"):
-                previous_date = entry['time'].strftime("%Y-%m-%d")
-                self.util.setStartX(0)
-                self.util.setStartY(current_y)
-                self.util.output(previous_date.center(max_width), fg_color, bg_color)
-                current_y += 1  # Move to the next line after the headline
+            # Format the timestamp into a readable string
+            timestamp_str = entry['timestamp'].strftime("%Y-%m-%d %H:%M:%S")
 
-            # Determine which side to render the message
-            if current_x_left < separator_pos:
-                self.util.setStartX(current_x_left)
-                self.util.setStartY(current_y)
-                self.util.output(entry['message'], fg_color, bg_color)
-                current_x_left += len(entry['message']) + 1
+            # Decide which side to put the timestamp and entry on
+            if lines_on_left > lines_on_right or (lines_on_left == lines_on_right and not left_side):
+                # Place timestamp and entry on the right side
+                self.util.sid_data.startX = current_x_right
+                self.util.sid_data.startY = lines_on_right
+                self.util.output(timestamp_str, 1, 0)
+                lines_on_right += 1
+
+                for line in entry['text'].split('\n'):
+                    self.util.sid_data.startX = current_x_right
+                    self.util.sid_data.startY = lines_on_right
+                    self.util.output(line, 6, 0)
+                    lines_on_right += 1
+
+                # Update the left_side flag
+                left_side = True
             else:
-                self.util.setStartX(current_x_right)
-                self.util.setStartY(current_y)
-                self.util.output(entry['message'], fg_color, bg_color)
-                current_x_right += len(entry['message']) + 1
+                # Place timestamp and entry on the left side
+                self.util.sid_data.startX = current_x_left
+                self.util.sid_data.startY = lines_on_left
+                self.util.output(timestamp_str, 1, 0)
+                lines_on_left += 1
 
-            # Move to next line if right side is filled or display separator
-            if current_x_right >= max_width:
-                current_y += 1
-                current_x_left = 0
-                current_x_right = separator_pos + 1
+                for line in entry['text'].split('\n'):
+                    self.util.sid_data.startX = current_x_left
+                    self.util.sid_data.startY = lines_on_left
+                    self.util.output(line, 6, 0)
+                    lines_on_left += 1
 
-                # Draw separator if not at a headline
-                self.util.setStartX(separator_pos)
-                self.util.setStartY(current_y)
-                self.util.output('|', fg_color, bg_color)
+                # Update the left_side flag
+                left_side = False
 
-            # Check if we reached the bottom of the screen
-            if current_y >= max_height:
-                break  # Implement pagination or scrolling if needed
+            # Draw separator if not at a headline
+            self.util.sid_data.startX = separator_pos
+            self.util.sid_data.startY = max(lines_on_left, lines_on_right)
+            self.util.output('|', 1, 3)
+
+        self.util.sid_data.setCurrentAction("wait_for_timeline_entry")
+        self.output("Press C to create a new timeline entry", 6, 0)
+
+
+
+
+
+
+    def handle_timeline_view_key(self, key, key_status_array):
+        if key in ['AltGraph', 'Shift', 'Dead', 'CapsLock']:
+            return
+
+
+        if key == 'Escape':
+            self.util.sid_data.menu.return_from_gosub()
+            self.util.sid_data.setCurrentAction("wait_for_menu")
+            return
+        # keyStatusArray = [shiftPressed, ctrlKeyPressed, altgrPressed]
+        if key == 'c':
+            
+            self.add_timeline_entry() 
+            return
+
 
     def display_editor(self, write_header=True):
         self.util.sid_data.startX = 0
@@ -82,7 +115,7 @@ class Timeline(ANSIEditor):
             self.draw_line(idx)
         self.emit_gotoXY(0, 1)
         
-    def setup_interface(self):
+    def add_timeline_entry(self):
         # Setting cursor position for "From:"
         self.util.clear_screen()
         self.util.sid_data.setStartX(0)
@@ -91,10 +124,20 @@ class Timeline(ANSIEditor):
         
         self.output("Press ESC to stop typing in a timeline entry", 6, 0)
 
+        self.sid_data.input_values = []
+        
+        # Clear the color array
+        self.sid_data.color_array = []
+
+        # Clear the background color array
+        self.sid_data.color_bgarray = []
+
+        self.sid_data.timeline.set_text_values([], [], [],[])
+
         self.util.sid_data.setCurrentAction("wait_for_timelineeditor")
         self.util.emit_gotoXY(0, 1)
         self.current_line_index = 1
-        self.sid_data.sauceWidth = 60
+        self.sid_data.sauceWidth = 55
         
 
     def enter_pressed(self):
@@ -188,3 +231,27 @@ class Timeline(ANSIEditor):
     
     def clear_current_line(self, cur_y):
         self.clear_line(cur_y)
+        
+    def save_timeline_entry(self):
+         # Convert 2D array into a string
+        text = self.convert_2d_array_to_text(self.sid_data.input_values)
+
+        # Get current date and time
+        current_datetime = datetime.now()
+
+        # Create a document
+        document = {
+            "text": text,
+            "timestamp": current_datetime
+        }
+
+        # Insert into MongoDB
+        db = self.mongo_client['bbs']
+        timeline_entries_collection = db['timeline_entries']
+        timeline_entries_collection.insert_one(document)
+
+        self.show_timeline()
+
+    def convert_2d_array_to_text(self, input_values):
+        # Convert each row in the 2D array to a string and join them with newlines
+        return '\n'.join([''.join(row) for row in input_values])

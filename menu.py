@@ -239,7 +239,7 @@ class Menu(BasicANSI):
                 
                 self.util.clear_screen()
                 self.sid_data.setTimeline(Timeline(self.util, self.timeline_callback_on_exit))
-                self.sid_data.timeline.setup_interface()
+                self.sid_data.timeline.show_timeline()
                 return
             elif action_code == "41":
                 self.util.clear_screen()

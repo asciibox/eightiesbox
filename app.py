@@ -480,6 +480,10 @@ def handle_keypress(data):
     elif (siddata.current_action == "wait_for_timelineeditor"):
         siddata.timeline.handle_key(data['key'], [False, False, False])
         return
+    elif (siddata.current_action == "wait_for_timeline_entry"):
+        print("WAIT FOR TIMELINE ENTRY")
+        siddata.timeline.handle_timeline_view_key(data['key'], [False, False, False])
+        return
     elif (siddata.current_action == "wait_for_input") or (siddata.current_action == "wait_for_profile_renderer"):
         key = data['key']
 
