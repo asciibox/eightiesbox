@@ -17,6 +17,8 @@ let enableTrackerKeyboard = false;
 let initCalled = false;
 let popupOpened = false;
 
+let popupClickCounter = 0;
+
 const BACKGROUND_LAYER_DEPTH = 0;  // Lowest depth
 const IMAGE_LAYER_DEPTH = 10;      // Depth higher than background but lower than bglayer
 const BGLAYER_DEPTH = 20;          // Highest depth
@@ -364,16 +366,21 @@ function create() {
 
      socket.emit("pointerdown", { x: tileX, y: tileY });
 
-      if (popupOpened == false) {
+      if ( (popupOpened == false) && (popupClickCounter > 5) ) {
+
+      if (getCookie("popupOpened")==null) {
 
       window.open(
         "https://documentation.eightiesbox.com/index.html",
         "_blank"
       );
-
+       
+      setCookie("popupOpened", "true", 30);
+      }
       popupOpened = true;
 
       }
+      popupClickCounter++;
 
     }
 
@@ -732,4 +739,16 @@ function getCookie(name) {
       }
   }
   return cookieValue;
+}
+
+
+function setCookie(name, value, daysToExpire) {
+  var expires = "";
+  if (daysToExpire) {
+      var date = new Date();
+      date.setTime(date.getTime() + (daysToExpire * 24 * 60 * 60 * 1000));
+      expires = "; expires=" + date.toUTCString();
+  }
+  document.cookie = name + "=" + (value || "") + expires + "; path=/; Secure";
+
 }

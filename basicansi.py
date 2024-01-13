@@ -177,7 +177,7 @@ class BasicANSI:
                         print("Drawing line2 "+str(idx2))
                         self.draw_line(idx2)
             else:
-                if is_user_in_groups:
+                if is_user_in_groups or hasattr(self, 'draw_hotkeys'):
                     if idx2 is None:
                         print("Drawing line3 "+str(idx))
                         self.draw_line(idx)
