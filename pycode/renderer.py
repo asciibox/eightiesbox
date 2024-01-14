@@ -902,9 +902,9 @@ class Renderer:
                     # Ensure the image does not go out of the div's boundaries
                     img_left = max(left, img_left)
                     img_top = max(top, img_top)
-                    self.emit_background_image(imgurl, img_left, img_top, imgwidth, imgheight)
+                    self.util.emit_background_image(imgurl, img_left, img_top, imgwidth, imgheight)
                 else:
-                    self.emit_background_image(imgurl, left, top, imgwidth, imgheight)
+                    self.util.emit_background_image(imgurl, left, top, imgwidth, imgheight)
                 return initial_top, left, last_char, new_block
           
 
@@ -930,7 +930,7 @@ class Renderer:
                        
                         if background_image != None and background_image != '':
                             cleaned_url = background_image.replace("url('", "").replace("')", "")
-                            self.emit_background_image(cleaned_url, left, top, default_width, height)
+                            self.util.emit_background_image(cleaned_url, left, top, default_width, height)
                         else:
                             if backgroundColor != 0 or len(child_text.strip())>0:
                                 if unique_id not in self.processed_ids:
@@ -959,7 +959,7 @@ class Renderer:
                 
                 if background_image != None and background_image != '':
                     cleaned_url = background_image.replace("url('", "").replace("')", "")
-                    self.emit_background_image(cleaned_url, left, top, width, height)
+                    self.util.emit_background_image(cleaned_url, left, top, width, height)
                 else:
                     if backgroundColor != 0 or len(child_text.strip())>0 :
                         if unique_id not in self.processed_ids:
@@ -1143,23 +1143,7 @@ class Renderer:
         return top, left, last_char, new_block
 
 
-    def emit_background_image(self, filename, x, y, width, height):
-        """ Emit a socket event for a background image. """
-
-        # Ensure width and height have default values if None
-        if width is None:
-            width = 0  # or some default value
-        if height is None:
-            height = 0  # or some default value
-
-        # Emit the background image data to the 'backgroundimage' event
-        self.util.socketio.emit('backgroundimage', {
-            'filename': filename,
-            'x': x,
-            'y': y,
-            'width': width,
-            'height': height
-        }, room=self.util.request_id)
+   
 
     
 

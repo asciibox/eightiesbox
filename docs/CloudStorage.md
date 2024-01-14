@@ -1,3 +1,9 @@
+gsutil iam ch allUsers:objectViewer gs://[YOUR-BUCKET-NAME]
+gsutil cors set cors-config.json gs://[YOUR-BUCKET-NAME]
+gsutil cors get gs://[YOUR-BUCKET-NAME]
+
+
+
 from google.cloud import storage
 import os
 import uuid

@@ -1,8 +1,22 @@
 [
-    {
-      "origin": ["http://localhost:5000"],
-      "responseHeader": ["Content-Type", "X-Goog-Content-Length-Range", "x-goog-content-length-range", "content-length-range", "Access-Control-Allow-Origin"],
-      "method": ["GET", "HEAD", "DELETE", "PUT", "POST"],
-      "maxAgeSeconds": 120
-    }
-  ]
+  {
+    "origin": [
+      "*"
+    ],
+    "responseHeader": [
+      "Content-Type",
+      "X-Goog-Content-Length-Range",
+      "x-goog-content-length-range",
+      "content-length-range",
+      "Access-Control-Allow-Origin"
+    ],
+    "method": [
+      "GET",
+      "HEAD",
+      "DELETE",
+      "PUT",
+      "POST"
+    ],
+    "maxAgeSeconds": 120
+  }
+]

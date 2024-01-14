@@ -1258,3 +1258,22 @@ class Utils:
         self.socketio.emit('clear_cookie', {
             'chosen_bbs': chosen_bbs
         }, room=self.request_id)
+
+    def emit_background_image(self, filename, x, y, width, height, dynamicWidth = False):
+        """ Emit a socket event for a background image. """
+
+        # Ensure width and height have default values if None
+        if width is None:
+            width = 0  # or some default value
+        if height is None:
+            height = 0  # or some default value
+
+        # Emit the background image data to the 'backgroundimage' event
+        self.socketio.emit('backgroundimage', {
+            'filename': filename,
+            'x': x,
+            'y': y,
+            'width': width,
+            'height': height,
+            'dynamicWidth' : dynamicWidth
+        }, room=self.request_id)

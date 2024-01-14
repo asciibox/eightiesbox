@@ -134,17 +134,16 @@ function setupSocketEventListeners(socket) {
 
   socket.on("backgroundimage", async (data) => {
     // Extracting properties from the data object
-    const { filename, x, y, width, height } = data;
+    const { filename, x, y, width, height, dynamicWidth } = data;
 
     // Constants for tile dimensions in pixels
     const tileWidthInPixels = 8;
     const tileHeightInPixels = 16;
 
     // Convert tile coordinates and dimensions to pixels
-    // Removed subtraction of 1 from x and y
     const pixelX = x * tileWidthInPixels;
     const pixelY = y * tileHeightInPixels;
-    const pixelWidth = width * tileWidthInPixels;
+    const pixelWidth = dynamicWidth ? undefined : width * tileWidthInPixels;
     const pixelHeight = height * tileHeightInPixels;
 
     // Access the current scene
@@ -152,13 +151,22 @@ function setupSocketEventListeners(socket) {
 
     // Load and display the image
     if (currentScene) {
-      console.log("IMAGEURL:"+filename);
+        console.log("IMAGEURL:" + filename);
         currentScene.load.image(filename, filename);
         currentScene.load.once('complete', () => {
-            let image = currentScene.add.image(pixelX, pixelY, filename).setDisplaySize(pixelWidth, pixelHeight);
-            image.setDepth(IMAGE_LAYER_DEPTH)
+            let image = currentScene.add.image(pixelX, pixelY, filename);
+
+            // If dynamicWidth is true, set the height and adjust width to maintain aspect ratio
+            if (dynamicWidth) {
+                image.displayHeight = pixelHeight;
+                image.displayWidth = image.width * (image.displayHeight / image.height);
+            } else {
+                image.setDisplaySize(pixelWidth, pixelHeight);
+            }
+
+            image.setDepth(IMAGE_LAYER_DEPTH);
             loadedImages.push(image);
-            
+
             // Set image origin to top-left corner
             image.setOrigin(0, 0);
         });
@@ -167,7 +175,6 @@ function setupSocketEventListeners(socket) {
         console.error("No active scene found to load the image.");
     }
 });
-
 
 
 

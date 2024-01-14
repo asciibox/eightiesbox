@@ -62,26 +62,31 @@ class Timeline(ANSIEditor):
         left_line_pos = 0
         right_line_pos = 0
 
-        for entry in page_entries:
-            # 'entry' here is assumed to be a pre-rendered string
-            entry_lines = entry.split('\n')
+        for rendered_entry, original_entry in page_entries:
+            # Check for an image in the original entry
+            if 'image_url' in original_entry:
+                # Calculate image coordinates based on the position of the entry
+                img_left = 0 if left_line_pos <= right_line_pos else separator_pos + 1
+                img_top = left_line_pos if left_line_pos <= right_line_pos else right_line_pos
 
-            # Check if the entry should be on the left or right (for wide screen)
+                # Emit the background image
+                self.util.emit_background_image("https://storage.googleapis.com/eightiesbox_uploaded/"+original_entry['image_url'], img_left, img_top+1, 0, 7, True)
+
+            # Continue with text rendering
+            entry_lines = rendered_entry.split('\n')
             if is_wide_screen:
                 if left_line_pos <= right_line_pos:
-                    # Render timestamp and text on the left side
                     self.render_entry_on_screen(entry_lines, left_line_pos, 0)
                     left_line_pos += len(entry_lines)
                 else:
-                    # Render timestamp and text on the right side
                     self.render_entry_on_screen(entry_lines, right_line_pos, separator_pos + 1)
                     right_line_pos += len(entry_lines)
             else:
-                # For narrow screens, just render the entry
                 self.render_entry_on_screen(entry_lines, left_line_pos, 0)
                 left_line_pos += len(entry_lines)
 
-        # Handle screen refresh or update here if necessary
+    # Handle screen refresh or update here if necessary
+
 
     def render_entry_on_screen(self, entry_lines, start_line, start_col):
         # Render the entry (timestamp and text)
@@ -91,14 +96,16 @@ class Timeline(ANSIEditor):
             self.output(line, 7, 0)  # Example color codes, adjust as needed
 
     def render_entry(self, entry):
-        # Prepare the rendered content as a string
-        rendered_content = ""
-
-        # Render the timestamp
+        # Always start with rendering the timestamp
         timestamp_str = entry['timestamp'].strftime("%Y-%m-%d %H:%M:%S")
-        rendered_content += timestamp_str + "\n"
+        rendered_content = timestamp_str + "\n"
 
-        # Render the entry text
+        # Check if the entry contains an image
+        if 'image_url' in entry:
+            # Return the timestamp followed by 7 line breaks for entries with an image
+            return rendered_content + '\n' * 7
+
+        # Render the entry text for entries without an image
         entry_lines = entry['text'].split('\n')
         for line in entry_lines:
             rendered_content += line + "\n"
@@ -120,8 +127,10 @@ class Timeline(ANSIEditor):
         # Pre-render entries
         for entry in entries:
             rendered_entry = self.render_entry(entry)  # Render the entry into a display-ready format
-            rendered_entries.append(rendered_entry)
+            rendered_entries.append((rendered_entry, entry))  # Store tuple of rendered text and original entry
             entry_lines = self.count_lines(rendered_entry)  # Count the lines in the rendered entry
+
+        # Column placement logic...
 
             # Decide whether to place the entry on the left or right column
             if left_line_count <= right_line_count:
