@@ -79,13 +79,22 @@ def processUploadedFile(data, context):
         # Ensure we only get the first 20 characters of the filename without the extension
         filename_prefix = os.path.splitext(clean_filename[:20])[0]
 
-        is_timeline = '/timeline/' in file_path
+        is_timeline = file_path.startswith("timeline/")
         print(f"File path: {file_path}, Is Timeline: {is_timeline}")  # Debug log
 
         if is_timeline:
-            # Preserving the /timeline/ structure
-            new_file_path = f"{daily_directory}/timeline/{base_directory_name}/{timestamp}_{filename_prefix}{file_extension}/{clean_filename}"
-            print(f"New file path for timeline: {new_file_path}")  # Debug log
+            # Split the file_path to extract the user_id_str and original_filename
+            parts = file_path.split('/')
+            # Ensure that there are enough parts in the path
+            if len(parts) >= 3:
+                user_id_str = parts[1]
+                original_filename = parts[-1]  # Get the last part as the filename
+
+                # Constructing the new file path
+                new_file_path = f"timeline/{user_id_str}/{original_filename}"
+                print(f"New file path for timeline: {new_file_path}, User ID: {user_id_str}")  # Debug log
+            else:
+                print("Error: file_path does not contain enough parts to extract user_id_str and original_filename")
         else:
             # Construct the new file path
             new_file_path = f"{daily_directory}/{category_string}/{base_directory_name}/{timestamp}_{filename_prefix}{file_extension}/{clean_filename}"

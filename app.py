@@ -26,7 +26,8 @@ from google.oauth2 import service_account
 import google.auth.iam
 from google.auth.transport.requests import Request
 import uuid
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
+
 import re
 
 from uploadeditor import UploadEditor
@@ -165,7 +166,7 @@ def allowed_file(filename):
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    global sid_data, mongo_client
+    global sid_data, mongo_client, db
 
     # Check if a file is part of the request
     if 'file' not in request.files:
@@ -199,8 +200,7 @@ def upload_file():
     # Secure the filename
     filename = secure_filename(file.filename)
 
-    # Check file size here if necessary
-    # ...
+   
     if upload_file_type == "Timeline":
         bucket_name = 'eightiesbox'
 
@@ -214,20 +214,29 @@ def upload_file():
         modified_filename = f"{filename}_{timestamp}{file_extension}"
 
         # Construct the destination blob name
-        destination_blob_name = f"/timeline/{user_id_str}/{modified_filename}"
+        destination_blob_name = f"timeline/{user_id_str}/{modified_filename}"
         storage_client = storage.Client()
         bucket = storage_client.bucket(bucket_name)
         blob = bucket.blob(destination_blob_name)
 
         # Upload the file
         blob.upload_from_file(file)
-        print("UPOAD FROM STRING")
+
+        timestamp = datetime.now()
+        document = {
+            "text": "",  # The actual text
+            "image_url" : destination_blob_name,
+            "timestamp": timestamp,
+            "user_id": user_id_str,  # Replace with the actual user ID
+            "chosen_bbs": chosen_bbs  # Replace with the actual BBS HQ ID
+        }
+        timeline_entries_collection = db['timeline_entries']
+        timeline_entries_collection.insert_one(document)
+   
         return jsonify({'message': f'File {file.filename} uploaded successfully.'}), 200
     # Generate a unique filename if needed
     else:
-        # Assuming mongo_client is already defined and connected
         users_collection = db['users']
-
         # Retrieve user data from users collection
         user_data = users_collection.find_one({'_id': user_id_str})
 
