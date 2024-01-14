@@ -31,7 +31,7 @@ class Timeline(ANSIEditor):
 
         # Screen dimensions and layout
         max_width = self.util.sid_data.xWidth
-        max_height = self.util.sid_data.yHeight - 3
+        max_height = self.util.sid_data.yHeight - 5
         lines_per_page = max_height
 
         # Pre-render entries and calculate page breaks
@@ -59,35 +59,32 @@ class Timeline(ANSIEditor):
         right_line_pos = 0
 
         for entry in page_entries:
-            # Render each entry
-            timestamp_str = entry['timestamp'].strftime("%Y-%m-%d %H:%M:%S")
-            entry_lines = entry['text'].split('\n')
+            # 'entry' here is assumed to be a pre-rendered string
+            entry_lines = entry.split('\n')
 
             # Check if the entry should be on the left or right (for wide screen)
             if is_wide_screen:
                 if left_line_pos <= right_line_pos:
-                    self.render_entry_on_screen(timestamp_str, entry_lines, left_line_pos, 0)
-                    left_line_pos += len(entry_lines) + 2
+                    # Render timestamp and text on the left side
+                    self.render_entry_on_screen(entry_lines, left_line_pos, 0)
+                    left_line_pos += len(entry_lines)
                 else:
-                    self.render_entry_on_screen(timestamp_str, entry_lines, right_line_pos, separator_pos + 1)
-                    right_line_pos += len(entry_lines) + 2
+                    # Render timestamp and text on the right side
+                    self.render_entry_on_screen(entry_lines, right_line_pos, separator_pos + 1)
+                    right_line_pos += len(entry_lines)
             else:
                 # For narrow screens, just render the entry
-                self.render_entry_on_screen(timestamp_str, entry_lines, left_line_pos, 0)
-                left_line_pos += len(entry_lines) + 2
+                self.render_entry_on_screen(entry_lines, left_line_pos, 0)
+                left_line_pos += len(entry_lines)
 
         # Handle screen refresh or update here if necessary
 
-    def render_entry_on_screen(self, timestamp_str, entry_lines, start_line, start_col):
-        # Render the timestamp
-        self.util.sid_data.startX = start_col
-        self.util.sid_data.startY = start_line
-        self.output(timestamp_str, 7, 0)  # Example colors, adjust as needed
-
-        # Render the entry text
+    def render_entry_on_screen(self, entry_lines, start_line, start_col):
+        # Render the entry (timestamp and text)
         for i, line in enumerate(entry_lines):
-            self.util.sid_data.startY = start_line + i + 1
-            self.output(line, 7, 0)
+            self.util.sid_data.startX = start_col
+            self.util.sid_data.startY = start_line + i
+            self.output(line, 7, 0)  # Example color codes, adjust as needed
 
     def render_entry(self, entry):
         # Prepare the rendered content as a string
@@ -106,14 +103,15 @@ class Timeline(ANSIEditor):
 
     def count_lines(self, rendered_entry):
         # Count the number of newline characters in the rendered entry
-        return rendered_entry.count('\n')
-
+        # Add one additional line for the break after the entry
+        return rendered_entry.count('\n') + 1
 
     def pre_render_and_calculate_pages(self, entries, lines_per_page):
         rendered_entries = []
         page_breaks = []
         current_page_start = 0
-        lines_on_page = 0
+        left_line_count = 0
+        right_line_count = 0
 
         # Pre-render entries
         for entry in entries:
@@ -121,16 +119,29 @@ class Timeline(ANSIEditor):
             rendered_entries.append(rendered_entry)
             entry_lines = self.count_lines(rendered_entry)  # Count the lines in the rendered entry
 
-            if lines_on_page + entry_lines > lines_per_page * 2:
-                page_breaks.append((current_page_start, len(rendered_entries) - 1))
-                current_page_start = len(rendered_entries)
-                lines_on_page = 0
-            lines_on_page += entry_lines
+            # Decide whether to place the entry on the left or right column
+            if left_line_count <= right_line_count:
+                # If the entry does not fit in the left column, move to the next page
+                if left_line_count + entry_lines > lines_per_page:
+                    page_breaks.append((current_page_start, len(rendered_entries) - 1))
+                    current_page_start = len(rendered_entries) - 1
+                    left_line_count = 0
+                    right_line_count = 0
+                left_line_count += entry_lines
+            else:
+                # If the entry does not fit in the right column, move to the next page
+                if right_line_count + entry_lines > lines_per_page:
+                    page_breaks.append((current_page_start, len(rendered_entries) - 1))
+                    current_page_start = len(rendered_entries) - 1
+                    left_line_count = 0
+                    right_line_count = 0
+                right_line_count += entry_lines
 
         # Add the last page
         page_breaks.append((current_page_start, len(rendered_entries)))
 
         return rendered_entries, page_breaks
+
 
     def show_page(self, page_number, rendered_entries, page_breaks):
         if page_number <= len(page_breaks):
