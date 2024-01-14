@@ -1,6 +1,7 @@
 from ansieditor import ANSIEditor
 from datetime import datetime
 import pymongo
+import time
 
 class Timeline(ANSIEditor):
     def __init__(self, util, callback_on_exit):
@@ -19,6 +20,8 @@ class Timeline(ANSIEditor):
         self.color_bgarray_page = [[]]
         self.current_line_index_page = []
 
+        self.sleeper = 0.25
+
 
    
 
@@ -27,7 +30,8 @@ class Timeline(ANSIEditor):
         timeline_entries_collection = db['timeline_entries']
 
         # Fetch timeline entries, sorted by timestamp
-        entries = list(timeline_entries_collection.find().sort("timestamp"))
+        entries = list(timeline_entries_collection.find().sort("timestamp", -1))
+
 
     # Calculate screen dimensions and layout
         max_width = self.util.sid_data.xWidth
@@ -42,46 +46,66 @@ class Timeline(ANSIEditor):
         lines_on_right = 0
         left_side = True  # Start with the left side
 
+         # Current positions for rendering
+        current_x = 0
+        current_y = 0
+
         for entry in entries:
             # Format the timestamp into a readable string
             timestamp_str = entry['timestamp'].strftime("%Y-%m-%d %H:%M:%S")
 
-            # Decide which side to put the timestamp and entry on
-            if lines_on_left > lines_on_right or (lines_on_left == lines_on_right and not left_side):
-                # Place timestamp and entry on the right side
-                self.util.sid_data.startX = current_x_right
-                self.util.sid_data.startY = lines_on_right
-                self.util.output(timestamp_str, 1, 0)
-                lines_on_right += 1
+            if max_width < 50:
+                # For narrow screens, process and display timestamp and text separately
+                
+                self.util.output(timestamp_str, 4, 0)
+                self.util.goto_next_line()
 
-                for line in entry['text'].split('\n'):
+                # Split message_str by newline and display each line
+                message_str = entry['text']
+                for line in message_str.split('\n'):
+                    
+                    self.util.output(line, 6, 0)
+                    self.util.goto_next_line()
+                    time.sleep(self.sleeper)
+                self.util.goto_next_line()
+            else:
+
+                # Decide which side to put the timestamp and entry on
+                if lines_on_left > lines_on_right or (lines_on_left == lines_on_right and not left_side):
+                    # Place timestamp and entry on the right side
                     self.util.sid_data.startX = current_x_right
                     self.util.sid_data.startY = lines_on_right
-                    self.util.output(line, 6, 0)
+                    self.util.output(timestamp_str, 1, 0)
                     lines_on_right += 1
 
-                # Update the left_side flag
-                left_side = True
-            else:
-                # Place timestamp and entry on the left side
-                self.util.sid_data.startX = current_x_left
-                self.util.sid_data.startY = lines_on_left
-                self.util.output(timestamp_str, 1, 0)
-                lines_on_left += 1
+                    for line in entry['text'].split('\n'):
+                        self.util.sid_data.startX = current_x_right
+                        self.util.sid_data.startY = lines_on_right
+                        self.util.output(line, 6, 0)
+                        lines_on_right += 1
 
-                for line in entry['text'].split('\n'):
+                    # Update the left_side flag
+                    left_side = True
+                else:
+                    # Place timestamp and entry on the left side
                     self.util.sid_data.startX = current_x_left
                     self.util.sid_data.startY = lines_on_left
-                    self.util.output(line, 6, 0)
+                    self.util.output(timestamp_str, 1, 0)
                     lines_on_left += 1
 
-                # Update the left_side flag
-                left_side = False
+                    for line in entry['text'].split('\n'):
+                        self.util.sid_data.startX = current_x_left
+                        self.util.sid_data.startY = lines_on_left
+                        self.util.output(line, 6, 0)
+                        lines_on_left += 1
 
-            # Draw separator if not at a headline
-            self.util.sid_data.startX = separator_pos
-            self.util.sid_data.startY = max(lines_on_left, lines_on_right)
-            self.util.output('|', 1, 3)
+                    # Update the left_side flag
+                    left_side = False
+
+                # Draw separator if not at a headline
+                self.util.sid_data.startX = separator_pos
+                self.util.sid_data.startY = max(lines_on_left, lines_on_right)
+                self.util.output('|', 1, 3)
 
         self.util.sid_data.setCurrentAction("wait_for_timeline_entry")
         self.output("Press C to create a new timeline entry", 6, 0)

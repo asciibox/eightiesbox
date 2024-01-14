@@ -476,7 +476,7 @@ function writeAsciiHTML(string, currentColor, backgroundColor) {
   }
 }
 
-function shiftTilesUp(layer) {
+function shiftTilesUp() {
   // Start shifting from the second row to the second-last row
   for (let y = 1; y < TOTAL_HEIGHT_CHARACTERS - 1; y++) {
     for (let x = 0; x < TOTAL_WIDTH; x++) {
@@ -484,12 +484,17 @@ function shiftTilesUp(layer) {
       if (tile) {
         layer.putTileAt(tile.index, x, y - 1);
       }
+      const bgtile = bglayer.getTileAt(x, y);
+      if (bgtile) {
+        bglayer.putTileAt(bgtile.index, x, y - 1);
+      }
     }
   }
   // Clear the second-last row
   for (let x = 0; x < TOTAL_WIDTH; x++) {
     layer.removeTileAt(x, TOTAL_HEIGHT_CHARACTERS - 2);
   }
+  clearLine(TOTAL_HEIGHT_CHARACTERS-1);
 }
 function clearLine(y) {
   const defaultChar = 32; // ASCII code for space
@@ -509,6 +514,7 @@ function clearLine(y) {
 
     // Clear the background layer
     const bgIndex = getCharIndex(defaultBGColor, 219);
+    console.log(bgIndex+"/"+x+"/"+y)
     layer.putTileAt(bgIndex, x, y);
     if (!drawcanvasbg[y]) drawcanvasbg[y] = [];
     drawcanvasbg[y][x] = defaultBGColor;
@@ -545,8 +551,8 @@ function writeAsciiHTMLPos(ascii_codes, currentColor, backgroundColor, x, y) {
         drawcanvasbg.shift();
         canvasColor.shift();
 
-        shiftTilesUp(bglayer); // Shift the tiles up in bglayer
-        shiftTilesUp(layer); // Shift the tiles up in layer
+        shiftTilesUp(); // Shift the tiles up in bglayer
+        //shiftTilesUp(layer); // Shift the tiles up in layer
 
         removedYChars++;
         maxReachedY++;
