@@ -11,7 +11,7 @@ class Timeline(ANSIEditor):
 
         self.output = self.util.output
         self.callback_on_exit = callback_on_exit
-        self.current_page = 0
+        self.current_page = 1
         self.sid_data = util.sid_data
         self.max_height = self.sid_data.yHeight
 
@@ -31,114 +31,114 @@ class Timeline(ANSIEditor):
 
         # Screen dimensions and layout
         max_width = self.util.sid_data.xWidth
-        max_height = self.util.sid_data.yHeight-1
+        max_height = self.util.sid_data.yHeight - 3
         lines_per_page = max_height
-        separator_pos = max_width // 2 if max_width >= 50 else None
 
-        # Initialize counters and flags
-        current_page = 1
-        line_count = 0
-        page_entries = []
+        # Pre-render entries and calculate page breaks
+        rendered_entries, page_breaks = self.pre_render_and_calculate_pages(entries, lines_per_page)
 
-        # Split entries into pages
-        for entry in entries:
-            entry_lines = 2 + entry['text'].count('\n')  # Add 2 for timestamp and blank line
-            if line_count + entry_lines > lines_per_page:
-                current_page += 1
-                line_count = 0
-
-            if current_page == page:
-                page_entries.append(entry)
-
-            line_count += entry_lines
-            if current_page > page:
-                break
-
-        if max_width < 50:
-            self.render_narrow_screen(page_entries, lines_per_page)
+        if page <= len(page_breaks):
+            start_index, end_index = page_breaks[page - 1]
+            page_entries = rendered_entries[start_index:end_index]
+            self.display_content(page_entries, max_width)  # Display the content for the requested page
         else:
-            self.render_wide_screen(page_entries, lines_per_page, separator_pos)
-
-        
+            print("Page out of range error")
 
         self.util.sid_data.setCurrentAction("wait_for_timeline_entry")
         self.util.sid_data.startX = 0
         self.util.sid_data.startY += 1
-        self.output("Press C to create a new timeline entry", 11, 0)
+        self.output("Press C to create a new timeline entry and the arrow keys to navigate through the timeline", 11, 0)
 
-    def render_narrow_screen(self, page_entries, lines_per_page):
+    def display_content(self, page_entries, max_width):
+        # Determine the layout based on max_width
+        is_wide_screen = max_width >= 50
+        separator_pos = max_width // 2 if is_wide_screen else None
+
+        # Initialize counters for line positions
+        left_line_pos = 0
+        right_line_pos = 0
+
+        for entry in page_entries:
+            # Render each entry
+            timestamp_str = entry['timestamp'].strftime("%Y-%m-%d %H:%M:%S")
+            entry_lines = entry['text'].split('\n')
+
+            # Check if the entry should be on the left or right (for wide screen)
+            if is_wide_screen:
+                if left_line_pos <= right_line_pos:
+                    self.render_entry_on_screen(timestamp_str, entry_lines, left_line_pos, 0)
+                    left_line_pos += len(entry_lines) + 2
+                else:
+                    self.render_entry_on_screen(timestamp_str, entry_lines, right_line_pos, separator_pos + 1)
+                    right_line_pos += len(entry_lines) + 2
+            else:
+                # For narrow screens, just render the entry
+                self.render_entry_on_screen(timestamp_str, entry_lines, left_line_pos, 0)
+                left_line_pos += len(entry_lines) + 2
+
+        # Handle screen refresh or update here if necessary
+
+    def render_entry_on_screen(self, timestamp_str, entry_lines, start_line, start_col):
+        # Render the timestamp
+        self.util.sid_data.startX = start_col
+        self.util.sid_data.startY = start_line
+        self.output(timestamp_str, 7, 0)  # Example colors, adjust as needed
+
+        # Render the entry text
+        for i, line in enumerate(entry_lines):
+            self.util.sid_data.startY = start_line + i + 1
+            self.output(line, 7, 0)
+
+    def render_entry(self, entry):
+        # Prepare the rendered content as a string
+        rendered_content = ""
+
+        # Render the timestamp
+        timestamp_str = entry['timestamp'].strftime("%Y-%m-%d %H:%M:%S")
+        rendered_content += timestamp_str + "\n"
+
+        # Render the entry text
+        entry_lines = entry['text'].split('\n')
+        for line in entry_lines:
+            rendered_content += line + "\n"
+
+        return rendered_content
+
+    def count_lines(self, rendered_entry):
+        # Count the number of newline characters in the rendered entry
+        return rendered_entry.count('\n')
+
+
+    def pre_render_and_calculate_pages(self, entries, lines_per_page):
+        rendered_entries = []
+        page_breaks = []
+        current_page_start = 0
         lines_on_page = 0
 
-        for entry in page_entries:
-            if lines_on_page >= lines_per_page:
-                break
+        # Pre-render entries
+        for entry in entries:
+            rendered_entry = self.render_entry(entry)  # Render the entry into a display-ready format
+            rendered_entries.append(rendered_entry)
+            entry_lines = self.count_lines(rendered_entry)  # Count the lines in the rendered entry
 
-            timestamp_str = entry['timestamp'].strftime("%Y-%m-%d %H:%M:%S")
-            entry_lines = entry['text'].split('\n')
+            if lines_on_page + entry_lines > lines_per_page * 2:
+                page_breaks.append((current_page_start, len(rendered_entries) - 1))
+                current_page_start = len(rendered_entries)
+                lines_on_page = 0
+            lines_on_page += entry_lines
 
-            self.util.sid_data.startX = 0
+        # Add the last page
+        page_breaks.append((current_page_start, len(rendered_entries)))
 
-            # Display timestamp
-            self.util.sid_data.startY = lines_on_page
-            self.util.output(timestamp_str, 4, 0)
-            lines_on_page += 1
+        return rendered_entries, page_breaks
 
-            # Display each line of the entry
-            for line in entry_lines:
-                if lines_on_page >= lines_per_page:
-                    break
-                self.util.sid_data.startY = lines_on_page
-                self.util.output(line, 6, 0)
-                lines_on_page += 1
-
-            lines_on_page += 1  # Add a blank line after each entry
-
-    def render_wide_screen(self, page_entries, lines_per_page, separator_pos):
-        lines_on_left = 0
-        lines_on_right = 0
-        left_side = True
-
-        # Draw the separator for the entire column first
-        for line in range(lines_per_page):
-            self.util.sid_data.startX = separator_pos
-            self.util.sid_data.startY = line
-            self.util.output('|', 1, 0)
-
-        # Now render the entries on either side
-        for entry in page_entries:
-            if max(lines_on_left, lines_on_right) >= lines_per_page:
-                break
-
-            timestamp_str = entry['timestamp'].strftime("%Y-%m-%d %H:%M:%S")
-            entry_lines = entry['text'].split('\n')
-
-            # Decide which side to put the timestamp and entry on
-            if lines_on_left <= lines_on_right:
-                # Place timestamp and entry on the left side
-                self.render_entry_on_side(timestamp_str, entry_lines, lines_on_left, 0)
-                lines_on_left += len(entry_lines) + 2  # Including space for timestamp and a blank line
-                left_side = False
-            else:
-                # Place timestamp and entry on the right side
-                self.render_entry_on_side(timestamp_str, entry_lines, lines_on_right, separator_pos + 1)
-                lines_on_right += len(entry_lines) + 2
-                left_side = True
-
-    def render_entry_on_side(self, timestamp_str, entry_lines, start_line, start_x):
-        # Output the timestamp
-        self.util.sid_data.startX = start_x
-        self.util.sid_data.startY = start_line
-        self.util.output(timestamp_str, 1, 0)
-
-        # Output each line of the entry text below the timestamp
-        for line in entry_lines:
-            start_line += 1
-            self.util.sid_data.startX = start_x
-            self.util.sid_data.startY = start_line
-            self.util.output(line, 6, 0)
-
-                
-
+    def show_page(self, page_number, rendered_entries, page_breaks):
+        if page_number <= len(page_breaks):
+            start_index, end_index = page_breaks[page_number - 1]
+            page_content = rendered_entries[start_index:end_index+1]
+            self.display_content(page_content)  # Implement this method to display the content on the screen
+        else:
+            pass
 
     def handle_timeline_view_key(self, key, key_status_array):
         if key in ['AltGraph', 'Shift', 'Dead', 'CapsLock']:
@@ -150,6 +150,17 @@ class Timeline(ANSIEditor):
             self.util.sid_data.setCurrentAction("wait_for_menu")
             return
         # keyStatusArray = [shiftPressed, ctrlKeyPressed, altgrPressed]
+        elif key == 'ArrowDown' or key == 'ArrowRight':
+            self.current_page += 1
+            self.util.clear_screen()
+            self.show_timeline(self.current_page)
+            return
+        elif key == 'ArrowUp' or key == 'ArrowLeft':
+            if self.current_page > 0:
+                self.current_page -= 1
+                self.util.clear_screen()
+                self.show_timeline(self.current_page)
+            return
         if key == 'c':
             
             self.add_timeline_entry() 

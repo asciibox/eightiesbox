@@ -2,7 +2,8 @@ from pymongo import MongoClient
 import random
 import string
 import bcrypt
-from datetime import datetime
+from datetime import datetime, timedelta
+
 
 mongo_client = MongoClient("mongodb://localhost:27017/")
 db = mongo_client['bbs']
@@ -13,7 +14,7 @@ def clear_collections():
 
     # Collections to clear
     collections_to_clear = [
-        'users', 'timestamp_entries', 'mailboxes'
+        'users', 'timeline_entries', 'mailboxes'
     ]
     for collection_name in collections_to_clear:
         collection = db[collection_name]
@@ -63,7 +64,7 @@ def create_random_users(hq_id):
 
 
 
-def create_random_timestamp_entries(hq_id):
+def create_random_timeline_entries(hq_id):
     global db
     # User data
     userdata = {
@@ -87,19 +88,24 @@ def create_random_timestamp_entries(hq_id):
     user_id = users_collection.insert_one(userdata).inserted_id
 
     # Timestamp entries collection
-    timestamp_entries_collection = db['timestamp_entries']
+    timeline_entries_collection = db['timeline_entries']
 
-    # Create and insert 100 timestamp entries
-    for _ in range(1, 101):
+    counter = 1
+    for _ in range(1, 301):
+        timestamp = datetime.now() + timedelta(minutes=counter-1)
         document = {
-            "text": "some_text",  # replace with actual text
-            "timestamp": datetime.now(),
-            "user_id": user_id,
-            "chosen_bbs" : hq_id
+            "text": "some_text " + str(counter),  # The actual text
+            "timestamp": timestamp,
+            "user_id": user_id,  # Replace with the actual user ID
+            "chosen_bbs": hq_id  # Replace with the actual BBS HQ ID
         }
-        timestamp_entries_collection.insert_one(document)
+        counter += 1
+        timeline_entries_collection.insert_one(document)
 
     print("Timestamp entries have been created")
+
+
+
 
 def create_mailboxes():
     mailboxes_collection = db['mailboxes']
@@ -128,6 +134,6 @@ else:
     clear_collections()
     hq_id = str(create_mailboxes())
     # Call the function to create random users
-    create_random_timestamp_entries(hq_id)
+    create_random_timeline_entries(hq_id)
     create_random_users(hq_id)
 
