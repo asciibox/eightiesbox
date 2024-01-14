@@ -2,6 +2,7 @@ var persistentID = "";
 var chosen_bbs = 0;
 const protocol = window.location.protocol;
 var uploadFileType = 'ANS';
+var uploadToken = '';
 var hrefs = [];  // Global array to store hrefs
 var loadedImages = [];
 
@@ -208,6 +209,8 @@ function setupSocketEventListeners(socket) {
   });
 
   socket.on("uploadFile", (data) => {
+    uploadToken = data.uploadToken;
+    current_file_area = data.current_file_area;
     // Hide all canvas elements
     const canvasElements = document.getElementsByTagName("canvas");
     for (let i = 0; i < canvasElements.length; i++) {
@@ -216,9 +219,7 @@ function setupSocketEventListeners(socket) {
 
     // Display the fileUploadDiv
     const uploadDiv = document.getElementById("fileUploadDiv");
-    uploadDiv.style.display = "inline";
-    uploadToken = data.uploadToken;
-    current_file_area = data.current_file_area;
+    uploadDiv.style.display = "inline";    
   });
 
   socket.on("uploadANSI", (data) => {
@@ -232,7 +233,11 @@ function setupSocketEventListeners(socket) {
     const uploadDiv = document.getElementById("ANSIUploadDiv");
     uploadDiv.style.display = "inline";
     uploadFileType = data.upload_file_type;
+    if (data.upload_token) uploadToken = data.upload_token;
         console.error(uploadFileType);
+        if (uploadFileType=='Timeline') {
+          document.getElementById('toggleButtonANSI').innerHTML='Close Timeline Image Upload';
+        } else
         if (uploadFileType=='HTML') {
           document.getElementById('toggleButtonANSI').innerHTML='Close HTML Upload';
         } else {

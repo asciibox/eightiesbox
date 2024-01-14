@@ -22,6 +22,8 @@ class Timeline(ANSIEditor):
 
         self.sleeper = 0.25
 
+        self.page_breaks = []
+
     def show_timeline(self, page=1):
         db = self.util.mongo_client['bbs']
         timeline_entries_collection = db['timeline_entries']
@@ -31,14 +33,14 @@ class Timeline(ANSIEditor):
 
         # Screen dimensions and layout
         max_width = self.util.sid_data.xWidth
-        max_height = self.util.sid_data.yHeight - 5
+        max_height = self.util.sid_data.yHeight - 3
         lines_per_page = max_height
 
         # Pre-render entries and calculate page breaks
-        rendered_entries, page_breaks = self.pre_render_and_calculate_pages(entries, lines_per_page)
+        rendered_entries = self.pre_render_and_calculate_pages(entries, lines_per_page)
 
-        if page <= len(page_breaks):
-            start_index, end_index = page_breaks[page - 1]
+        if page <= len(self.page_breaks):
+            start_index, end_index = self.page_breaks[page - 1]
             page_entries = rendered_entries[start_index:end_index]
             self.display_content(page_entries, max_width)  # Display the content for the requested page
         else:
@@ -48,6 +50,8 @@ class Timeline(ANSIEditor):
         self.util.sid_data.startX = 0
         self.util.sid_data.startY += 1
         self.output("Press C to create a new timeline entry and the arrow keys to navigate through the timeline", 11, 0)
+        self.util.goto_next_line()
+        self.output("Press I to upload an image or a movie to the timeline", 11, 0)
 
     def display_content(self, page_entries, max_width):
         # Determine the layout based on max_width
@@ -108,7 +112,7 @@ class Timeline(ANSIEditor):
 
     def pre_render_and_calculate_pages(self, entries, lines_per_page):
         rendered_entries = []
-        page_breaks = []
+        self.page_breaks = []
         current_page_start = 0
         left_line_count = 0
         right_line_count = 0
@@ -123,7 +127,7 @@ class Timeline(ANSIEditor):
             if left_line_count <= right_line_count:
                 # If the entry does not fit in the left column, move to the next page
                 if left_line_count + entry_lines > lines_per_page:
-                    page_breaks.append((current_page_start, len(rendered_entries) - 1))
+                    self.page_breaks.append((current_page_start, len(rendered_entries) - 1))
                     current_page_start = len(rendered_entries) - 1
                     left_line_count = 0
                     right_line_count = 0
@@ -131,21 +135,21 @@ class Timeline(ANSIEditor):
             else:
                 # If the entry does not fit in the right column, move to the next page
                 if right_line_count + entry_lines > lines_per_page:
-                    page_breaks.append((current_page_start, len(rendered_entries) - 1))
+                    self.page_breaks.append((current_page_start, len(rendered_entries) - 1))
                     current_page_start = len(rendered_entries) - 1
                     left_line_count = 0
                     right_line_count = 0
                 right_line_count += entry_lines
 
         # Add the last page
-        page_breaks.append((current_page_start, len(rendered_entries)))
+        self.page_breaks.append((current_page_start, len(rendered_entries)))
 
-        return rendered_entries, page_breaks
+        return rendered_entries
 
 
-    def show_page(self, page_number, rendered_entries, page_breaks):
-        if page_number <= len(page_breaks):
-            start_index, end_index = page_breaks[page_number - 1]
+    def show_page(self, page_number, rendered_entries):
+        if page_number <= len(self.page_breaks):
+            start_index, end_index = self.page_breaks[page_number - 1]
             page_content = rendered_entries[start_index:end_index+1]
             self.display_content(page_content)  # Implement this method to display the content on the screen
         else:
@@ -162,20 +166,23 @@ class Timeline(ANSIEditor):
             return
         # keyStatusArray = [shiftPressed, ctrlKeyPressed, altgrPressed]
         elif key == 'ArrowDown' or key == 'ArrowRight':
-            self.current_page += 1
-            self.util.clear_screen()
-            self.show_timeline(self.current_page)
+            if self.current_page < len(self.page_breaks): 
+                self.current_page += 1
+                self.util.clear_screen()
+                self.show_timeline(self.current_page)
             return
         elif key == 'ArrowUp' or key == 'ArrowLeft':
-            if self.current_page > 0:
+            if self.current_page > 1:
                 self.current_page -= 1
                 self.util.clear_screen()
                 self.show_timeline(self.current_page)
             return
-        if key == 'c':
+        elif key == 'c':
             
             self.add_timeline_entry() 
             return
+        elif key == 'i':
+            self.util.emit_uploadANSI('Timeline')
 
 
     def display_editor(self, write_header=True):

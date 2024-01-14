@@ -338,7 +338,6 @@ class Utils:
     def create_defaults(self, user_id, db):
 
         my_upload_token = str(uuid.uuid4())
-        self.sid_data.setUploadToken(my_upload_token)
 
         upload_token_collection = db['upload_token']
 
@@ -358,6 +357,7 @@ class Utils:
         # 'result' will contain information about the insertion
         if result.acknowledged:
             print("Upload token inserted successfully. Document ID:", result.inserted_id)
+            self.sid_data.setUploadToken(my_upload_token)
         else:
             print("Failed to insert upload token.")
 
@@ -692,7 +692,8 @@ class Utils:
 
     def emit_uploadANSI(self, upload_file_type):
         sid = self.request_id  # Get the Session ID
-        self.socketio.emit('uploadANSI', { 'upload_file_type': upload_file_type}, room=sid)
+        print("EMIT UPLOAD ANSI UPLOAD TOKEN:"+self.sid_data.upload_token)
+        self.socketio.emit('uploadANSI', { 'upload_file_type': upload_file_type, 'upload_token' : self.sid_data.upload_token }, room=sid)
 
     def emit_uploadFile(self):
         sid = self.request_id  # Get the Session ID

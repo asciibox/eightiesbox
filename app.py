@@ -165,7 +165,7 @@ def allowed_file(filename):
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    global sid_data
+    global sid_data, mongo_client
 
     # Check if a file is part of the request
     if 'file' not in request.files:
@@ -174,6 +174,22 @@ def upload_file():
     file = request.files['file']
     chosen_bbs = request.form.get('chosen_bbs')
     upload_file_type = request.form.get('upload_file_type')
+    upload_token = request.form.get('upload_token')
+
+    db = mongo_client['bbs']
+    upload_token_collection = db['upload_token']
+    token_document = upload_token_collection.find_one({"token": upload_token})
+    user_id_str="nouserid"
+
+    # Check if the document was found
+    if token_document:
+        # Extract the 'user_id' from the document and convert it to a string
+
+        # Assuming token_document is already defined
+        user_id_str = str(token_document.get('user_id', ''))        
+        
+    else:
+        return jsonify({"error": f"Wrong upload token "+upload_token}), 200
 
     # If the user does not select a file, the browser submits an
     # empty file without a filename.
@@ -185,8 +201,45 @@ def upload_file():
 
     # Check file size here if necessary
     # ...
+    if upload_file_type == "Timeline":
+        bucket_name = 'eightiesbox'
 
+        # Generate a 13-digit Unix timestamp
+        timestamp = int(time.time() * 1000)  # Convert to milliseconds
+
+        # Split the filename and its extension
+        filename, file_extension = os.path.splitext(file.filename)
+
+        # Append an underscore and the timestamp before the extension
+        modified_filename = f"{filename}_{timestamp}{file_extension}"
+
+        # Construct the destination blob name
+        destination_blob_name = f"/timeline/{user_id_str}/{modified_filename}"
+        storage_client = storage.Client()
+        bucket = storage_client.bucket(bucket_name)
+        blob = bucket.blob(destination_blob_name)
+
+        # Upload the file
+        blob.upload_from_file(file)
+        print("UPOAD FROM STRING")
+        return jsonify({'message': f'File {file.filename} uploaded successfully.'}), 200
     # Generate a unique filename if needed
+    else:
+        # Assuming mongo_client is already defined and connected
+        users_collection = db['users']
+
+        # Retrieve user data from users collection
+        user_data = users_collection.find_one({'_id': user_id_str})
+
+        # Check if the user data is found and if 'groups' contains 'Sysop'
+        if user_data and "Sysop" in user_data.get('groups', ''):
+            # If user is part of the Sysop group
+            # Implement the logic for Sysop users here, just pass through
+            pass
+        else:
+            # Logic for users who are not Sysop
+            return jsonify({"error": f"User is not a Sysop."}), 200
+
     if upload_file_type != "HTML":
         filename = generate_unique_filename(filename, chosen_bbs, 11)
     else:
@@ -893,7 +946,7 @@ def check_upload_date(today, processed_bucket, file_path, processed_bucket_name,
 
 @socketio.on('set_user_and_login')
 def set_user_and_login(data):
-
+    global db, util
     if data.get('jwtToken'):
         try:
             token = data.get('jwtToken')
@@ -907,6 +960,7 @@ def set_user_and_login(data):
                     sid_data[request.sid].user_document = user_document
                     sid_data[request.sid].user_name = user_document['username']
                     sid_data[request.sid].chosen_bbs = payload['chosen_bbs']
+                    sid_data[request.sid].util.create_defaults(payload['user_id'], db)
                     bbs = OnelinerBBS(sid_data[request.sid].util)
                     bbs.show_oneliners()
                     return
