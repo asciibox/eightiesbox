@@ -22,97 +22,122 @@ class Timeline(ANSIEditor):
 
         self.sleeper = 0.25
 
-
-   
-
-    def show_timeline(self):
+    def show_timeline(self, page=1):
         db = self.util.mongo_client['bbs']
         timeline_entries_collection = db['timeline_entries']
 
         # Fetch timeline entries, sorted by timestamp
         entries = list(timeline_entries_collection.find().sort("timestamp", -1))
 
-
-    # Calculate screen dimensions and layout
+        # Screen dimensions and layout
         max_width = self.util.sid_data.xWidth
-        separator_pos = max_width // 2  # Position of the vertical separator
+        max_height = self.util.sid_data.yHeight-1
+        lines_per_page = max_height
+        separator_pos = max_width // 2 if max_width >= 50 else None
 
-        # Current positions for rendering
-        current_x_left = 0
-        current_x_right = separator_pos + 1
+        # Initialize counters and flags
+        current_page = 1
+        line_count = 0
+        page_entries = []
 
-        # Initialize counters
-        lines_on_left = 0
-        lines_on_right = 0
-        left_side = True  # Start with the left side
-
-         # Current positions for rendering
-        current_x = 0
-        current_y = 0
-
+        # Split entries into pages
         for entry in entries:
-            # Format the timestamp into a readable string
-            timestamp_str = entry['timestamp'].strftime("%Y-%m-%d %H:%M:%S")
+            entry_lines = 2 + entry['text'].count('\n')  # Add 2 for timestamp and blank line
+            if line_count + entry_lines > lines_per_page:
+                current_page += 1
+                line_count = 0
 
-            if max_width < 50:
-                # For narrow screens, process and display timestamp and text separately
-                
-                self.util.output(timestamp_str, 4, 0)
-                self.util.goto_next_line()
+            if current_page == page:
+                page_entries.append(entry)
 
-                # Split message_str by newline and display each line
-                message_str = entry['text']
-                for line in message_str.split('\n'):
-                    
-                    self.util.output(line, 6, 0)
-                    self.util.goto_next_line()
-                    time.sleep(self.sleeper)
-                self.util.goto_next_line()
-            else:
+            line_count += entry_lines
+            if current_page > page:
+                break
 
-                # Decide which side to put the timestamp and entry on
-                if lines_on_left > lines_on_right or (lines_on_left == lines_on_right and not left_side):
-                    # Place timestamp and entry on the right side
-                    self.util.sid_data.startX = current_x_right
-                    self.util.sid_data.startY = lines_on_right
-                    self.util.output(timestamp_str, 1, 0)
-                    lines_on_right += 1
+        if max_width < 50:
+            self.render_narrow_screen(page_entries, lines_per_page)
+        else:
+            self.render_wide_screen(page_entries, lines_per_page, separator_pos)
 
-                    for line in entry['text'].split('\n'):
-                        self.util.sid_data.startX = current_x_right
-                        self.util.sid_data.startY = lines_on_right
-                        self.util.output(line, 6, 0)
-                        lines_on_right += 1
-
-                    # Update the left_side flag
-                    left_side = True
-                else:
-                    # Place timestamp and entry on the left side
-                    self.util.sid_data.startX = current_x_left
-                    self.util.sid_data.startY = lines_on_left
-                    self.util.output(timestamp_str, 1, 0)
-                    lines_on_left += 1
-
-                    for line in entry['text'].split('\n'):
-                        self.util.sid_data.startX = current_x_left
-                        self.util.sid_data.startY = lines_on_left
-                        self.util.output(line, 6, 0)
-                        lines_on_left += 1
-
-                    # Update the left_side flag
-                    left_side = False
-
-                # Draw separator if not at a headline
-                self.util.sid_data.startX = separator_pos
-                self.util.sid_data.startY = max(lines_on_left, lines_on_right)
-                self.util.output('|', 1, 3)
+        
 
         self.util.sid_data.setCurrentAction("wait_for_timeline_entry")
-        self.output("Press C to create a new timeline entry", 6, 0)
+        self.util.sid_data.startX = 0
+        self.util.sid_data.startY += 1
+        self.output("Press C to create a new timeline entry", 11, 0)
 
+    def render_narrow_screen(self, page_entries, lines_per_page):
+        lines_on_page = 0
 
+        for entry in page_entries:
+            if lines_on_page >= lines_per_page:
+                break
 
+            timestamp_str = entry['timestamp'].strftime("%Y-%m-%d %H:%M:%S")
+            entry_lines = entry['text'].split('\n')
 
+            self.util.sid_data.startX = 0
+
+            # Display timestamp
+            self.util.sid_data.startY = lines_on_page
+            self.util.output(timestamp_str, 4, 0)
+            lines_on_page += 1
+
+            # Display each line of the entry
+            for line in entry_lines:
+                if lines_on_page >= lines_per_page:
+                    break
+                self.util.sid_data.startY = lines_on_page
+                self.util.output(line, 6, 0)
+                lines_on_page += 1
+
+            lines_on_page += 1  # Add a blank line after each entry
+
+    def render_wide_screen(self, page_entries, lines_per_page, separator_pos):
+        lines_on_left = 0
+        lines_on_right = 0
+        left_side = True
+
+        # Draw the separator for the entire column first
+        for line in range(lines_per_page):
+            self.util.sid_data.startX = separator_pos
+            self.util.sid_data.startY = line
+            self.util.output('|', 1, 0)
+
+        # Now render the entries on either side
+        for entry in page_entries:
+            if max(lines_on_left, lines_on_right) >= lines_per_page:
+                break
+
+            timestamp_str = entry['timestamp'].strftime("%Y-%m-%d %H:%M:%S")
+            entry_lines = entry['text'].split('\n')
+
+            # Decide which side to put the timestamp and entry on
+            if lines_on_left <= lines_on_right:
+                # Place timestamp and entry on the left side
+                self.render_entry_on_side(timestamp_str, entry_lines, lines_on_left, 0)
+                lines_on_left += len(entry_lines) + 2  # Including space for timestamp and a blank line
+                left_side = False
+            else:
+                # Place timestamp and entry on the right side
+                self.render_entry_on_side(timestamp_str, entry_lines, lines_on_right, separator_pos + 1)
+                lines_on_right += len(entry_lines) + 2
+                left_side = True
+
+    def render_entry_on_side(self, timestamp_str, entry_lines, start_line, start_x):
+        # Output the timestamp
+        self.util.sid_data.startX = start_x
+        self.util.sid_data.startY = start_line
+        self.util.output(timestamp_str, 1, 0)
+
+        # Output each line of the entry text below the timestamp
+        for line in entry_lines:
+            start_line += 1
+            self.util.sid_data.startX = start_x
+            self.util.sid_data.startY = start_line
+            self.util.output(line, 6, 0)
+
+                
 
 
     def handle_timeline_view_key(self, key, key_status_array):
@@ -266,7 +291,8 @@ class Timeline(ANSIEditor):
         # Create a document
         document = {
             "text": text,
-            "timestamp": current_datetime
+            "timestamp": current_datetime,
+            "user_id" : self.sid_data.user_document['_id']
         }
 
         # Insert into MongoDB

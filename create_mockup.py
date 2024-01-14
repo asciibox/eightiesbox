@@ -1,6 +1,8 @@
 from pymongo import MongoClient
 import random
 import string
+import bcrypt
+from datetime import datetime
 
 mongo_client = MongoClient("mongodb://localhost:27017/")
 db = mongo_client['bbs']
@@ -11,26 +13,16 @@ def clear_collections():
 
     # Collections to clear
     collections_to_clear = [
-        'users'
+        'users', 'timestamp_entries', 'mailboxes'
     ]
     for collection_name in collections_to_clear:
         collection = db[collection_name]
         collection.delete_many({})  # Deletes all documents in the collection
         print(f"Cleared collection: {collection_name}")
 
-def create_random_users():
+def create_random_users(hq_id):
     global db, users_collection
-    warning_message = (
-        "Warning: This application will populate the 'bbs' database with random user data."
-        "\nDo you wish to proceed? (yes/no): "
-    )
-    user_response = input(warning_message)
-    
-    if user_response.lower() not in ["yes", "y"]:
-        print("Operation cancelled by the user.")
-        return
-
-    clear_collections()
+   
 
     names = ['Alice', 'Bob', 'Charlie', 'Dave', 'Eve']
     sexes = ['M', 'F']
@@ -51,7 +43,8 @@ def create_random_users():
             "sex": sex,
             "hobbies": hobby,
             "password": password,
-            "user_level" : 0
+            "user_level" : 0,
+            "chosen_bbs" : hq_id
         }
 
         existing_user = users_collection.find_one({"username": userdata["username"], "chosen_bbs" : 1})
@@ -67,11 +60,74 @@ def create_random_users():
 
     print("Random users have been successfully created.")
 
+
+
+
+def create_random_timestamp_entries(hq_id):
+    global db
+    # User data
+    userdata = {
+        "username": "data",
+        "email": "obachmann@ymail.com",
+        "age": 42,
+        "sex": 'm',
+        "hobbies": "",
+        "password": "data",  # This will be encrypted
+        "user_level": 32000,
+        "groups": "Sysop",
+        "chosen_bbs" : hq_id
+    }
+
+    # Encrypt the password
+    hashed_password = bcrypt.hashpw(userdata['password'].encode('utf-8'), bcrypt.gensalt())
+    userdata['password'] = hashed_password.decode('utf-8') # Store as a string in the database
+
+    # Insert user data into the database
+    users_collection = db['users']
+    user_id = users_collection.insert_one(userdata).inserted_id
+
+    # Timestamp entries collection
+    timestamp_entries_collection = db['timestamp_entries']
+
+    # Create and insert 100 timestamp entries
+    for _ in range(1, 101):
+        document = {
+            "text": "some_text",  # replace with actual text
+            "timestamp": datetime.now(),
+            "user_id": user_id,
+            "chosen_bbs" : hq_id
+        }
+        timestamp_entries_collection.insert_one(document)
+
+    print("Timestamp entries have been created")
+
+def create_mailboxes():
     mailboxes_collection = db['mailboxes']
+    
+    # Insert the "EightiesBox HQ (Headquarter)" mailbox first
+    hq_mailbox_id = mailboxes_collection.insert_one({"name": "EightiesBox HQ (Headquarter)"}).inserted_id
+
+    # Create the other 100 mailboxes
     for id in range(1, 101):
         mailboxes_collection.insert_one({"name": f"EightiesBox Box Nr. {id}"})
 
+    # Return the inserted ID of the "EightiesBox HQ (Headquarter)" mailbox
+    return hq_mailbox_id
 
-# Call the function to create random users
 
-create_random_users()
+
+warning_message = (
+    "Warning: This application will populate the 'bbs' database with random user data."
+    "\nDo you wish to proceed? (yes/no): "
+)
+user_response = input(warning_message)
+
+if user_response.lower() not in ["yes", "y"]:
+    print("Operation cancelled by the user.")
+else:
+    clear_collections()
+    hq_id = str(create_mailboxes())
+    # Call the function to create random users
+    create_random_timestamp_entries(hq_id)
+    create_random_users(hq_id)
+
