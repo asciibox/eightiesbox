@@ -380,7 +380,6 @@ class Timeline(ANSIEditor):
         self.sid_data.color_array = self.color_array_page[self.current_page]
         self.sid_data.color_bgarray = self.color_bgarray_page[self.current_page]
         self.util.clear_screen()
-        self.input_values = self.sid_data.input_values
         self.color_array = self.sid_data.color_array
         self.color_bgarray = self.sid_data.color_bgarray
         self.sid_data.message_editor.display_editor(self.current_page == 0)
@@ -394,8 +393,12 @@ class Timeline(ANSIEditor):
         # self.sid_data.setMapCharacterSet(True)
         self.sid_data.setStartX(0)
         self.sid_data.setStartY(line_index+self.yOffsetOnDraw)
-        if line_index < len(self.input_values):
-            self.output_with_color(0, line_index, self.input_values[line_index], None, 0)
+        #if line_index < len(self.input_values):
+        print("PRINTING")
+
+        print(line_index)
+        print(self.sid_data.input_values[line_index])
+        self.output_with_color(0, line_index, self.sid_data.input_values[line_index], None, 0)
 
     def process_key_input(self, current_line_index, current_line_x, key, foregroundColor, backgroundColor):
         if self.sid_data.insert:

@@ -205,7 +205,7 @@ class ANSIEditor(BasicANSI):
 
                 # Assign the new string back to the list
                 self.sid_data.input_values[self.current_line_index] = new_str
-
+                print("INPUT_VALUES["+str(self.current_line_index))
                 cur_y = self.current_line_index
                 for idx in range(current_x+1, len(self.sid_data.color_array[cur_y]) - 1):
                     self.sid_data.color_array[cur_y][idx] = self.sid_data.color_array[cur_y][idx + 1]
@@ -213,7 +213,7 @@ class ANSIEditor(BasicANSI):
                 self.sid_data.color_array[cur_y][-1] = None  # Clear the last position
                 self.sid_data.color_bgarray[cur_y][-1] = None  # Clear the last position
                 self.clear_current_line(cur_y)
-                self.draw_line(self.current_line_index)
+                self.draw_line(cur_y)
                 self.current_line_x = self.current_line_x - 1
                 self.set_cursor_x(self.current_line_x)
                 return
@@ -250,7 +250,7 @@ class ANSIEditor(BasicANSI):
                 # Use draw_line to redraw the entire line
                 
                 self.clear_current_line(cur_y)
-                #self.draw_line(cur_y)
+                self.draw_line(cur_y)
 
                 # Move the cursor back to its original position
                 self.set_cursor_x(self.current_line_x)

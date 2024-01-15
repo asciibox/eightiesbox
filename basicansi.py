@@ -17,7 +17,6 @@ class BasicANSI:
             
         self.color_array = util.sid_data.color_array
         self.color_bgarray = util.sid_data.color_bgarray
-        self.input_values = util.sid_data.input_values
 
         self.yOffsetOnDraw = 0
 
@@ -26,7 +25,7 @@ class BasicANSI:
     def set_text_values(self, color_array, color_bgarray, input_values, menu_values):
         self.color_array = color_array
         self.color_bgarray = color_bgarray
-        self.input_values = input_values
+        self.sid_data.input_values = input_values
 
    
        
@@ -56,7 +55,7 @@ class BasicANSI:
         
         self.color_array = color_array
         self.color_bgarray = color_bgarray
-        self.input_values = input_values
+        self.sid_data.input_values = input_values
         self.max_height = self.util.sid_data.sauceHeight # len(self.editor_values)
        
         for idx in range(self.max_height):
@@ -69,7 +68,7 @@ class BasicANSI:
         print("CALLED DISPLAY_EDITOR")
         self.color_array = color_array
         self.color_bgarray = color_bgarray
-        self.input_values = input_values
+        self.sid_data.input_values = input_values
         self.max_height = self.util.sid_data.sauceHeight # len(self.editor_values)
         print(self.max_height)
         
@@ -277,8 +276,10 @@ class BasicANSI:
         # self.sid_data.setMapCharacterSet(True)
         self.sid_data.setStartX(0)
         self.sid_data.setStartY(line_index+1+self.yOffsetOnDraw)
-        if line_index < len(self.input_values):
-            self.output_with_color(0, line_index, self.input_values[line_index], None, 0)
+        #if line_index < len(self.input_values):
+        print("PRINTING")
+        print(self.sid_data.input_values[line_index])
+        self.output_with_color(0, line_index, self.sid_data.input_values[line_index], 1, 4)
         # self.sid_data.setMapCharacterSet(False)
 
 
@@ -333,7 +334,7 @@ class BasicANSI:
     
     def display_ansi(self):
         print("self.input_values")
-        print(self.input_values)
+        print(self.sid_data.input_values)
         self.max_height = self.util.sid_data.sauceHeight # len(self.editor_values)
         self.ansi_string = ""
         self.current_color = 7
@@ -344,8 +345,8 @@ class BasicANSI:
 
     def draw_ansi_line(self, line_index):
 
-        if line_index < len(self.input_values):
-            self.output_ansi_with_color(1, line_index, self.input_values[line_index])
+        if line_index < len(self.sid_data.input_values):
+            self.output_ansi_with_color(1, line_index, self.sid_data.input_values[line_index])
 
     def output_ansi_with_color(self, x, y, text):
         if not text:
