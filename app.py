@@ -73,6 +73,8 @@ for i, value in enumerate(list2):
 #list1.append(220)
 #list2.append(223)
 
+last_keypress_time = 0
+
 # When a new connection occurs
 def on_new_connection():
     global sid_data, secret_key
@@ -304,8 +306,18 @@ def download_close(data):
 
 @socketio.on('input_keypress')
 def handle_keypress(data):
-    global sid_data
+    global sid_data, last_keypress_time
     siddata = sid_data[request.sid]
+
+    # Get current time
+    current_time = time.time()
+
+    # Check if 250ms have elapsed since the last keypress
+    if current_time - last_keypress_time < 0.005:
+        return  # Do not process this keypress
+
+    # Update the last keypress time
+    last_keypress_time = current_time
 
     shiftPressed=data['shiftPressed']
     ctrlKeyPressed = data['ctrlKeyPressed']
