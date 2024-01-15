@@ -6,6 +6,9 @@ var uploadToken = '';
 var hrefs = [];  // Global array to store hrefs
 var loadedImages = [];
 
+let commandQueue = [];
+
+
 var socket = io.connect(
   protocol + "//" + document.domain + ":" + location.port,
   {
@@ -97,6 +100,111 @@ function setupSocketEventListeners(socket) {
     }
   });
 
+
+
+socket.on("draw", async (data) => {
+    enqueueCommand({ type: "draw", data: data });
+    processQueue();
+});
+
+socket.on("backgroundimage", async (data) => {
+  enqueueCommand({ type: "backgroundimage", data: data });
+  processQueue();
+});
+
+socket.on("clear", async (data) => {
+  enqueueCommand({ type: "clear", data: data });
+  processQueue();
+});
+
+
+function enqueueCommand(command) {
+  commandQueue.push(command);
+}
+
+async function processQueue() {
+  if (commandQueue.length > 0) {
+      const command = commandQueue.shift(); // Dequeue the next command
+      await executeCommand(command);
+  }
+}
+
+async function executeCommand(command) {
+  switch (command.type) {
+      case "draw":
+        if (command.data.command && command.data.command === 'clear') {
+          loadedImages.forEach(image => image.destroy());
+          loadedImages=[];
+          clearScreen();
+          hrefs = [];
+        } else {
+
+          await writeAsciiHTMLPos(
+              command.data.ascii_codes,
+              command.data.currentColor,
+              command.data.backgroundColor,
+              command.data.x,
+              command.data.y
+          );
+        }
+          break;
+      case "clear":
+          loadedImages.forEach(image => image.destroy());
+          loadedImages=[];
+          clearScreen();
+          hrefs = []
+          break;
+      case "backgroundimage":
+           // Extracting properties from the data object
+            const { filename, x, y, width, height, dynamicWidth } = command.data;
+
+            // Constants for tile dimensions in pixels
+            const tileWidthInPixels = 8;
+            const tileHeightInPixels = 16;
+
+            // Convert tile coordinates and dimensions to pixels
+            const pixelX = x * tileWidthInPixels;
+            const pixelY = y * tileHeightInPixels;
+            const pixelWidth = dynamicWidth ? undefined : width * tileWidthInPixels;
+            const pixelHeight = height * tileHeightInPixels;
+
+            // Access the current scene
+            let currentScene = game.scene.getScenes(true)[0];
+
+            // Load and display the image
+            if (currentScene) {
+                console.log("IMAGEURL:" + filename);
+                currentScene.load.image(filename, filename);
+                currentScene.load.once('complete', () => {
+                    let image = currentScene.add.image(pixelX, pixelY, filename);
+
+                    // If dynamicWidth is true, set the height and adjust width to maintain aspect ratio
+                    if (dynamicWidth) {
+                        image.displayHeight = pixelHeight;
+                        image.displayWidth = image.width * (image.displayHeight / image.height);
+                    } else {
+                        image.setDisplaySize(pixelWidth, pixelHeight);
+                    }
+
+                    image.setDepth(IMAGE_LAYER_DEPTH);
+                    loadedImages.push(image);
+
+                    // Set image origin to top-left corner
+                    image.setOrigin(0, 0);
+                });
+                currentScene.load.start();
+            } else {
+                console.error("No active scene found to load the image.");
+            }
+
+          break;
+      // ... other command types
+  }
+  processQueue(); // Process the next command in the queue
+}
+
+
+
   socket.on("getJWTToken", function(data) {
 
     let jwtToken = getCookie('jwtToken'+data.chosen_bbs);
@@ -114,70 +222,8 @@ function setupSocketEventListeners(socket) {
   });
 
  
-  socket.on("draw", async (data) => {
-    if (data.command && data.command === 'clear') {
-      loadedImages.forEach(image => image.destroy());
-      loadedImages=[];
-      clearScreen();
-      hrefs = [];
-    } else {
-      // Handle normal drawing operations
-      await writeAsciiHTMLPos(
-        data.ascii_codes,
-        data.currentColor,
-        data.backgroundColor,
-        data.x,
-        data.y
-      );
-    }
-  });
 
-  socket.on("backgroundimage", async (data) => {
-    // Extracting properties from the data object
-    const { filename, x, y, width, height, dynamicWidth } = data;
-
-    // Constants for tile dimensions in pixels
-    const tileWidthInPixels = 8;
-    const tileHeightInPixels = 16;
-
-    // Convert tile coordinates and dimensions to pixels
-    const pixelX = x * tileWidthInPixels;
-    const pixelY = y * tileHeightInPixels;
-    const pixelWidth = dynamicWidth ? undefined : width * tileWidthInPixels;
-    const pixelHeight = height * tileHeightInPixels;
-
-    // Access the current scene
-    let currentScene = game.scene.getScenes(true)[0];
-
-    // Load and display the image
-    if (currentScene) {
-        console.log("IMAGEURL:" + filename);
-        currentScene.load.image(filename, filename);
-        currentScene.load.once('complete', () => {
-            let image = currentScene.add.image(pixelX, pixelY, filename);
-
-            // If dynamicWidth is true, set the height and adjust width to maintain aspect ratio
-            if (dynamicWidth) {
-                image.displayHeight = pixelHeight;
-                image.displayWidth = image.width * (image.displayHeight / image.height);
-            } else {
-                image.setDisplaySize(pixelWidth, pixelHeight);
-            }
-
-            image.setDepth(IMAGE_LAYER_DEPTH);
-            loadedImages.push(image);
-
-            // Set image origin to top-left corner
-            image.setOrigin(0, 0);
-        });
-        currentScene.load.start();
-    } else {
-        console.error("No active scene found to load the image.");
-    }
-});
-
-
-
+ 
   socket.on("draw_to_status_bar", async (data) => {
     await writeAsciiToStatusBar(
       data.ascii_codes,
@@ -186,12 +232,6 @@ function setupSocketEventListeners(socket) {
     );
   });
 
-  socket.on("clear", (data) => {
-    loadedImages.forEach(image => image.destroy());
-    loadedImages=[];
-    clearScreen();
-    hrefs = []
-  });
 
   socket.on("ansi_mod_editor", (data) => {
     loadedImages.forEach(image => image.destroy());
