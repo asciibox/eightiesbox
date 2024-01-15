@@ -122,6 +122,7 @@ class MenuBarMenuEditor(MenuBar):
 
         self.util.clear_screen()
         print(self.util.sid_data.menu_box.values)
+        self.sid_data.menu.set_on_exit_callback(self.simulate_callback_on_exit)
         self.sid_data.menu.display_editor(self.util.sid_data.color_array,self.util.sid_data.color_bgarray, self.util.sid_data.input_values, self.util.sid_data.menu_box.values)
 
     def simulate_callback_on_exit(self):

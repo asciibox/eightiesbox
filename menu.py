@@ -32,6 +32,9 @@ class Menu(BasicANSI):
         self.util.sid_data.setCurrentAction("wait_for_menu")
         self.menu_stack = []  # Initialize the menu stack
 
+    def set_on_exit_callback(self, callbackfunction):
+        self.callback_on_exit = callbackfunction
+
     def profilerenderer_callback_on_exit(self):
         self.util.sid_data.setCurrentAction("wait_for_menu")
         self.util.clear_screen()
@@ -85,6 +88,7 @@ class Menu(BasicANSI):
         if (key == 'Escape'):
             self.callback_on_exit()
             return
+
             
         key = key.lower()
         print(str(len(key)))
