@@ -60,6 +60,7 @@ class MenuBarANSIEditor(MenuBar):
             self.draw_sub_menu()
     
     def exit_editor(self):
+        self.util.emit_waiting_for_input(False, 5)
         self.sid_data.menu.return_from_gosub()
         self.sid_data.setCurrentAction("wait_for_menu")
     

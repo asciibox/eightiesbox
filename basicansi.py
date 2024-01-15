@@ -53,6 +53,7 @@ class BasicANSI:
     
     def display_editor_for_editor(self, color_array, color_bgarray, input_values, menu_values):
         
+        self.util.emit_waiting_for_input(True, 1)
         self.color_array = color_array
         self.color_bgarray = color_bgarray
         self.sid_data.input_values = input_values
@@ -65,7 +66,8 @@ class BasicANSI:
 
 
     def display_editor(self, color_array, color_bgarray, input_values, menu_values):
-        print("CALLED DISPLAY_EDITOR")
+        if menu_values == None:
+            self.util.emit_waiting_for_input(True, 2)
         self.color_array = color_array
         self.color_bgarray = color_bgarray
         self.sid_data.input_values = input_values

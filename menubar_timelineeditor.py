@@ -57,6 +57,7 @@ class MenuBarTimelineEditor(MenuBarANSIEditor):
         #self.sid_data.menu.return_from_gosub()
         
     def exit_message_editor(self):
+        self.util.emit_waiting_for_input(False, 8)
         self.sid_data.setCurrentAction("wait_for_menu")
         self.sid_data.menu.return_from_gosub()
 

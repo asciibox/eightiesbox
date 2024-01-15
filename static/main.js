@@ -712,6 +712,7 @@ function getCharIndex(foreground, asciiCode) {
 }
 
 function handleKeyCode(keyCode) {
+  if (keyboardPressedAllowed==false) return;
   socket.emit("input_keypress", { key: keyCode, shiftPressed: shiftPressed, ctrlKeyPressed : ctrlKeyPressed, altgrPressed : altgrPressed });
 }
 

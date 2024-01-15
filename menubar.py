@@ -127,5 +127,6 @@ class MenuBar:
             self.in_sub_menu = True
 
     def exit(self):
+        self.util.emit_waiting_for_input(False, 9)
         self.sid_data.menu.return_from_gosub()
         self.util.sid_data.setCurrentAction("wait_for_menu")

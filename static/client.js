@@ -5,8 +5,13 @@ var uploadFileType = 'ANS';
 var uploadToken = '';
 var hrefs = [];  // Global array to store hrefs
 var loadedImages = [];
+var keyboardPressedAllowed = true;
+var waitingForInput = false;
+
 
 let commandQueue = [];
+let expectedSequence = 1;
+
 
 
 var socket = io.connect(
@@ -104,17 +109,21 @@ function setupSocketEventListeners(socket) {
 
 socket.on("draw", async (data) => {
     enqueueCommand({ type: "draw", data: data });
-    processQueue();
+
 });
 
 socket.on("backgroundimage", async (data) => {
   enqueueCommand({ type: "backgroundimage", data: data });
-  processQueue();
+
 });
 
 socket.on("clear", async (data) => {
   enqueueCommand({ type: "clear", data: data });
-  processQueue();
+
+});
+
+socket.on("waiting_for_input", async (data) => {
+  waitingForInput = data.bool;
 });
 
 
@@ -122,12 +131,37 @@ function enqueueCommand(command) {
   commandQueue.push(command);
 }
 
-async function processQueue() {
-  if (commandQueue.length > 0) {
-      const command = commandQueue.shift(); // Dequeue the next command
-      await executeCommand(command);
+window.processQueue = function() {
+  // Check if the queue is empty
+  if (commandQueue.length === 0) {
+    // Schedule to check the queue again after a short delay
+    clearInterval(processQueue);
+    setTimeout(function() { keyboardPressedAllowed = true; }, waitingForInput ? 0 : 200);
+    setTimeout(processQueue, 100); // 100 ms delay or adjust as needed
+    return;
   }
-}
+
+  const commandIndex = commandQueue.findIndex(cmd => cmd.data.sequence === expectedSequence);
+  
+  if (commandIndex !== -1) {
+    keyboardPressedAllowed = false;
+    // Found a command with the expected sequence
+    const command = commandQueue[commandIndex];
+    executeCommand(command).then(() => {
+      commandQueue.splice(commandIndex, 1); // Remove the executed command from the queue
+      expectedSequence++;
+      processQueue(); // Immediately process the next command
+    });
+  } else {
+    // No command with the expected sequence, wait a bit before checking again
+    clearInterval(processQueue);
+    setTimeout(function() { keyboardPressedAllowed = true; }, waitingForInput ? 0 : 200);
+    setTimeout(processQueue, 100); // 100 ms delay or adjust as needed
+  }
+};
+
+
+
 
 async function executeCommand(command) {
   switch (command.type) {
@@ -200,7 +234,6 @@ async function executeCommand(command) {
           break;
       // ... other command types
   }
-  processQueue(); // Process the next command in the queue
 }
 
 

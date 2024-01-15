@@ -67,9 +67,9 @@ class Timeline(ANSIEditor):
         self.util.sid_data.startX = 0
         self.util.sid_data.startY += 1
         if max_width>=50:
-            self.util.output("Press C to create a new timeline entry and the arrow keys to navigate through the timeline", 11, 0)
+            self.util.output("Press C to create a new timeline entry and the arrow keys to navigate", 11, 0)
             self.util.goto_next_line()
-            self.util.output("Press I to upload an image or a movie to the timeline", 11, 0)
+            self.util.output("Press I to upload an image to the timeline", 11, 0)
         else:
             self.util.output("[C] - create entry [I] - upload img", 11, 0)
             self.util.goto_next_line()
@@ -299,6 +299,7 @@ class Timeline(ANSIEditor):
 
 
     def display_editor(self, write_header=True):
+        self.util.emit_waiting_for_input(True)
         self.util.sid_data.startX = 0
         self.util.sid_data.startY = 0
         self.output("Press ESC to stop typing in a timeline entry", 6, 0)

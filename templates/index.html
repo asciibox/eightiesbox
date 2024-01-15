@@ -25,6 +25,11 @@
     
     <link rel="stylesheet" href="{{ url_for('static', filename='cookieconsent.css') }}">
 
+    <script src="{{ url_for('static', filename='phaser.js') }}"></script>
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+    <script src="{{ url_for('static', filename='client.js') }}"></script>
+    <script src="{{ url_for('static', filename='simplekeyboard.js') }}"></script>
+
 
     <script>
       var buildNumber = new Date().getTime();
@@ -225,11 +230,7 @@
       }
     </style>
   </head>
-  <body>
-    <script src="{{ url_for('static', filename='phaser.js') }}"></script>
-    <script src="{{ url_for('static', filename='main.js') }}"></script>
-    <script src="{{ url_for('static', filename='client.js') }}"></script>
-    <script src="{{ url_for('static', filename='simplekeyboard.js') }}"></script>
+  <body onload="processQueue();">
     <style>
       html,
       body {

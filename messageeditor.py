@@ -16,6 +16,7 @@ class MessageEditor(ANSIEditor):
         self.current_line_index_page = []
 
     def display_editor(self, write_header=True):
+        self.util.emit_waiting_for_input(True, 10)
         print("DISPLY EDITOR CALLED")
         # Displaying "From:"
 

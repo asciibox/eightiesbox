@@ -36,6 +36,7 @@ class Utils:
         self.request_id = request_id
         self.menu_structure = menu_structure
         self.secret_key = secret_key
+        self.command_sequence = 0
 
     def askinput(self, mylen, callback, accept_keys, default_value=''):
         if self.sid_data.startX + mylen >= self.sid_data.xWidth:
@@ -74,6 +75,7 @@ class Utils:
         padded_str = visible_str.ljust(mylen )
 
         self.emit_current_string(padded_str, 14, 4, False, self.sid_data.startX, self.sid_data.startY)
+        self.emit_waiting_for_input(True, 11)
 
         # Calculate cursor position
         cursor_position = self.sid_data.currentPos - self.sid_data.view_start
@@ -655,10 +657,12 @@ class Utils:
 
     def emit_gotoXY(self, x, y):
         sid = self.request_id  # Get the Session ID
+        self.command_sequence += 1
         self.socketio.emit('draw', {
                 'ascii_codes': [],
                 'x': x,
-                'y': y
+                'y': y,
+                'sequence': self.command_sequence
         }, room=sid)
         self.sid_data.setCursorX(x)
         self.sid_data.setCursorY(y)
@@ -673,7 +677,10 @@ class Utils:
         sid = self.request_id  # Get the Session ID
 
         # Emit the original clear command
-        self.socketio.emit('clear', {}, room=sid)
+        self.command_sequence += 1
+        self.socketio.emit('clear', {
+            'sequence': self.command_sequence
+        }, room=sid)
 
         # Set the clear command flag
         self.sid_data.clear_command_issued = True
@@ -706,9 +713,11 @@ class Utils:
         #  input("Press Enter to continue...")
 
         sid = self.request_id  # Get the Session ID
+        
         #print(currentString)
         #print(" to "+str(y))
         if currentString:
+            
             if self.sid_data.copy_action == True:
                 self.emit_current_string_2copy(currentString, currentColor, backgroundColor, blink, x, y)
 
@@ -716,29 +725,39 @@ class Utils:
 
             if self.sid_data.map_character_set == True:
                 mapped_ascii_codes = [self.map_value(code, self.list2, self.list1) for code in ascii_codes]
-                
+                self.command_sequence += 1
                 self.socketio.emit('draw', {
                     'ascii_codes': mapped_ascii_codes,
                     'currentColor': currentColor,
                     'backgroundColor': backgroundColor,
                     'blink': blink,
                     'x': x,
-                    'y': y
+                    'y': y,
+                    'sequence': self.command_sequence
                 }, room=sid)
                 self.sid_data.store_screen_data(mapped_ascii_codes, currentColor, backgroundColor, blink, x, y)
 
             else:
+                self.command_sequence += 1
                 self.socketio.emit('draw', {
                     'ascii_codes': ascii_codes,
                     'currentColor': currentColor,
                     'backgroundColor': backgroundColor,
                     'blink': blink,
                     'x': x,
-                    'y': y
+                    'y': y,
+                    'sequence': self.command_sequence
                 }, room=sid)
                 self.sid_data.store_screen_data(ascii_codes, currentColor, backgroundColor, blink, x, y)
 
         return []
+
+    def emit_waiting_for_input(self, bool, identifier):
+        sid = self.request_id  # Get the Session ID
+        self.socketio.emit('waiting_for_input', {
+                    'bool': bool,
+                    'identifier' : identifier
+                }, room=sid)
 
     def emit_status_bar(self, currentString, currentColor, backgroundColor):
         #  input("Press Enter to continue...")
@@ -1269,11 +1288,13 @@ class Utils:
             height = 0  # or some default value
 
         # Emit the background image data to the 'backgroundimage' event
+        self.command_sequence += 1
         self.socketio.emit('backgroundimage', {
             'filename': filename,
             'x': x,
             'y': y,
             'width': width,
             'height': height,
-            'dynamicWidth' : dynamicWidth
+            'dynamicWidth' : dynamicWidth,
+            'sequence': self.command_sequence
         }, room=self.request_id)

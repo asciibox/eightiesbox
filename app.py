@@ -570,6 +570,7 @@ def handle_keypress(data):
                 siddata.profile_renderer.focus_previous_element()
             return
         elif key == 'Enter' and siddata.current_action == "wait_for_profile_renderer":
+            siddata.util.emit_waiting_for_input(False, 3)
             siddata.profile_renderer.enter()
             return
         elif key == 'ArrowDown' and siddata.current_action == "wait_for_profile_renderer":
@@ -612,6 +613,7 @@ def handle_keypress(data):
             return
             
         if key == 'Enter':
+            siddata.util.emit_waiting_for_input(False, 4)
             siddata.callback(siddata.localinput)
             return
 
