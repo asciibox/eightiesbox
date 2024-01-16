@@ -5,7 +5,7 @@ var uploadFileType = 'ANS';
 var uploadToken = '';
 var hrefs = [];  // Global array to store hrefs
 var loadedImages = [];
-var keyboardPressedAllowed = true;
+var keyboardPressAllowed = true;
 var waitingForInput = false;
 
 
@@ -147,7 +147,11 @@ window.processQueue = function() {
   if (commandQueue.length === 0) {
     // Schedule to check the queue again after a short delay
     clearInterval(processQueue);
-    setTimeout(function() { keyboardPressedAllowed = true; }, waitingForInput ? 0 : 200);
+    if (waitingForInput == true) {
+      keyboardPressAllowed = true;
+    } else {
+      setTimeout(function() { keyboardPressAllowed = true; }, 100);
+    }
     setTimeout(processQueue, 100); // 100 ms delay or adjust as needed
     return;
   }
@@ -155,7 +159,7 @@ window.processQueue = function() {
   const commandIndex = commandQueue.findIndex(cmd => cmd.data.sequence === expectedSequence);
   
   if (commandIndex !== -1) {
-    keyboardPressedAllowed = false;
+    keyboardPressAllowed = false;
     // Found a command with the expected sequence
     const command = commandQueue[commandIndex];
     executeCommand(command).then(() => {
@@ -166,7 +170,11 @@ window.processQueue = function() {
   } else {
     // No command with the expected sequence, wait a bit before checking again
     clearInterval(processQueue);
-    setTimeout(function() { keyboardPressedAllowed = true; }, waitingForInput ? 0 : 200);
+    if (waitingForInput == true) {
+      keyboardPressAllowed = true;
+    } else {
+      setTimeout(function() { keyboardPressAllowed = true; }, 100);
+    }
     setTimeout(processQueue, 100); // 100 ms delay or adjust as needed
   }
 };
