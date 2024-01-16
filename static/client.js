@@ -122,9 +122,20 @@ socket.on("clear", async (data) => {
 
 });
 
+socket.on("a", function (data) {
+  // Add the received href data to the global array
+  enqueueCommand({ type: "a", data: data });
+});
+
+
+
 socket.on("waiting_for_input", async (data) => {
   waitingForInput = data.bool;
 });
+
+
+
+
 
 
 function enqueueCommand(command) {
@@ -182,6 +193,9 @@ async function executeCommand(command) {
           );
         }
           break;
+      case "a":
+        hrefs.push(command.data);
+        break;
       case "clear":
           loadedImages.forEach(image => image.destroy());
           loadedImages=[];
@@ -248,13 +262,6 @@ async function executeCommand(command) {
   socket.on("connect", function () {
     console.log("Connected with SID:", window.socket.id);
   });
-
-  socket.on("a", function (data) {
-    // Add the received href data to the global array
-    hrefs.push(data);
-  });
-
- 
 
  
   socket.on("draw_to_status_bar", async (data) => {

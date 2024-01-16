@@ -1251,13 +1251,15 @@ class Utils:
         # Store the callback function and parameter in the dictionary
         self.sid_data.callbacks[callback_name] = {'callback': callback, 'parameter': parameter}
 
+        self.command_sequence += 1
         # Emit the socket event
         self.socketio.emit('a', {
             'callback_name': callback_name,
             'x': x,
             'y': y,
             'length' : length,
-            'height' : height
+            'height' : height,
+            'sequence': self.command_sequence
         }, room=self.request_id)
 
     def get_callback(self, callback_name):
