@@ -28,8 +28,11 @@ class Timeline(ANSIEditor):
         db = self.util.mongo_client['bbs']
         timeline_entries_collection = db['timeline_entries']
 
-        # Fetch timeline entries, sorted by timestamp
-        entries = list(timeline_entries_collection.find().sort("timestamp", -1))
+        # Get the current user's ID from the session data
+        current_user_id = self.util.sid_data.user_document['_id']
+
+        # Fetch timeline entries for the current user, sorted by timestamp
+        entries = list(timeline_entries_collection.find({"user_id": current_user_id}).sort("timestamp", -1))
 
         # Screen dimensions and layout
         
@@ -272,8 +275,9 @@ class Timeline(ANSIEditor):
 
 
         if key == 'Escape' or key == 'Enter':
-            self.util.sid_data.menu.return_from_gosub()
-            self.util.sid_data.setCurrentAction("wait_for_menu")
+            #self.util.sid_data.menu.return_from_gosub()
+            #self.util.sid_data.setCurrentAction("wait_for_menu")
+            self.callback_on_exit()
             return
         # keyStatusArray = [shiftPressed, ctrlKeyPressed, altgrPressed]
         elif key == 'ArrowDown' or key == 'ArrowRight':

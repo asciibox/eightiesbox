@@ -58,8 +58,9 @@ class MenuBarTimelineEditor(MenuBarANSIEditor):
         
     def exit_message_editor(self):
         self.util.emit_waiting_for_input(False, 8)
-        self.sid_data.setCurrentAction("wait_for_menu")
-        self.sid_data.menu.return_from_gosub()
+        #self.sid_data.setCurrentAction("wait_for_menu")
+        #self.sid_data.menu.return_from_gosub()
+        self.sid_data.timeline.show_timeline()
 
     def clear_text(self):
         # Clear the input values

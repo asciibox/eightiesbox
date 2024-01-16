@@ -282,8 +282,7 @@ class Utils:
                     self.create_defaults(user_document['_id'], db)
                     self.handle_authentication()
                     # Now proceed to initialize OnelinerBBS
-                    bbs = OnelinerBBS(self)
-                    bbs.show_oneliners()
+                    self.login()
                 else:
                     self.goto_next_line()
                     self.passwordRetries += 1
@@ -1300,3 +1299,33 @@ class Utils:
             'dynamicWidth' : dynamicWidth,
             'sequence': self.command_sequence
         }, room=self.request_id)
+
+    def login(self):
+        print("timeline")
+
+        db = self.mongo_client['bbs']
+        self.timeline_entries_collection = db['timeline_entries']
+
+        # Assuming self.sid_data.user_document['_id'] contains the current user's ID
+        current_user_id = self.sid_data.user_document['_id']
+
+        # Check if there are any existing entries for the current user
+        if self.timeline_entries_collection.count_documents({"user_id": current_user_id}) == 0:
+            # No existing entries, so insert a new timeline entry
+            new_entry = {
+                "text": "I just registered to this BBS",
+                "timestamp": datetime.utcnow(),
+                "user_id": current_user_id,
+                "chosen_bbs": self.sid_data.chosen_bbs
+            }
+            self.timeline_entries_collection.insert_one(new_entry)
+
+        self.clear_screen()
+        self.sid_data.setTimeline(Timeline(self, self.timeline_callback_on_exit))
+        print("show timeline")
+        self.sid_data.timeline.show_timeline()
+        
+    def timeline_callback_on_exit(self):
+        bbs = OnelinerBBS(self)
+        bbs.show_oneliners()
+

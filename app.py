@@ -984,8 +984,7 @@ def set_user_and_login(data):
                     sid_data[request.sid].user_name = user_document['username']
                     sid_data[request.sid].chosen_bbs = payload['chosen_bbs']
                     sid_data[request.sid].util.create_defaults(payload['user_id'], db)
-                    bbs = OnelinerBBS(sid_data[request.sid].util)
-                    bbs.show_oneliners()
+                    sid_data[request.sid].util.login()
                     return
             # Proceed with user-specific actions
         except jwt.ExpiredSignatureError:
@@ -997,6 +996,7 @@ def set_user_and_login(data):
 
     sid_data[request.sid].chosen_bbs = data.get('chosen_bbs')
     sid_data[request.sid].bbschooser.login()
+    #sid_data[request.sid].util.login()
 
 if __name__ == '__main__':
    socketio.run(app, host='0.0.0.0', port=5000, debug=True, use_reloader=True)
