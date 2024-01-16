@@ -648,6 +648,7 @@ class Renderer:
         new_block = True
         last_char = ' '
         elements = self.soup.find_all(self.tags)  # Add more tags as needed
+        print(elements)
         for element in elements:
             if self.first_input_element == None and element.name == 'input':
                 self.first_input_element = element
@@ -832,25 +833,27 @@ class Renderer:
                     margin_top = inherited_styles.get('margin-top', 0)  # Inherits margin-top if not defined in own style
 
             if display == 'grid' or element.name == 'img':
-                extracted_left = self.extract_style_value(style,'left', None)
-                left = extracted_left if extracted_left is not None else None
-                if left == None:
-                    left = inherited_styles.get('left', 0)  # Inherits left if not defined in own style
-
+                
                 extracted_position = self.extract_style_value(style,'position', None)
                 position = extracted_position if extracted_position is not None else None
 
-
-                extracted_top = self.extract_style_value(style,'top', None)
-                top = extracted_top if extracted_top is not None else None
-                if top == None:
-                    top = inherited_styles.get('top', 0)  # Inherits top if not defined in own style
 
                 if position == 'relative':
                     extracted_margin_top = self.extract_style_value(style,'top', None)
                     margin_top = extracted_margin_top if extracted_margin_top is not None else None
                     # margin_top = inherited_styles.get('relative_top', 0)  # Inherits top if not defined in own style
                     top = inherited_styles.get('top', 0)  # Inherits top if not defined in own style'''
+            
+            if display != 'inline':
+                extracted_top = self.extract_style_value(style,'top', None)
+                top = extracted_top if extracted_top is not None else None
+                if top == None:
+                    top = inherited_styles.get('top', 0)  # Inherits top if not defined in own style             
+
+                extracted_left = self.extract_style_value(style,'left', None)
+                left = extracted_left if extracted_left is not None else None
+                if left == None:
+                    left = inherited_styles.get('left', 0)  # Inherits left if not defined in own style
 
             
             if color == None:
@@ -911,7 +914,7 @@ class Renderer:
             if tag_name == 'p':
                 top += 1
                 left = 0
-
+ 
             for child in element.children:
                 if isinstance(child, bs4.element.Tag):
                     # If the child is a Tag, recursively call render_element
@@ -919,7 +922,7 @@ class Renderer:
                     # After a tag, it's no longer the start of a new block
                 elif isinstance(child, bs4.NavigableString):
                     child_text = child
-                    if child_text and backgroundColor != None and backgroundColor != 0:
+                    if child_text: #  and backgroundColor != None and backgroundColor != 0:
                         child_text = child_text.strip()
                         inherited_link = self.gather_inherited_tags(child)
                         if inherited_link:
@@ -933,8 +936,12 @@ class Renderer:
                             self.util.emit_background_image(cleaned_url, left, top, default_width, height)
                         else:
                             if backgroundColor != 0 or len(child_text.strip())>0:
+                                print("Outputting ")
+                                print(child_text)
                                 if unique_id not in self.processed_ids:
                                     self.processed_ids.add(unique_id)
+                                    print("output_text!!!")
+                                    print(str(left)+"/"+(str(top)))
                                     top, left, last_char, new_block = self.output_text(display, child_text, left, top, default_width, height, tag_name, color, backgroundColor, tuple(padding_values), place_items, text_align, margin_top, new_block=new_block, last_char=last_char)
                         
                         time.sleep(self.sleeper)
@@ -945,6 +952,8 @@ class Renderer:
 
         # If the element is a string (NavigableString), process it directly
         elif isinstance(element, bs4.NavigableString):
+            print("element")
+            print(element)
             child_text = element
             if child_text and backgroundColor != None and backgroundColor != 0:
                 child_text = child_text.strip()
