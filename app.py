@@ -229,7 +229,7 @@ def upload_file():
             "text": "",  # The actual text
             "image_url" : destination_blob_name,
             "timestamp": timestamp,
-            "user_id": user_id_str,  # Replace with the actual user ID
+            "user_id": ObjectId(user_id_str),  # Replace with the actual user ID
             "chosen_bbs": chosen_bbs  # Replace with the actual BBS HQ ID
         }
         timeline_entries_collection = db['timeline_entries']

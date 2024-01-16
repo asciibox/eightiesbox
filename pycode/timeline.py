@@ -218,6 +218,11 @@ class Timeline(ANSIEditor):
         # Pre-render entries
         for entry in entries:
             rendered_entry = self.render_entry(entry)  # Render the entry into a display-ready format
+
+            # Insert additional line breaks if entry has an image
+            #if 'image_url' in entry:
+            #    rendered_entry += '\n' * 7
+
             rendered_entries.append((rendered_entry, entry))  # Store tuple of rendered text and original entry
             entry_lines = self.count_lines(rendered_entry)  # Count the lines in the rendered entry
 
@@ -243,9 +248,6 @@ class Timeline(ANSIEditor):
                     right_line_count += entry_lines
             else:
                 # Narrow screen layout (single-column)
-                print("Adding Entry:", entry)
-                print("Entry Lines:", entry_lines)
-                print("Left line count on Page Before Adding:", left_line_count)
                 if left_line_count + entry_lines > lines_per_page:
                     # Move to the next page
                     print("Adding Page Break:", (current_page_start, len(rendered_entries) - 1))
@@ -281,7 +283,6 @@ class Timeline(ANSIEditor):
             return
         # keyStatusArray = [shiftPressed, ctrlKeyPressed, altgrPressed]
         elif key == 'ArrowDown' or key == 'ArrowRight':
-            print(str(self.current_page)+"<"+str(self.page_breaks))
             if self.current_page < len(self.page_breaks): 
                 self.current_page += 1
                 #print("Navigating to Page:", self.current_page)
@@ -303,7 +304,6 @@ class Timeline(ANSIEditor):
 
 
     def display_editor(self, write_header=True):
-        self.util.emit_waiting_for_input(True)
         self.util.sid_data.startX = 0
         self.util.sid_data.startY = 0
         self.output("Press ESC to stop typing in a timeline entry", 6, 0)
@@ -314,6 +314,7 @@ class Timeline(ANSIEditor):
     def add_timeline_entry(self):
         # Setting cursor position for "From:"
         self.util.clear_screen()
+        self.util.emit_waiting_for_input(True, 12)
         self.util.sid_data.setStartX(0)
         self.util.sid_data.setStartY(0)
         # Output "From:" in different colors, let's say fg=2 and bg=0
