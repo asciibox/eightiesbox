@@ -104,7 +104,7 @@ class MenuBarMessageEditor(MenuBarANSIEditor):
     
 
     def exit_message_editor(self):
-        self.util.emit_waiting_for_input(False, 7)
+        #self.util.emit_waiting_for_input(False, 7)
         self.sid_data.setCurrentAction("wait_for_menu")
         self.sid_data.menu.return_from_gosub()
 

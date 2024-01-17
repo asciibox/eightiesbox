@@ -182,7 +182,10 @@ class Timeline(ANSIEditor):
             return '\n'.join(processed_lines).strip(), remaining_text.strip()
 
         for entry in entries:
-            text = entry['text']
+            if 'image_url' in entry and entry['image_url']:
+                text = ' \n' * 7
+            else:
+                text = entry['text']
             while text:
                 # Calculate available lines based on the current Y position
                 available_lines = max_height - current_y_pos
@@ -314,7 +317,7 @@ class Timeline(ANSIEditor):
     def add_timeline_entry(self):
         # Setting cursor position for "From:"
         self.util.clear_screen()
-        self.util.emit_waiting_for_input(True, 12)
+        #self.util.emit_waiting_for_input(True, 12)
         self.util.sid_data.setStartX(0)
         self.util.sid_data.setStartY(0)
         # Output "From:" in different colors, let's say fg=2 and bg=0

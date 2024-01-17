@@ -75,7 +75,6 @@ class Utils:
         padded_str = visible_str.ljust(mylen )
 
         self.emit_current_string(padded_str, 14, 4, False, self.sid_data.startX, self.sid_data.startY)
-        self.emit_waiting_for_input(True, 11)
 
         # Calculate cursor position
         cursor_position = self.sid_data.currentPos - self.sid_data.view_start
@@ -753,9 +752,12 @@ class Utils:
 
     def emit_waiting_for_input(self, bool, identifier):
         sid = self.request_id  # Get the Session ID
+        self.command_sequence += 1
+
         self.socketio.emit('waiting_for_input', {
                     'bool': bool,
-                    'identifier' : identifier
+                    'identifier' : identifier,
+                    'sequence' : self.command_sequence
                 }, room=sid)
 
     def emit_status_bar(self, currentString, currentColor, backgroundColor):

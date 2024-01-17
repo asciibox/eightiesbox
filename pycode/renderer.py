@@ -73,6 +73,7 @@ class Renderer:
         # Fetch user data from the database
         # Assuming 'self.util.sid_data.user_document['_id']' contains the current user's ID
 
+        self.util.emit_waiting_for_input(False, 14)
         # Read the HTML template
         if filename == None:
             db = self.util.mongo_client['bbs']
@@ -124,6 +125,7 @@ class Renderer:
         self.soup = self.add_data_grid_attributes(self.soup)
 
         self.redraw_elements(True)
+        self.util.emit_waiting_for_input(True, 15)
 
     def get_total_rows_from_parent_style_with_repeat(self, grid_container_style):
         # Search for the 'grid-template-rows' property with a 'repeat()' value

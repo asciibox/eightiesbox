@@ -6,8 +6,8 @@ var uploadToken = '';
 var hrefs = [];  // Global array to store hrefs
 var loadedImages = [];
 var keyboardPressAllowed = true;
-var waitingForInput = false;
-
+storedKeyPresses = [];
+var freeTimeout = null;
 
 let commandQueue = [];
 let expectedSequence = 1;
@@ -130,7 +130,7 @@ socket.on("a", function (data) {
 
 
 socket.on("waiting_for_input", async (data) => {
-  waitingForInput = data.bool;
+  enqueueCommand({ type: "waitingForInput", data: data });
 });
 
 
@@ -142,25 +142,25 @@ function enqueueCommand(command) {
   commandQueue.push(command);
 }
 
+function processStoredKeyPresses() {
+  while (storedKeyPresses.length > 0) {
+    const keyPress = storedKeyPresses.shift();
+    emitKeyPress(keyPress.key); // Assuming you modify emitKeyPress to handle the full keyPress object
+  }
+}
+
 window.processQueue = function() {
   // Check if the queue is empty
   if (commandQueue.length === 0) {
     // Schedule to check the queue again after a short delay
-    clearInterval(processQueue);
-    if (waitingForInput == true) {
-      keyboardPressAllowed = true;
-    } else {
-      setTimeout(function() { keyboardPressAllowed = true; }, 100);
-    }
     setTimeout(processQueue, 100); // 100 ms delay or adjust as needed
     return;
-  }
+  } 
 
   const commandIndex = commandQueue.findIndex(cmd => cmd.data.sequence === expectedSequence);
   
   if (commandIndex !== -1) {
-    keyboardPressAllowed = false;
-    // Found a command with the expected sequence
+    
     const command = commandQueue[commandIndex];
     executeCommand(command).then(() => {
       commandQueue.splice(commandIndex, 1); // Remove the executed command from the queue
@@ -169,12 +169,6 @@ window.processQueue = function() {
     });
   } else {
     // No command with the expected sequence, wait a bit before checking again
-    clearInterval(processQueue);
-    if (waitingForInput == true) {
-      keyboardPressAllowed = true;
-    } else {
-      setTimeout(function() { keyboardPressAllowed = true; }, 100);
-    }
     setTimeout(processQueue, 100); // 100 ms delay or adjust as needed
   }
 };
@@ -209,6 +203,14 @@ async function executeCommand(command) {
           loadedImages=[];
           clearScreen();
           hrefs = []
+          break;
+      case "waitingForInput" :
+          if (keyboardPressAllowed == false && command.data.bool == true) {
+            keyboardPressAllowed = true;
+            processStoredKeyPresses();
+          } else {
+            keyboardPressAllowed = command.data.bool;
+          }
           break;
       case "backgroundimage":
            // Extracting properties from the data object

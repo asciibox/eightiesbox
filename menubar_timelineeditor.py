@@ -51,9 +51,9 @@ class MenuBarTimelineEditor(MenuBarANSIEditor):
             self.draw_sub_menu()
 
     def save_timeline_entry(self):
-        self.util.clear_screen()
+        self.util.clear_screen()       
         
-        self.util.emit_waiting_for_input(False, 8)
+        #self.util.emit_waiting_for_input(False, 8)
         self.sid_data.timeline.save_timeline_entry()
         #self.sid_data.setCurrentAction("wait_for_menu")
         #self.sid_data.menu.return_from_gosub()
@@ -61,7 +61,7 @@ class MenuBarTimelineEditor(MenuBarANSIEditor):
     def exit_message_editor(self):
         self.util.clear_screen()
         
-        self.util.emit_waiting_for_input(False, 8)
+        #self.util.emit_waiting_for_input(False, 8)
         #self.sid_data.setCurrentAction("wait_for_menu")
         #self.sid_data.menu.return_from_gosub()
         self.sid_data.timeline.show_timeline()
