@@ -105,6 +105,14 @@ def upload_finished(data):
     siddata.setUploadEditor(UploadEditor(siddata.util)) 
     siddata.upload_editor.start()
 
+@socketio.on('ansi_upload_finished')
+def ansi_upload_finished(data):
+    print("DATA")
+    print(data)
+    if data['type'] == 'Close Timeline Image Upload':
+        siddata = sid_data[request.sid]
+        siddata.util.clear_screen()
+        siddata.timeline.show_timeline()
 
 @app.route('/')
 def index():
