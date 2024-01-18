@@ -155,7 +155,9 @@ On Linux Python is pre-installed, on Windows you must make sure to download the 
 pip install ochre flask pymongo flask_socketio bcrypt google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client google-cloud-storage google-cloud-pubsub email_validator dukpy bs4 PyJWT
 ```
 
-(Install any other missing packages as needed.)
+In case you cannot compile dupky using Visual Studio, we recommend using Python 3.10 (or earlier) and downloading the wheel which fits to the Python version  here: https://www.lfd.uci.edu/~gohlke/pythonlibs/#dukpy - then install dupky using pip with the install command and the downloaded filename (i.e. dukpy‑0.2.3‑cp310‑cp310‑win_amd64.whl).
+
+(Install any other missing packages as needed)
 
 # MongoDB Installation
 
