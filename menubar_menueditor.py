@@ -112,7 +112,7 @@ class MenuBarMenuEditor(MenuBar):
 
     def simulate_text(self):
         print("SIMULATE_TEXT")
-        self.util.emit_waiting_for_input(False, 6)
+        #self.util.emit_waiting_for_input(False, 6)
         print(self.util.sid_data.sauceHeight)
         self.util.sid_data.setCurrentAction("wait_for_menu")
         self.sid_data.menu_box.callback_on_exit = self.simulate_callback_on_exit

@@ -711,9 +711,19 @@ function getCharIndex(foreground, asciiCode) {
   return myx + myy * 16 * 32;
 }
 
+
+function emitKeyPress(keyCode) {
+  socket.emit("input_keypress", { key: keyCode, shiftPressed: shiftPressed, ctrlKeyPressed: ctrlKeyPressed, altgrPressed: altgrPressed });
+}
+
+
 function handleKeyCode(keyCode) {
-  if (keyboardPressAllowed==false) return;
-  socket.emit("input_keypress", { key: keyCode, shiftPressed: shiftPressed, ctrlKeyPressed : ctrlKeyPressed, altgrPressed : altgrPressed });
+  if (keyboardPressAllowed == false) {
+    // Store the key press information
+    storedKeyPresses.push({ key: keyCode, shiftPressed: shiftPressed, ctrlKeyPressed: ctrlKeyPressed, altgrPressed: altgrPressed });
+    return;
+  }
+  emitKeyPress(keyCode);
 }
 
 function redrawCursor() {

@@ -16,7 +16,7 @@ class MessageEditor(ANSIEditor):
         self.current_line_index_page = []
 
     def display_editor(self, write_header=True):
-        self.util.emit_waiting_for_input(True, 10)
+        #self.util.emit_waiting_for_input(True, 10)
         print("DISPLY EDITOR CALLED")
         # Displaying "From:"
 
@@ -128,6 +128,7 @@ class MessageEditor(ANSIEditor):
             self.util.sid_data.setStartY(4)
             self.util.emit_gotoXY(0, 4)
             self.current_line_index = 4
+            #self.util.emit_waiting_for_input(True, 13)
             self.sid_data.setCurrentAction("wait_for_messageeditor")
 
         self.output("Subject: ", 6, 0)
