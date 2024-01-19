@@ -8,7 +8,7 @@ class ProfileRenderer(Renderer):
         # Retrieve user input values
         mypassword = self.input_values.get("password", "")
         user_data = {
-            "username": self.input_values.get("username", ""),
+            "display_username": self.input_values.get("display_username", ""),
             "email": self.input_values.get("email", ""),
             "sex": self.input_values.get("sex", ""),
             "social_media_1": self.input_values.get("social_media_1", ""),

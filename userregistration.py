@@ -5,7 +5,7 @@ from oneliners import *
 import bcrypt
 
 class UserRegistration:
-    def __init__(self, util, launchMenuCallback):
+    def __init__(self, util, launchMenuCallback, entered_username):
         self.password_input = ""
         self.util = util
         self.goto_next_line = util.goto_next_line
@@ -19,9 +19,11 @@ class UserRegistration:
         self.wait = util.wait
         self.launchMenuCallback = launchMenuCallback
         self.askPassword = util.askPassword
+        self.entered_username = entered_username
 
         self.userdata = {
             "username": "",
+            "display_username" : "",
             "email": "",
             "age": 0,
             "sex" : "",
@@ -38,8 +40,8 @@ class UserRegistration:
     def new_user_callback(self, result):
         if result == 'Y' or result == 'y':
             self.goto_next_line()
-            self.output_wrap("Please enter your new username: ", 6, 0)
-            self.ask(35, self.username_callback)
+            self.output_wrap("Please enter your new username used for login: ", 6, 0)
+            self.ask(35, self.username_callback, [], self.entered_username)
         else:
             self.goto_next_line()
             self.output_wrap("Please enter your name: ", 6, 0)
@@ -49,8 +51,8 @@ class UserRegistration:
         input = input.lower().strip()
         if input == '':
             self.goto_next_line()
-            self.output_wrap("Please enter your new username: ", 6, 0)
-            self.ask(35, self.username_callback)
+            self.output_wrap("Please enter your new username used for login: ", 6, 0)
+            self.ask(35, self.username_callback, [], self.entered_username)
             return
         self.userdata['username'] = input
         db = self.mongo_client['bbs']
@@ -58,16 +60,43 @@ class UserRegistration:
 
         existing_user = users_collection.find_one({"username": input, 'chosen_bbs': self.sid_data.chosen_bbs})
         # If username does not exist, insert the new user data
-        if existing_user is None:
-           self.goto_next_line()
-           self.output_wrap("Please enter your new password: ", 6, 0)
-           self.askPassword(35, self.password_callback)
-        else:
+        if existing_user is not None:
             self.goto_next_line()
             self.output_wrap("This username is already taken", 1, 0)
             self.goto_next_line()
-            self.output_wrap("Please enter your new username: ", 6, 0)
-            self.ask(35, self.username_callback)
+            self.output_wrap("Please enter your new username used for login: ", 6, 0)
+            self.ask(35, self.username_callback, [], self.entered_username)
+        else:
+           self.goto_next_line()
+           self.output_wrap("Please enter your display name: ", 6, 0)
+           self.ask(35, self.display_username_callback, [], input)
+
+
+
+
+    def display_username_callback(self, input):
+        input = input.lower().strip()
+        if input == '':
+            self.goto_next_line()
+            self.output_wrap("Please enter your display name: ", 6, 0)
+            self.ask(35, self.username_callback, [], self.entered_username)
+            return
+        self.userdata['display_username'] = input
+        db = self.mongo_client['bbs']
+        users_collection = db['users']
+
+        existing_display_user = users_collection.find_one({"display_username": input, 'chosen_bbs': self.sid_data.chosen_bbs})
+        # If disply username does not exist, insert the new user data
+        if existing_display_user is not None:
+            self.goto_next_line()
+            self.output_wrap("This display name is already taken", 1, 0)
+            self.goto_next_line()
+            self.output_wrap("Please enter your display name: ", 6, 0)
+            self.ask(35, self.display_username_callback, [], input)
+        else:
+           self.goto_next_line()
+           self.output_wrap("Please enter your new password: ", 6, 0)
+           self.askPassword(35, self.password_callback)
         
     def password_callback(self, input):
         if input == '':

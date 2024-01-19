@@ -1,7 +1,7 @@
     <div style="display:block">
     
-    <div style="position: absolute; top: 0px; left: 0px; color: 6; display:block;">Username:</div>
-    <input id="username" type="text" value="{userdata.username}" style="position: absolute; top: 1px; left: 0px; width: 35px;" onclick="return $('#username').focus();">
+    <div style="position: absolute; top: 0px; left: 0px; color: 6; display:block;">Display username:</div>
+    <input id="display_username" type="text" value="{userdata.display_username}" style="position: absolute; top: 1px; left: 0px; width: 35px;" onclick="return $('#display_username').focus();">
 
     <div style="position: absolute; top: 2px; left: 0px;color: 6; display:block;">Email:</div>
     <input id="email"  type="text" value="{userdata.email}"  style="position: absolute; top: 3px; left: 0px; width: 35px;" onclick="return $('#email').focus();">
@@ -27,7 +27,7 @@
     <div style="position: absolute; top: 16px; left: 0px;color: 6; display:block;">Password repetition:</div>
     <input id="password_repetition" value="" type="password" style="position: absolute; top: 17px; left: 0px; width: 35px;" onclick="return $('#password_repetition').focus();">
 
-    <button id="submit_button" type="submit" value="Submit" style="position: absolute; top: 18px; left: 6px; width: 20px;" onclick="if ($('#password_repetition').val() != $('#password').val()) { alert('Passwords do not match'); return false; } return true;">Absenden</button>
+    <button id="submit_button" type="submit" value="Submit" style="position: absolute; top: 18px; left: 6px; width: 20px;" onclick="if ($('#password_repetition').val() != $('#password').val()) { alert('Passwords do not match'); return false; } return true;">Submit</button>
 
 
 

@@ -453,7 +453,7 @@ class Utils:
         else:
             # User doesn't exist in the database
             self.goto_next_line()
-            registration = UserRegistration(self, self.launchMenuCallback)
+            registration = UserRegistration(self, self.launchMenuCallback, input)
 
     # Callback for Sysop password creation
     def sysopPasswordCreationCallback(self, first_password):
