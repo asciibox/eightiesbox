@@ -8,7 +8,7 @@ import re
 import bcrypt
 import time
 class Renderer:
-    def __init__(self, util, return_function):
+    def __init__(self, util, return_function, filename=None, db_filename=None):
         # Initialize common rendering properties
         self.util = util
         self.first_input_element = None
@@ -23,6 +23,9 @@ class Renderer:
         self.is_current_line_empty=True
         self.tags = ["div", "span", "p", "input", "button", "submit", "a", "img"]
 
+        self.filename = filename
+        self.db_filename = db_filename
+
         self.inheritable_properties = [
             'color',
             'top',
@@ -33,9 +36,15 @@ class Renderer:
             'place-items',
             'margin-top'
         ]
-
+        self.html_content = ""
         self.current_focus_index = 0
         self.input_values = {}  # Dictionary to store input values for each element
+        
+        self.update_js_code()
+        self.render_page()
+
+
+    def update_js_code(self):
         self.js_code = """
             var lastAlertMessage = ''; // Global variable to store the last alert message
 
@@ -58,63 +67,85 @@ class Renderer:
                 };
             }
 
+            function ajax(url, callback_function) {
+                // Simulate the AJAX call by sending data to Python
+                var ajaxResult = {url: url, callback_function: callback_function};
+                return {ajaxResult: ajaxResult};  // Return an object with a key 'ajaxResult'
+            }
+
             function alert(message) {
-                lastAlertMessage = message; // Update the global variable with the new message
+                lastAlertMessage = message;
                 return { alertMessage: message };
             }
         """
+        # Read the HTML template
+        if self.filename == None:
+            db = self.util.mongo_client['bbs']
+            upload_html_collection = db['uploads_html']
+            html_data = upload_html_collection.find_one({"filename": self.db_filename, 'chosen_bbs' : self.util.sid_data.chosen_bbs })
+            self.html_content = base64.b64decode(html_data['file_data']);
+        else:
+            with open(self.filename, "r") as file:
+                self.html_content = file.read()
+        
+        if self.util.sid_data.user_document is not None:
+            db = self.util.mongo_client['bbs']
+            users_collection = db['users']
+            user_data = users_collection.find_one({"_id": self.util.sid_data.user_document['_id']})
+
+            if isinstance(self.html_content, bytes):
+                html_content_str = self.html_content.decode('utf-8')
+            else:
+                html_content_str = self.html_content
+
+            # Replace placeholders with actual user data or remove them if not present
+            all_placeholders = re.findall(r'\{userdata\.\w+\}', html_content_str)
+            for placeholder in all_placeholders:
+                field = placeholder.strip('{}').split('.')[1]
+                if field in user_data and user_data[field] is not None:
+                    html_content_str = html_content_str.replace(placeholder, str(user_data[field]))
+                else:
+                    html_content_str = html_content_str.replace(placeholder, '')
+
+            # If you need to use the modified content as bytes later on, encode it back
+            self.html_content = html_content_str.encode('utf-8')
+
+        # Use regex to extract JavaScript from <script> tags
+        self.additional_js_code = ""
+        if isinstance(self.html_content, bytes):
+            html_content_str = self.html_content.decode('utf-8')
+        else:
+            html_content_str = self.html_content
+
+        script_regex = r'<script[^>]*>(.*?)</script>'
+        scripts = re.findall(script_regex, html_content_str, re.DOTALL | re.IGNORECASE)
+
+        # Add the extracted scripts to self.js_code
+        for script in scripts:
+            self.additional_js_code += "\n" + script
+        self.js_code += self.additional_js_code
+        
+
+
+
+    def emit_ajax(self, ajax_data):
+        # Use socket.io to send ajax_data to the front-end
+        self.util.emit_ajax(ajax_data['url'], self.filename, ajax_data['callback_function'])
+        
+
+
     def has_display_grid_style(self, style):
         if style is None:
             return False
         return re.search(r'display\s*:\s*grid', style, re.IGNORECASE) is not None
 
 
-    def render_page(self, filename, db_filename=''):
+    def render_page(self):
         # Fetch user data from the database
         # Assuming 'self.util.sid_data.user_document['_id']' contains the current user's ID
-
         self.util.emit_waiting_for_input(False, 14)
-        # Read the HTML template
-        if filename == None:
-            db = self.util.mongo_client['bbs']
-            upload_html_collection = db['uploads_html']
-            html_data = upload_html_collection.find_one({"filename": db_filename, 'chosen_bbs' : self.util.sid_data.chosen_bbs })
-            html_content = base64.b64decode(html_data['file_data']);
-        else:
-            with open(filename, "r") as file:
-                html_content = file.read()
-        
-        # Fill in userdata into the html if logged in
-        if self.util.sid_data.user_document is not None:
-            db = self.util.mongo_client['bbs']
-            users_collection = db['users']
-            user_data = users_collection.find_one({"_id": self.util.sid_data.user_document['_id']})
-            
-            try:
-                # Assuming html_content is in byte format, decode it to a string
-                if isinstance(html_content, bytes):
-                    html_content_str = html_content.decode('utf-8')
-                else:
-                    html_content_str = html_content
 
-                # Replace placeholders with actual user data or remove them if not present
-                all_placeholders = re.findall(r'\{userdata\.\w+\}', html_content_str)
-                for placeholder in all_placeholders:
-                    field = placeholder.strip('{}').split('.')[1]
-                    if field in user_data and user_data[field] is not None:
-                        html_content_str = html_content_str.replace(placeholder, str(user_data[field]))
-                    else:
-                        html_content_str = html_content_str.replace(placeholder, '')
-
-                # If you need to use the modified content as bytes later on, encode it back
-                html_content = html_content_str.encode('utf-8')
-        
-            except AttributeError as e:
-                self.return_function()
-                # Handle the case where html_content is not byte-like or other AttributeErrors
-                pass
-
-        self.soup = BeautifulSoup(html_content, "html.parser")
+        self.soup = BeautifulSoup(self.html_content, "html.parser")
         unique_id = 0
 
         for element in self.soup.find_all():
@@ -294,7 +325,7 @@ class Renderer:
 
         # Check if the start_row is within the range of defined rows
         if start_row >= len(parent_row_heights):
-            print("Error: Nested grid's start row exceeds the number of rows in the parent grid.")
+            #print("Error: Nested grid's start row exceeds the number of rows in the parent grid.")
             return 0
 
         # Adjust end_row if it exceeds the number of defined rows
@@ -403,7 +434,8 @@ class Renderer:
 
 
     def redraw_elements(self, useHTMLValues):
-
+        self.processed_ids = set()
+        
         def process_grid_container(container, total_width, total_height, parent_top):
             
             if self.is_nested_grid(container):
@@ -519,9 +551,6 @@ class Renderer:
                         new_styles.append(f"height: {item_height}px;")
 
                     item['style'] = '; '.join(new_styles)
-                    print("ITEM_STYLE")
-                    print(item['style'])
-          
 
             else:
                 container_style = container.get('style', '')
@@ -625,7 +654,6 @@ class Renderer:
 
 
                         element['style'] = existing_style
-                        print(element['style'])
                 #nested_grids = element.find_all(["div"], style=self.has_grid_style, recursive=True)
                 
                 #print(nested_grids)
@@ -650,7 +678,6 @@ class Renderer:
         new_block = True
         last_char = ' '
         elements = self.soup.find_all(self.tags)  # Add more tags as needed
-        print(elements)
         for element in elements:
             if self.first_input_element == None and element.name == 'input':
                 self.first_input_element = element
@@ -938,12 +965,8 @@ class Renderer:
                             self.util.emit_background_image(cleaned_url, left, top, default_width, height)
                         else:
                             if backgroundColor != 0 or len(child_text.strip())>0:
-                                print("Outputting ")
-                                print(child_text)
                                 if unique_id not in self.processed_ids:
                                     self.processed_ids.add(unique_id)
-                                    print("output_text!!!")
-                                    print(str(left)+"/"+(str(top)))
                                     top, left, last_char, new_block = self.output_text(display, child_text, left, top, default_width, height, tag_name, color, backgroundColor, tuple(padding_values), place_items, text_align, margin_top, new_block=new_block, last_char=last_char)
                         
                         time.sleep(self.sleeper)
@@ -954,8 +977,6 @@ class Renderer:
 
         # If the element is a string (NavigableString), process it directly
         elif isinstance(element, bs4.NavigableString):
-            print("element")
-            print(element)
             child_text = element
             if child_text and backgroundColor != None and backgroundColor != 0:
                 child_text = child_text.strip()
@@ -1049,7 +1070,6 @@ class Renderer:
                         self.util.sid_data.startY = top
                         self.util.output(" " * width, foregroundColor, backgroundColor)
                         top += 1
-                print(margin_top)
                 if margin_top > 0:
                     for _ in range(margin_top):
                         self.util.sid_data.startX = left
@@ -1250,10 +1270,14 @@ class Renderer:
     def handle_event_with_dukpy(self, js_code):
         full_js_code = self.js_code + ' ' + js_code
         js_result = dukpy.evaljs(full_js_code, input_values=self.input_values)
+            
         return js_result
     
     
     def handle_click(self, x, y):
+        print("Handle click")
+        print(self.js_code)
+        execute_submit = True
         for element_id, (start, end) in self.element_positions.items():
             if start[0] <= x <= end[0] and start[1] <= y <= end[1]:
                 if element_id in self.onclick_events:
@@ -1267,76 +1291,31 @@ class Renderer:
                         }}
                         evaluateOnClick();
                     """
+                    print(wrapped_js)
                     my_element = self.extract_element_for_id(element_id)
                     if my_element and my_element.name == 'button' and my_element.get('type') == 'submit':
                         self.update_previous_element()
                     js_result = self.handle_event_with_dukpy(wrapped_js)
-                    print("Debug Information:", js_result.get('debugInfo'))
 
-                    # Check onClickResult and onAlert
-                    onClickResult = js_result.get('onClickResult')
-                    onAlertMessage = js_result.get('onAlert')
-                    
-                    if isinstance(onClickResult, bool) and not onClickResult:
-                        # Calculate box width
-                        boxWidth = len(onAlertMessage) + 2
-                        some_y_coordinate = 0
-                        # Top border
-                        self.util.sid_data.setStartX(0)
-                        self.util.sid_data.setStartY(some_y_coordinate)  # Replace with the appropriate Y coordinate
-                        self.util.output("+", 11, 4)
-                        for i in range(1, boxWidth - 1):
-                            self.util.output("-", 11, 4)
-                        self.util.output("+", 11, 4)
-
-                        # Output message
-                        self.util.sid_data.setStartX(0)
-                        self.util.sid_data.setStartY(some_y_coordinate + 1)  # Adjust Y coordinate as needed
-                        self.util.output("|" + onAlertMessage + "|", 11, 4)
-
-                        # Bottom border
-                        self.util.sid_data.setStartX(0)
-                        self.util.sid_data.setStartY(some_y_coordinate + 2)  # Adjust Y coordinate as needed
-                        self.util.output("+", 11, 4)
-                        for i in range(1, boxWidth - 1):
-                            self.util.output("-", 11, 4)
-                        self.util.output("+", 11, 4)
-                        self.util.wait(self.alert_callback)
-                        return  # Stop if JavaScript returns false
-
-                    # Check if onClickResult is an object and handle it
-                    elif isinstance(onClickResult, dict):
-                        print("onClickResult2")
-                        print(onClickResult)
-                        # Handle focused element
-                        element_id_to_focus = onClickResult.get('focusElementId')
-                        if element_id_to_focus:
-                            self.focus_on_element(element_id_to_focus[1:], True)
-                        
-                        # Handle alert message
-                        alert_message = onClickResult.get('alertMessage')
-                        if alert_message:
-                            print("Alert:", alert_message)
-
-                    print("onClickResult3")
-                    print(onClickResult)
+                    execute_submit = self.evaluateJSResult(js_result)
         
                     # Other relevant code...
                 my_element = self.extract_element_for_id(element_id)
-                if my_element and my_element.name == 'button' and my_element.get('type') == 'submit':
+                if my_element and my_element.name == 'button' and my_element.get('type') == 'submit' and execute_submit == True:
                     self.submit_function()
 
     def alert_callback(self):
+        self.update_js_code()
         self.util.clear_screen()
         self.util.sid_data.startX = 0
         self.util.sid_data.startY = 0
-        self.redraw_elements(False)
+        self.redraw_elements(True)
+        self.util.emit_waiting_for_input(True, 15)
 
     def update_previous_element(self):
         if self.previous_element_id is not None:
             previous_element = self.extract_element_for_id(self.previous_element_id)
             if previous_element:
-                print(previous_element.name)
                 if previous_element.name == 'input':
                     self.input_values[self.previous_element_id] = self.util.sid_data.localinput
                 elif previous_element.name == 'button':
@@ -1375,14 +1354,12 @@ class Renderer:
                     next_input_index = None
                     self.element_order = [e.get('id') for e in self.soup.find_all(self.tags) if e.get('id')]
                     for i, el_id in enumerate(self.element_order):
-                        print(el_id+"=="+element_id)
                         if el_id == element_id:
                             next_input_index = i
 
                     # If an input element is found, update the current focus index
                     if next_input_index is not None:
                         self.current_focus_index = next_input_index
-                        print("found "+str(next_input_index))
                     else:
                         # If no next input is found, optionally reset focus to start
                         self.current_focus_index = 1
@@ -1553,7 +1530,6 @@ class Renderer:
             new_styles.append(f"left: {item_left}px")
             item['style'] = '; '.join(new_styles).strip(';')
             # Optionally, print debug information
-            print(f"Debug: Item {index} left: {item_left}px")
 
 
             #existing_style = item.get('style', '')
@@ -1672,3 +1648,94 @@ class Renderer:
                 total_lines += 1
 
             return total_lines
+
+    def on_ajax_response(self, response_data):
+        # Extract the AJAX call result from the response_data
+        print("ADDITIONAL CODE"+self.additional_js_code+"***")
+        print(response_data)
+        ajax_result = response_data['text']
+        filename = response_data['filename']
+        self.filename = filename
+        callback_function = response_data['callback_function']
+
+        # The JavaScript code with a placeholder for the AJAX result
+        onclick_code = 'return '+callback_function+"('"+str(ajax_result)+"')"
+        wrapped_js = f"""
+            function evaluateOnClick() {{
+                var result = {{}};
+                result.onClickResult = (function() {{ {onclick_code} }})();
+                result.onAlert = lastAlertMessage;  // Retrieve alert message from the global variable
+                return result;
+            }}
+            evaluateOnClick();
+        """
+        
+        self.update_js_code()
+        print(self.js_code+wrapped_js)
+        final_result = dukpy.evaljs(self.js_code+wrapped_js, input_values=self.input_values)
+        evaluateResult = self.evaluateJSResult(final_result)
+        print("evaluateResult")
+        print(evaluateResult)
+        if evaluateResult == True:
+            self.submit_function()
+
+    def evaluateJSResult(self, js_result):
+        # Check onClickResult and onAlert
+        print(js_result)
+        onClickResult = js_result.get('onClickResult')
+        print("onClickResult")
+        print(onClickResult)
+        onAlertMessage = js_result.get('onAlert')
+        print("onAlertMessage")
+        print(onAlertMessage)
+        
+        
+
+        # Check if onClickResult is an object and handle it
+        if isinstance(onClickResult, dict):
+            # Handle focused element
+            element_id_to_focus = onClickResult.get('focusElementId')
+            if element_id_to_focus:
+                print("element_id_to_focus")
+                self.focus_on_element(element_id_to_focus[1:], True)
+                return False
+            
+            # Handle ajax result
+            ajax_data = onClickResult.get('ajaxResult')
+            print("ajax_data")
+            if ajax_data and 'url' in ajax_data:
+                # You have the URL from the ajax call, handle it as needed
+                # For example, you could initiate a request or handle it differently
+                # based on the URL value
+                self.emit_ajax(ajax_data)
+                return False
+            
+        elif isinstance(onClickResult, bool):
+            if onClickResult==False:
+                # Calculate box width
+                boxWidth = len(onAlertMessage) + 2
+                some_y_coordinate = 0
+                # Top border
+                self.util.sid_data.setStartX(0)
+                self.util.sid_data.setStartY(some_y_coordinate)  # Replace with the appropriate Y coordinate
+                self.util.output("+", 11, 4)
+                for i in range(1, boxWidth - 1):
+                    self.util.output("-", 11, 4)
+                self.util.output("+", 11, 4)
+
+                # Output message
+                self.util.sid_data.setStartX(0)
+                self.util.sid_data.setStartY(some_y_coordinate + 1)  # Adjust Y coordinate as needed
+                self.util.output("|" + onAlertMessage + "|", 11, 4)
+
+                # Bottom border
+                self.util.sid_data.setStartX(0)
+                self.util.sid_data.setStartY(some_y_coordinate + 2)  # Adjust Y coordinate as needed
+                self.util.output("+", 11, 4)
+                for i in range(1, boxWidth - 1):
+                    self.util.output("-", 11, 4)
+                self.util.output("+", 11, 4)
+                self.util.wait(self.alert_callback)
+                return False # Stop if JavaScript returns false
+            
+        return True

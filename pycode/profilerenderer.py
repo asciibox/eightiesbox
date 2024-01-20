@@ -1,8 +1,9 @@
-from pycode.renderer import Renderer 
+from pycode.renderer import Renderer
+import bcrypt
 
 class ProfileRenderer(Renderer):
-    def __init__(self, util, return_function):
-        super().__init__(util, return_function)  # Call the constructor of the parent class
+    def __init__(self, util, return_function, filename=None, db_filename=None):
+        super().__init__(util, return_function, filename, db_filename)  # Call the constructor of the parent class
         
     def submit_function(self):
         # Retrieve user input values
@@ -32,6 +33,16 @@ class ProfileRenderer(Renderer):
 
         # Update the user document
         users_collection.update_one({"_id": user_id}, {"$set": user_data})
+
+        # Retrieve the updated user document
+        updated_user_document = users_collection.find_one({"_id": user_id})
+
+        # Assign the updated document to sid_data.user_document
+        if updated_user_document:
+            self.util.sid_data.user_document = updated_user_document
+        else:
+            # Handle case where user document is not found
+            print("User document not found.")
 
         self.return_function()
         pass

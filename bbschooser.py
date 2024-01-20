@@ -35,13 +35,13 @@ class BBSChooser(BasicANSI):
         self.draw_frame(16, 0)
         self.show_page(self.current_page)
 
-        self.sid_data.setRenderer(Renderer(self.util, None))
+        
         if self.sid_data.xWidth > 80:
-            self.sid_data.renderer.render_page("html/startpage.html")
+            self.sid_data.setRenderer(Renderer(self.util, None, "html/startpage.html"))
         elif self.sid_data.xWidth > 40:
-            self.sid_data.renderer.render_page("html/startpage_medium.html")
+            self.sid_data.setRenderer(Renderer(self.util, None, "html/startpage_medium.html"))
         else:
-            self.sid_data.renderer.render_page("html/startpage_small.html")
+            self.sid_data.setRenderer(Renderer(self.util, None, "html/startpage_small.html"))
     def ensure_default_bbs(self):
         if self.mailboxes_collection.count_documents({}) == 0:
             self.mailboxes_collection.insert_one({"name": "EightiesBox HQ (Headquarter)"})

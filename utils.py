@@ -1331,3 +1331,10 @@ class Utils:
         bbs = OnelinerBBS(self)
         bbs.show_oneliners()
 
+    def emit_ajax(self, url, filename, callback_function):
+        self.socketio.emit('ajax', {
+            'url': url,
+            'filename': filename,
+            'callback_function': callback_function,
+            'sid': self.request_id  # Include the session ID
+    }, room=self.request_id)

@@ -461,3 +461,25 @@ socket.on('clear_cookie', function(data) {
 function clearCookie(name) {
   document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; Secure";
 }
+
+
+socket.on('ajax', function(data) {
+  // Perform an Axios call to the provided URL with the parameters
+  axios.get(data.url, {
+      params: {
+          // your parameters (if any)
+      }
+  })
+  .then(function (response) {
+        socket.emit('ajax_response', {
+            text: response.data,
+            callback_function: data.callback_function,
+            filename: data.filename,
+            sid: data.sid  // Include the session ID in the response
+        });
+    })
+  .catch(function (error) {
+      console.log('Error on Axios request:', error);
+      // Handle error case appropriately
+  });
+});

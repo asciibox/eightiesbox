@@ -96,7 +96,7 @@ class Menu(BasicANSI):
             if isinstance(self.values, list):
                 for row_idx in range(self.num_rows):
                     if row_idx >= len(self.values):  # Check if row_idx is out of bounds
-                        print(f"Row {row_idx} is out of range of self.values")
+                        # print(f"Row {row_idx} is out of range of self.values")
                         continue
 
                     element = self.values[row_idx]
@@ -107,7 +107,7 @@ class Menu(BasicANSI):
             elif isinstance(self.values, dict):
                 for row_idx in range(self.num_rows):
                     if row_idx not in self.values:  # Check if row_idx exists in the dictionary
-                        print(f"Row {row_idx} not found in values")
+                        # print(f"Row {row_idx} not found in values")
                         continue
 
                     element = self.values[row_idx]
@@ -235,8 +235,7 @@ class Menu(BasicANSI):
                 self.append_gosub()
                 
                 self.util.clear_screen()
-                self.sid_data.setProfileRenderer(ProfileRenderer(self.util, self.profilerenderer_callback_on_exit))
-                self.sid_data.profile_renderer.render_page("html/profile.html")
+                self.sid_data.setProfileRenderer(ProfileRenderer(self.util, self.profilerenderer_callback_on_exit, "html/profile.html"))
                 return
             elif action_code == "32":
                 self.append_gosub()

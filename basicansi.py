@@ -84,7 +84,7 @@ class BasicANSI:
                     print("FILENAME:" + filename)
                     filename_without_extension, _ = os.path.splitext(filename)  # Split the filename from its extension
 
-                    self.sid_data.setRenderer(Renderer(self.util, None))
+                    
 
                     # Determine modified filenames based on screen width
                     possible_filenames = []
@@ -112,12 +112,12 @@ class BasicANSI:
                             # Check if xWidth is less than 50 or if the filename ends with '_small.html'
                             if self.util.sid_data.xWidth < 50 and "_small.html" in modified_filename:
                                 print("Rendering _small.html")
-                                self.sid_data.renderer.render_page(None, modified_filename)
+                                self.sid_data.setRenderer(Renderer(self.util, None, None, modified_filename))
                                 print("Rendered page and returning")
                                 return
                             elif self.util.sid_data.xWidth >= 50:
                                 print("Rendering other format")
-                                self.sid_data.renderer.render_page(None, modified_filename)
+                                self.sid_data.setRenderer(Renderer(self.util, None, None, modified_filename))
                                 print("Rendered page and returning")
                                 return
 
@@ -204,7 +204,7 @@ class BasicANSI:
         for line_index in range(0, self.count_menu_length(menu_values)):
             
             if line_index not in menu_values:  # Check if row_idx exists in the dictionary
-                    print(f"Row {line_index} not found in menu_values")
+                    # print(f"Row {line_index} not found in menu_values")
                     continue
             self.process_line(menu_values, line_index, counter)
             counter += 1

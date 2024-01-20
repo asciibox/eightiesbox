@@ -21,7 +21,7 @@ class WhoIsOnline:
                 self.util.goto_next_line()
                 continue
                             
-            display_str = f"{index + 1}. Username: {user_doc['username']}, Age: {user_doc.get('age', '?')}, Sex: {user_doc.get('sex', '?')}, Hobbies: {user_doc.get('hobbies', '?')}"
+            display_str = f"{index + 1}. Display username: {user_doc['display_username']}, Age: {user_doc.get('age', '?')}, Sex: {user_doc.get('sex', '?')}, Hobbies: {user_doc.get('hobbies', '?')}"
 
 
             self.util.output(display_str, 6, 0)

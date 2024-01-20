@@ -173,6 +173,33 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+@app.route('/display_username_exists', methods=['GET'])
+def display_username_exists():
+    # Connect to the 'bbs' database and access the 'users' collection
+    db = mongo_client['bbs']
+    users_collection = db['users']
+
+    # Extract id and username from the query string
+    user_id = request.args.get('id')
+    username = request.args.get('username')
+
+    # Check if the username exists and is not associated with the provided id
+    user = users_collection.find_one({'username': username})
+    if user and str(user.get('_id')) != user_id:
+        return jsonify(True)  # Username exists with a different id
+
+    return jsonify(False)  # Username does not exist or is the same id
+    
+
+@socketio.on('ajax_response')
+def on_ajax_response(response_data):
+    sid = response_data.get('sid')  # Retrieve the sid from the response data
+    siddata = sid_data.get(sid)     # Use the sid to get the correct session data
+    if siddata:
+        siddata.profile_renderer.on_ajax_response(response_data)
+    else:
+        print("Error, no sid found")
+        # Handle case where sid is not found
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
