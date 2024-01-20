@@ -43,7 +43,7 @@ class Timeline(ANSIEditor):
             lines_per_page = max_height
             processed_entries = entries
         else:
-            max_height = self.util.sid_data.yHeight - 6
+            max_height = self.util.sid_data.yHeight - 9
             lines_per_page = max_height
             processed_entries = self.process_and_split_entries(entries, max_width, lines_per_page)
         
@@ -52,28 +52,24 @@ class Timeline(ANSIEditor):
         
         rendered_entries = self.pre_render_and_calculate_pages(processed_entries, lines_per_page, max_width)
 
-        #print("Page Breaks:", self.page_breaks)
+        print("Page Breaks:", self.page_breaks)
         if page <= len(self.page_breaks):
             start_index, end_index = self.page_breaks[page - 1]
-            #print("Current Page:", self.current_page)
-            #print("Start Index:", start_index, "End Index:", end_index)
-            #print("rendered entries")
-            #print(rendered_entries)
             page_entries = rendered_entries[start_index:end_index + 1]
-            #print("PAGE ENTRIES")
-            #print(page_entries)
             self.display_content(page_entries, max_width)  # Display the content for the requested page
         else:
             print("Page out of range error")
 
         self.util.sid_data.setCurrentAction("wait_for_timeline_entry")
         self.util.sid_data.startX = 0
-        self.util.sid_data.startY += 1
+        
         if max_width>=50:
+            self.util.sid_data.startY = self.util.sid_data.yHeight -3
             self.util.output("Press C to create a new timeline entry and the arrow keys to navigate", 11, 0)
             self.util.goto_next_line()
             self.util.output("Press I to upload an image to the timeline", 11, 0)
         else:
+            self.util.sid_data.startY = self.util.sid_data.yHeight -2
             self.util.output("[C] - create entry [I] - upload img", 11, 0)
             self.util.goto_next_line()
             self.util.output("use cursorkeys for pagenav", 6, 0)
@@ -86,20 +82,29 @@ class Timeline(ANSIEditor):
         # Initialize counters for line positions
         left_line_pos = 0
         right_line_pos = 0
-
+        print(page_entries)
         for rendered_entry, original_entry in page_entries:
             print("Entry to Display:", original_entry)
+
             # Check for an image in the original entry
             if 'image_url' in original_entry:
+                # Split the entry into lines and add seven empty lines for the image
+                entry_lines = rendered_entry.split('\n')
+               # for _ in range(8):
+               #     entry_lines.append('')
+                entry_lines.append('')
+                entry_lines.append('')
+                entry_lines.append('')
                 # Calculate image coordinates based on the position of the entry
                 img_left = 0 if left_line_pos <= right_line_pos else separator_pos + 1
                 img_top = left_line_pos if left_line_pos <= right_line_pos else right_line_pos
 
                 # Emit the background image
                 self.util.emit_background_image("https://storage.googleapis.com/eightiesbox_uploaded/"+original_entry['image_url'], img_left, img_top+1, 0, 7, True)
+            else:
+                entry_lines = rendered_entry.split('\n')
 
             # Continue with text rendering
-            entry_lines = rendered_entry.split('\n')
             if is_wide_screen:
                 if left_line_pos <= right_line_pos:
                     self.render_entry_on_screen(entry_lines, left_line_pos, 0)
@@ -110,6 +115,10 @@ class Timeline(ANSIEditor):
             else:
                 self.render_entry_on_screen(entry_lines, left_line_pos, 0)
                 left_line_pos += len(entry_lines)
+
+        # Additional code for handling screen refresh or update (if necessary)
+
+
 
     # Handle screen refresh or update here if necessary
 
@@ -129,7 +138,7 @@ class Timeline(ANSIEditor):
         # Check if the entry contains an image
         if 'image_url' in entry:
             # Return the timestamp followed by 7 line breaks for entries with an image
-            return rendered_content + '\n' * 7
+            return rendered_content + '\n' * 3
 
         # Render the entry text for entries without an image
         entry_lines = entry['text'].split('\n')
@@ -213,66 +222,43 @@ class Timeline(ANSIEditor):
     def pre_render_and_calculate_pages(self, entries, lines_per_page, max_width):
         is_wide_screen = max_width >= 50
         rendered_entries = []
+        print("entries")
+        print(entries)
         self.page_breaks = []
         current_page_start = 0
         left_line_count = 0
         right_line_count = 0
 
         # Pre-render entries
-        for entry in entries:
-            rendered_entry = self.render_entry(entry)  # Render the entry into a display-ready format
-
-            # Insert additional line breaks if entry has an image
-            #if 'image_url' in entry:
-            #    rendered_entry += '\n' * 7
-
-            rendered_entries.append((rendered_entry, entry))  # Store tuple of rendered text and original entry
-            entry_lines = self.count_lines(rendered_entry)  # Count the lines in the rendered entry
-
+        # Assuming this is for both wide and narrow screen logic
+        for index, entry in enumerate(entries):
+            rendered_entry = self.render_entry(entry)
+            rendered_entries.append((rendered_entry, entry))
+            entry_lines = self.count_lines(rendered_entry)
+            
+            # Increment line count based on layout
             if is_wide_screen:
-                # Wide screen layout (dual-column)
                 if left_line_count <= right_line_count:
-                    # Check if entry fits in the left column
-                    if left_line_count + entry_lines > lines_per_page:
-                        # Move to the next page
-                        self.page_breaks.append((current_page_start, len(rendered_entries) - 1))
-                        current_page_start = len(rendered_entries)
-                        left_line_count = 0
-                        right_line_count = 0
                     left_line_count += entry_lines
                 else:
-                    # Check if entry fits in the right column
-                    if right_line_count + entry_lines > lines_per_page:
-                        # Move to the next page
-                        self.page_breaks.append((current_page_start, len(rendered_entries) - 1))
-                        current_page_start = len(rendered_entries)
-                        left_line_count = 0
-                        right_line_count = 0
                     right_line_count += entry_lines
+                max_line_count = max(left_line_count, right_line_count)
             else:
-                # Narrow screen layout (single-column)
-                if left_line_count + entry_lines > lines_per_page:
-                    # Move to the next page
-                    print("Adding Page Break:", (current_page_start, len(rendered_entries) - 1))
-                    self.page_breaks.append((current_page_start, len(rendered_entries) - 1))
-                    current_page_start = len(rendered_entries)
-                    left_line_count = 0
                 left_line_count += entry_lines
+                max_line_count = left_line_count
 
-        # Add the last page
-        self.page_breaks.append((current_page_start, len(rendered_entries)))
+            # Check if total lines exceed the limit and create a page break
+            if max_line_count > lines_per_page:
+                self.page_breaks.append((current_page_start, index - 1))
+                current_page_start = index
+                left_line_count = entry_lines
+                right_line_count = 0 if is_wide_screen else left_line_count
+
+        # Add the final page break
+        if not self.page_breaks or current_page_start <= len(rendered_entries) - 1:
+            self.page_breaks.append((current_page_start, len(rendered_entries) - 1))
 
         return rendered_entries
-
-
-
-    def show_page(self, page_number, rendered_entries):
-        if page_number <= len(self.page_breaks):
-            start_index, end_index = self.page_breaks[page_number - 1]
-            page_content = rendered_entries[start_index:end_index+1]
-            self.display_content(page_content)  # Implement this method to display the content on the screen
-        else:
-            pass
 
     def handle_timeline_view_key(self, key, key_status_array):
         if key in ['AltGraph', 'Shift', 'Dead', 'CapsLock']:
@@ -286,6 +272,9 @@ class Timeline(ANSIEditor):
             return
         # keyStatusArray = [shiftPressed, ctrlKeyPressed, altgrPressed]
         elif key == 'ArrowDown' or key == 'ArrowRight':
+            print("PAGE BREAKS:")
+            print(self.page_breaks)
+            print(str(self.current_page)+"<"+str(len(self.page_breaks)))
             if self.current_page < len(self.page_breaks): 
                 self.current_page += 1
                 #print("Navigating to Page:", self.current_page)
