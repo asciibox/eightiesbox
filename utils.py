@@ -333,7 +333,7 @@ class Utils:
         
         self.socketio.emit('set_chosen_bbs', {'chosen_bbs': str(self.sid_data.chosen_bbs)})
 
-        self.usernameCallback("")
+        self.usernameCallback("sysop")
 
     def create_defaults(self, user_id, db):
 
@@ -440,7 +440,7 @@ class Utils:
                 # Sysop user doesn't exist; create a new Sysop user
                 self.goto_next_line()
                 self.sid_data.setInputType("password")
-                self.output_wrap("You are registering as SYSOP. Please enter a new password: ", 3, 0)
+                self.output_wrap("You are registering as SYSOP. Remember this username. Later on register for a new user. Please enter a new password: ", 3, 0)
                 self.askPassword(35, self.sysopPasswordCreationCallback)
             return
 
@@ -469,7 +469,7 @@ class Utils:
             db = self.mongo_client['bbs']
             users_collection = db['users']
             hashed_password = bcrypt.hashpw(first_password.encode('utf-8'), bcrypt.gensalt())
-            new_sysop_user = {"username": "sysop", "user_level" : 32000, "groups": "Sysop", "password": hashed_password.decode('utf-8'), 'chosen_bbs': self.sid_data.chosen_bbs}
+            new_sysop_user = {"username": "sysop", "display_username" : "sysop", "user_level" : 32000, "groups": "Sysop", "password": hashed_password.decode('utf-8'), 'chosen_bbs': self.sid_data.chosen_bbs}
             # Insert the document and capture the result
             insert_result = users_collection.insert_one(new_sysop_user)
 
