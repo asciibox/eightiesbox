@@ -39,11 +39,11 @@ class Timeline(ANSIEditor):
         max_width = self.util.sid_data.xWidth
         print("MAX WIDTH :"+str(max_width))
         if max_width>=50:
-            max_height = self.util.sid_data.yHeight - 4
+            max_height = self.util.sid_data.yHeight - 10
             lines_per_page = max_height
             processed_entries = entries
         else:
-            max_height = self.util.sid_data.yHeight - 9
+            max_height = self.util.sid_data.yHeight - 4
             lines_per_page = max_height
             processed_entries = self.process_and_split_entries(entries, max_width, lines_per_page)
         
@@ -75,53 +75,53 @@ class Timeline(ANSIEditor):
             self.util.output("use cursorkeys for pagenav", 6, 0)
 
     def display_content(self, page_entries, max_width):
-        # Determine the layout based on max_width
+        # Constants for layout
         is_wide_screen = max_width >= 50
         separator_pos = max_width // 2 if is_wide_screen else 0
+        image_height = 7  # Fixed image height
 
-        # Initialize counters for line positions
-        left_line_pos = 0
-        right_line_pos = 0
-        print(page_entries)
+        # Initialize counters for line positions, starting at 1 to accommodate the first timestamp
+        left_line_pos = 1
+        right_line_pos = 1
+
         for rendered_entry, original_entry in page_entries:
-            print("Entry to Display:", original_entry)
+            # Split the entry into lines
+            entry_lines = rendered_entry.split('\n')
+            
+            # Extract the timestamp line and adjust the remaining entry lines
+            timestamp_line = entry_lines[0]
+            entry_text = [line for line in entry_lines[1:] if line.strip() != '']  # Remove empty lines
 
-            # Check for an image in the original entry
+            # Decide whether to place the entry in the left or right column
+            in_right_column = is_wide_screen and (right_line_pos <= left_line_pos)
+            text_left = separator_pos if in_right_column else 0
+
+            # Calculate the correct line position for the timestamp
+            current_line_pos = right_line_pos if in_right_column else left_line_pos
+
+            # Render the timestamp line first
+            self.render_entry_on_screen([timestamp_line], current_line_pos - 1, text_left)
+
+            # If there's an image, render it below the timestamp and add image_height to the line counter
             if 'image_url' in original_entry:
-                # Split the entry into lines and add seven empty lines for the image
-                entry_lines = rendered_entry.split('\n')
-               # for _ in range(8):
-               #     entry_lines.append('')
-                entry_lines.append('')
-                entry_lines.append('')
-                entry_lines.append('')
-                # Calculate image coordinates based on the position of the entry
-                img_left = 0 if left_line_pos <= right_line_pos else separator_pos + 1
-                img_top = left_line_pos if left_line_pos <= right_line_pos else right_line_pos
+                img_top = current_line_pos
+                img_left = separator_pos if in_right_column else 0
+                self.util.emit_background_image("https://storage.googleapis.com/eightiesbox_uploaded/" + original_entry['image_url'], img_left, img_top, 0, 7, True)
+                current_line_pos += image_height
 
-                # Emit the background image
-                self.util.emit_background_image("https://storage.googleapis.com/eightiesbox_uploaded/"+original_entry['image_url'], img_left, img_top+1, 0, 7, True)
+            # Render the rest of the text below the image or timestamp
+            if entry_text:
+                self.render_entry_on_screen(entry_text, current_line_pos, text_left)
+                current_line_pos += len(entry_text)
+
+            # Add a one-line gap after every entry (image or text)
+            current_line_pos += 2
+
+            # Update the line positions for the next entry
+            if in_right_column:
+                right_line_pos = current_line_pos
             else:
-                entry_lines = rendered_entry.split('\n')
-
-            # Continue with text rendering
-            if is_wide_screen:
-                if left_line_pos <= right_line_pos:
-                    self.render_entry_on_screen(entry_lines, left_line_pos, 0)
-                    left_line_pos += len(entry_lines)
-                else:
-                    self.render_entry_on_screen(entry_lines, right_line_pos, separator_pos + 1)
-                    right_line_pos += len(entry_lines)
-            else:
-                self.render_entry_on_screen(entry_lines, left_line_pos, 0)
-                left_line_pos += len(entry_lines)
-
-        # Additional code for handling screen refresh or update (if necessary)
-
-
-
-    # Handle screen refresh or update here if necessary
-
+                left_line_pos = current_line_pos
 
     def render_entry_on_screen(self, entry_lines, start_line, start_col):
         # Render the entry (timestamp and text)
