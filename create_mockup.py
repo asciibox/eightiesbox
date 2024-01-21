@@ -3,6 +3,7 @@ import random
 import string
 import bcrypt
 from datetime import datetime, timedelta
+import random
 
 
 mongo_client = MongoClient("mongodb://localhost:27017/")
@@ -62,8 +63,13 @@ def create_random_users(hq_id):
     print("Random users have been successfully created.")
 
 
+# Example lorem ipsum text
 
+def generate_numbered_words(num_words):
+    """Generate a string of numbered words."""
+    return " ".join([f"word{i+1}/{num_words}" for i in range(num_words)])
 
+image_url = "timeline/65acf470c1dd9f716f9bf3a0/DALL%C2%B7E%202023-12-29%2017.05.42%20-%20A%20whimsical%20drawing,%20resembling%20a%20child's%20artwork,%20of%20a%20unicorn%20with%20a%20playful%20expression%20bursting%20a%20bubble%20with%20its%20horn.%20The%20unicorn%20is%20colorful%20and_1705834348457.png"
 def create_random_timeline_entries(hq_id):
     global db
     # User data
@@ -90,16 +96,28 @@ def create_random_timeline_entries(hq_id):
     # Timestamp entries collection
     timeline_entries_collection = db['timeline_entries']
 
-    counter = 1
-    for _ in range(1, 301):
-        timestamp = datetime.now() + timedelta(minutes=counter-1)
-        document = {
-            "text": "some_text " + str(counter),  # The actual text
-            "timestamp": timestamp,
-            "user_id": user_id,  # Replace with the actual user ID
-            "chosen_bbs": hq_id  # Replace with the actual BBS HQ ID
-        }
-        counter += 1
+    # Example loop to create documents
+    for counter in range(1, 101):
+        timestamp = datetime.now() - timedelta(minutes=counter-1)
+        num_lines = random.randint(1, 6)  # Generate a random number of lines between 1 and 6
+
+        # Randomly decide whether to add an image or text
+        if random.randint(1, 5) == 1:  # Approximately 20% chance
+            document = {
+                "text": "",  # Set text to empty
+                "image_url": image_url,  # Set the image URL
+                "timestamp": timestamp,
+                "user_id": user_id,  # Replace with the actual user ID
+                "chosen_bbs": hq_id  # Replace with the actual BBS HQ ID
+            }
+        else:
+            multi_line_text = "\n".join([generate_numbered_words(random.randint(1, 10)) for _ in range(num_lines)])
+            document = {
+                "text": multi_line_text,  # The text now spans a random number of lines with numbered words
+                "timestamp": timestamp,
+                "user_id": user_id,  # Replace with the actual user ID
+                "chosen_bbs": hq_id  # Replace with the actual BBS HQ ID
+            }
         timeline_entries_collection.insert_one(document)
 
     print("Timestamp entries have been created")

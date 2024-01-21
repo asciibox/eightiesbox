@@ -41,7 +41,7 @@ class Timeline(ANSIEditor):
         if max_width>=50:
             max_height = self.util.sid_data.yHeight
             lines_per_page = max_height
-            processed_entries = entries
+            processed_entries = self.word_wrap_entries(entries, int(max_width/2))
         else:
             max_height = self.util.sid_data.yHeight - 9
             lines_per_page = max_height
@@ -74,6 +74,39 @@ class Timeline(ANSIEditor):
             self.util.output("[C] - create entry [I] - upload img", 11, 0)
             self.util.goto_next_line()
             self.util.output("use cursorkeys for pagenav", 6, 0)
+
+    def word_wrap_entries(self, entries, max_width):
+        modified_entries = []
+
+        def wrap_text(text, max_width):
+            wrapped_lines = []
+            for line in text.split('\n'):
+                current_line = ''
+                words = line.split()
+
+                for word in words:
+                    # Check if adding the next word exceeds the max width
+                    if len(current_line) + len(word) + 1 > max_width:
+                        wrapped_lines.append(current_line)
+                        current_line = word
+                    else:
+                        current_line += (' ' if current_line else '') + word
+
+                # Add the last processed line
+                wrapped_lines.append(current_line)
+
+            return '\n'.join(wrapped_lines).strip()
+
+        for entry in entries:
+            new_entry = entry.copy()
+            if 'image_url' in new_entry and new_entry['image_url']:
+                new_entry['text'] = ' \n' * 7  # Assuming image takes 7 lines
+            else:
+                new_entry['text'] = wrap_text(new_entry['text'], max_width)
+
+            modified_entries.append(new_entry)
+
+        return modified_entries
 
     def display_content(self, page_entries, max_width):
         # Constants for layout
@@ -237,7 +270,7 @@ class Timeline(ANSIEditor):
             # Determine the number of lines this entry will take
             entry_lines = self.count_lines(rendered_entry)
             if 'image_url' in entry:
-                entry_lines += image_height  # Add image height if the entry has an image and it's a narrow screen
+                entry_lines += image_height  # Add image height if the entry has an image
 
             if is_wide_screen:
                 # Alternate between left and right columns
