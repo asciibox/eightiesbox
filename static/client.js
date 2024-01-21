@@ -214,46 +214,51 @@ async function executeCommand(command) {
           break;
       case "backgroundimage":
            // Extracting properties from the data object
-            const { filename, x, y, width, height, dynamicWidth } = command.data;
+          const { filename, x, y, width, height, dynamicWidth } = command.data;
 
-            // Constants for tile dimensions in pixels
-            const tileWidthInPixels = 8;
-            const tileHeightInPixels = 16;
+          // Constants for tile dimensions in pixels
+          const tileWidthInPixels = 8;
+          const tileHeightInPixels = 16;
 
-            // Convert tile coordinates and dimensions to pixels
-            const pixelX = x * tileWidthInPixels;
-            const pixelY = y * tileHeightInPixels;
-            const pixelWidth = dynamicWidth ? undefined : width * tileWidthInPixels;
-            const pixelHeight = height * tileHeightInPixels;
+          // Convert tile coordinates and dimensions to pixels
+          const pixelX = x * tileWidthInPixels;
+          const pixelY = y * tileHeightInPixels;
+          const pixelWidth = dynamicWidth ? undefined : width * tileWidthInPixels;
+          const pixelHeight = height * tileHeightInPixels;
+          // Access the current scene
+          let currentScene = game.scene.getScenes(true)[0];
 
-            // Access the current scene
-            let currentScene = game.scene.getScenes(true)[0];
+          // Load and display the image
+          if (currentScene) {
+              console.log("IMAGEURL:" + filename);
+              currentScene.load.image(filename, filename);
+              currentScene.load.once('complete', () => {
+                  let image = currentScene.add.image(pixelX, pixelY, filename);
 
-            // Load and display the image
-            if (currentScene) {
-                console.log("IMAGEURL:" + filename);
-                currentScene.load.image(filename, filename);
-                currentScene.load.once('complete', () => {
-                    let image = currentScene.add.image(pixelX, pixelY, filename);
+                  // If dynamicWidth is true, set the height and adjust width to maintain aspect ratio
+                  if (dynamicWidth) {
+                      image.displayHeight = pixelHeight;
+                      image.displayWidth = image.width * (image.displayHeight / image.height);
+                  } else {
+                      image.setDisplaySize(pixelWidth, pixelHeight);
+                  }
 
-                    // If dynamicWidth is true, set the height and adjust width to maintain aspect ratio
-                    if (dynamicWidth) {
-                        image.displayHeight = pixelHeight;
-                        image.displayWidth = image.width * (image.displayHeight / image.height);
-                    } else {
-                        image.setDisplaySize(pixelWidth, pixelHeight);
-                    }
+                  image.setDepth(IMAGE_LAYER_DEPTH);
+                  loadedImages.push(image);
 
-                    image.setDepth(IMAGE_LAYER_DEPTH);
-                    loadedImages.push(image);
+                  // Set image origin to top-left corner
+                  image.setOrigin(0, 0);
 
-                    // Set image origin to top-left corner
-                    image.setOrigin(0, 0);
-                });
-                currentScene.load.start();
-            } else {
-                console.error("No active scene found to load the image.");
-            }
+                  // Make the image interactive and add a click event
+                  image.setInteractive().on('pointerdown', () => {
+                      window.open(filename, '_blank');
+                  });
+              });
+              currentScene.load.start();
+          } else {
+              console.error("No active scene found to load the image.");
+          }
+
 
           break;
       // ... other command types

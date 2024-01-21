@@ -956,7 +956,7 @@ class Renderer:
                         inherited_link = self.gather_inherited_tags(child)
                         if inherited_link:
                             if len(inherited_link)>1:
-                                self.emit_href(child_text, default_width, inherited_link, left, top, height)
+                                self.util.emit_href(default_width, inherited_link, left, top, height)
                             else:
                                 self.util.emit_link(default_width, inherited_link, self.key_pressed, child.parent.get('uniqueid'), left, top, height)
                        
@@ -985,7 +985,7 @@ class Renderer:
                 inherited_link = self.gather_inherited_tags(element)
                 if inherited_link:
                             if len(inherited_link)>1:
-                                self.emit_href(child_text,default_width, inherited_link, left, top, height)
+                                self.util.emit_href(default_width, inherited_link, left, top, height)
                             else:
                                 self.util.emit_link(default_width, inherited_link, self.key_pressed, element.get('uniqueid'), left, top, height)
                 

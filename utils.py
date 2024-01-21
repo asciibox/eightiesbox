@@ -1239,6 +1239,24 @@ class Utils:
         print(x)
         print(y)
 
+    def emit_href(self, length, link, x, y, height = 1):
+        """ Emit a socket event for an href link. """
+
+        if not isinstance(link, str):
+            raise ValueError("Link must be a string")
+        if not isinstance(x, int) or not isinstance(y, int):
+            raise ValueError("Coordinates x and y must be integers")
+
+        self.command_sequence += 1
+        self.util.socketio.emit('a', {
+            'href': link,
+            'length': length,
+            'x': x,
+            'y': y,
+            'height': height,
+            'sequence': self.command_sequence
+        }, room=self.util.request_id)
+
     def emit_link(self, length, parameter, callback, callback_name, x, y, height = 1):
         """ Emit a socket event for an href link. """
         # Validate parameters
