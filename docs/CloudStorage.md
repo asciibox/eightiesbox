@@ -9,6 +9,7 @@ import os
 import uuid
 from datetime import datetime
 import re
+import mimetypes
 
 def processUploadedFile(data, context):
     """
@@ -18,6 +19,10 @@ def processUploadedFile(data, context):
          context (google.cloud.functions.Context): Metadata for the event.
     """
     file_path = data['name']  # Full path including directories and file
+    
+    # Determine if the file is a part of the timeline
+    is_timeline = file_path.startswith("timeline/")
+
     incoming_bucket_name = data['bucket']
 
     # Initialize the Google Cloud Storage client
@@ -85,7 +90,6 @@ def processUploadedFile(data, context):
         # Ensure we only get the first 20 characters of the filename without the extension
         filename_prefix = os.path.splitext(clean_filename[:20])[0]
 
-        is_timeline = file_path.startswith("timeline/")
         print(f"File path: {file_path}, Is Timeline: {is_timeline}")  # Debug log
 
         if is_timeline:
@@ -115,6 +119,16 @@ def processUploadedFile(data, context):
 
     # Check if the copy was successful before deleting
     if new_blob:
+        print("NEW BLOCK == True")
+        if is_timeline:
+            print("IS_TIMELINE == TRUE")
+            new_blob = processed_bucket.blob(new_file_path)
+            new_blob.metadata = {'Content-Disposition': 'inline'}
+            mime_type, _ = mimetypes.guess_type(new_file_path)
+            new_blob.content_type = mime_type if mime_type else 'application/octet-stream'
+            new_blob.patch()
+        else:
+            print("IS_TIMELINE == FALSE")
         # Delete the original file from the "incoming" bucket
         blob.delete()
         print(f"File {file_path} processed and moved to {new_file_path} in the 'processed' bucket.")
