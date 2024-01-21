@@ -60,9 +60,9 @@ class BasicANSI:
         self.sid_data.input_values = input_values
         self.max_height = self.util.sid_data.sauceHeight # len(self.editor_values)
        
-        for idx in range(self.max_height):
+        for idx in range(self.max_height+1):
                 # Only process the idx if it exists in the dictionary
-                self.draw_line(idx)
+            self.draw_line(idx)
 
 
 
@@ -73,7 +73,6 @@ class BasicANSI:
         self.color_bgarray = color_bgarray
         self.sid_data.input_values = input_values
         self.max_height = self.util.sid_data.sauceHeight # len(self.editor_values)
-        print(self.max_height)
         
         for idx in range(self.max_height):
             if menu_values != None and idx in menu_values:  # Check if idx is a valid key in menu_values
@@ -81,7 +80,6 @@ class BasicANSI:
                 
                 if command_value == 4:
                     filename = menu_values[idx][1]
-                    print("FILENAME:" + filename)
                     filename_without_extension, _ = os.path.splitext(filename)  # Split the filename from its extension
 
                     
@@ -97,7 +95,6 @@ class BasicANSI:
                     collection = self.util.mongo_client.bbs.uploads_html
 
                     for modified_filename in possible_filenames:
-                        print("Checking file:", modified_filename)
 
                         # Convert the filename to a regex pattern for case-insensitive matching
                         filename_pattern = re.compile("^" + re.escape(modified_filename) + "$", re.IGNORECASE)
@@ -106,19 +103,13 @@ class BasicANSI:
                         file_data = collection.find_one({"filename": filename_pattern, 'chosen_bbs': self.sid_data.chosen_bbs})
 
                         if file_data is not None:
-                            print("File found:", modified_filename)
-                            print("xWidth:", self.util.sid_data.xWidth)
 
                             # Check if xWidth is less than 50 or if the filename ends with '_small.html'
                             if self.util.sid_data.xWidth < 50 and "_small.html" in modified_filename:
-                                print("Rendering _small.html")
                                 self.sid_data.setRenderer(Renderer(self.util, None, None, modified_filename))
-                                print("Rendered page and returning")
                                 return
                             elif self.util.sid_data.xWidth >= 50:
-                                print("Rendering other format")
                                 self.sid_data.setRenderer(Renderer(self.util, None, None, modified_filename))
-                                print("Rendered page and returning")
                                 return
 
                     print("No suitable file found or render conditions not met")
@@ -127,7 +118,6 @@ class BasicANSI:
         if self.sid_data.xWidth < 50 and menu_values is not None:
             self.process_small_menu_values(menu_values)
             return
-        print("NO MATCHING FILE FOUND")
         # No matching file found, handle accordingly
         if isinstance(menu_values, list):
             self.process_values(menu_values, self.max_height, None)
@@ -148,7 +138,6 @@ class BasicANSI:
 
 
     def process_values(self, values, num_rows, idx2):
-        print("PROCESS_VALUES")
         for idx in range(num_rows):
             # Initialize variables
             security_value = 0
@@ -169,23 +158,18 @@ class BasicANSI:
 
             # Condition to check group membership if value_y_condition is "y"
             is_user_in_groups = self.is_user_in_required_groups(user_groups, required_groups) if value_y_condition else True
-            print("DRAW_HOTKEYS")
             if not hasattr(self, 'draw_hotkeys'):
                 # Check for user's security level and combined condition
                 if (values is None or security_value <= self.sid_data.user_document['user_level']) and is_user_in_groups:
                     if idx2 is None:
-                        print("Drawing line1 "+str(idx))
                         self.draw_line(idx)
                     else:
-                        print("Drawing line2 "+str(idx2))
                         self.draw_line(idx2)
             else:
                 if is_user_in_groups or hasattr(self, 'draw_hotkeys'):
                     if idx2 is None:
-                        print("Drawing line3 "+str(idx))
                         self.draw_line(idx)
                     else:
-                        print("Drawing line4 "+str(idx2))
                         self.draw_line(idx2)
         self.emit_gotoXY(0, 1)
 
@@ -280,9 +264,11 @@ class BasicANSI:
         self.sid_data.setStartX(0)
         self.sid_data.setStartY(line_index+1+self.yOffsetOnDraw)
         #if line_index < len(self.input_values):
-        print("PRINTING")
-        print(self.sid_data.input_values[line_index])
-        self.output_with_color(0, line_index, self.sid_data.input_values[line_index], 1, 4)
+        while len(self.sid_data.input_values) <= line_index:
+        # Append an empty line or default content
+            self.sid_data.input_values.append("")
+
+        self.output_with_color(0, line_index, self.sid_data.input_values[line_index], 1, 0)
         # self.sid_data.setMapCharacterSet(False)
 
 
@@ -336,8 +322,6 @@ class BasicANSI:
     
     
     def display_ansi(self):
-        print("self.input_values")
-        print(self.sid_data.input_values)
         self.max_height = self.util.sid_data.sauceHeight # len(self.editor_values)
         self.ansi_string = ""
         self.current_color = 7

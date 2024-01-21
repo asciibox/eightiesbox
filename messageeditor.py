@@ -210,7 +210,7 @@ class MessageEditor(ANSIEditor):
         # if line_index < len(self.input_values):
         print("PRINTING")
         print(self.sid_data.input_values[line_index])
-        self.output_with_color(0, line_index, self.sid_data.input_values[line_index], 1, 4)
+        self.output_with_color(0, line_index, self.sid_data.input_values[line_index], 1, 0)
 
     def process_key_input(self, current_line_index, current_line_x, key, foregroundColor, backgroundColor):
         if self.sid_data.insert:
