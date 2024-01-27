@@ -190,22 +190,30 @@ class BBSChooser(BasicANSI):
             self.login()
 
         elif len(key) == 1:
-           # Assuming 'all_sid_data' is a dictionary mapping session IDs to their corresponding sid_data objects
-            # When a key is pressed in any session
             originating_session_sid_data = self.util.all_sid_data.get(self.util.request_id)
             if originating_session_sid_data:
                 originating_line_number = originating_session_sid_data.screen_line_number
                 if originating_line_number is not None:
+                    # Update the X position for the originating session
+                    originating_session_sid_data.current_x += 1
+
+                    # Check if the end of the line is reached
+                    if originating_session_sid_data.current_x >= self.util.sid_data.xWidth - 1:
+                        # Shift the text to the left by half the width of the line
+                        half_width = self.util.sid_data.xWidth // 2
+                        current_text = self.get_current_line_text(originating_session_sid_data)  # Implement this function
+                        shifted_text = current_text[half_width:]
+                        self.redraw_text_at_line(shifted_text, originating_line_number, 0)  # Implement this function
+                        originating_session_sid_data.current_x = half_width
+
                     # Broadcast the key to other users
                     for sid, sid_data in self.util.all_sid_data.items():
-                        # Check the conditions for the current sid_data
+                        # Check conditions for the current sid_data
                         if sid_data.current_action == "wait_for_bbschooser" and sid_data.bbschooser.current_page == 0:
-                            sid_data.setStartX(sid_data.bbschooser.current_x)
-                            sid_data.bbschooser.current_x += 1
-
-                            # Set Y-coordinate to the originating line number, not the recipient's
+                            sid_data.setStartX(originating_session_sid_data.current_x)
                             sid_data.setStartY(originating_line_number)
                             sid_data.util.output(key, 7, 0)  # Output the key with specified colors
+                            sid_data.current_text += key
                         else:
                             print("Error: Screen line number not found for session", sid)
                 else:
@@ -214,6 +222,9 @@ class BBSChooser(BasicANSI):
                 print("Error: Session data not found for request ID", self.util.request_id)
 
 
+
+    def get_current_line_text(self, session_sid_data):
+        return session_sid_data.current_text
 
     def bbs_clicked(self, bbs_id_str):
         # Store the string representation of the unique ID of the BBS

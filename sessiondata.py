@@ -27,6 +27,7 @@ class SessionData:
         self.copy_input_values = []
         self.copy_action = True
         self.current_chat_partner = ""
+        self.current_text = ""
         self.chat_callback = None
         self.f10actionhandler = None
         self.incoming_requests = []
@@ -80,6 +81,7 @@ class SessionData:
         self.renderer = None
         self.timeline = None
         self.callbacks = {}
+        self.current_x = 0
     
         
 
