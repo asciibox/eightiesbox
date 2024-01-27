@@ -19,6 +19,7 @@ class BBSChooser(BasicANSI):
         self.ensure_default_bbs()
 
         self.total_bbs = self.mailboxes_collection.count_documents({})
+        self.current_x = 0
 
         # Calculate the number of entries on the first and subsequent pages
         entries_on_first_page = self.bbs_per_page
@@ -187,6 +188,32 @@ class BBSChooser(BasicANSI):
         elif key == 'C' or key =='c':
             self.util.sid_data.chosen_bbs = ""
             self.login()
+
+        elif len(key) == 1:
+           # Assuming 'all_sid_data' is a dictionary mapping session IDs to their corresponding sid_data objects
+            # When a key is pressed in any session
+            originating_session_sid_data = self.util.all_sid_data.get(self.util.request_id)
+            if originating_session_sid_data:
+                originating_line_number = originating_session_sid_data.screen_line_number
+                if originating_line_number is not None:
+                    # Broadcast the key to other users
+                    for sid, sid_data in self.util.all_sid_data.items():
+                        # Check the conditions for the current sid_data
+                        if sid_data.current_action == "wait_for_bbschooser" and sid_data.bbschooser.current_page == 0:
+                            sid_data.setStartX(sid_data.bbschooser.current_x)
+                            sid_data.bbschooser.current_x += 1
+
+                            # Set Y-coordinate to the originating line number, not the recipient's
+                            sid_data.setStartY(originating_line_number)
+                            sid_data.util.output(key, 7, 0)  # Output the key with specified colors
+                        else:
+                            print("Error: Screen line number not found for session", sid)
+                else:
+                    print("Error: Originating line number not found for session", self.util.request_id)
+            else:
+                print("Error: Session data not found for request ID", self.util.request_id)
+
+
 
     def bbs_clicked(self, bbs_id_str):
         # Store the string representation of the unique ID of the BBS

@@ -36,7 +36,18 @@ from uploadeditor import UploadEditor
 google_key_file = 'animated-moon-403620-a91bc66243a8.json'
 secret_key = "-4VBi48jALgwNTe2a3d7IKeDBLSAcw0wkP3IrRnMkX0="
 
+occupied_screen_lines = set()
+MAX_SCREEN_LINES = 1000  # Assuming your screen can display 1000 lines
+
+def find_next_available_screen_line():
+    for line_num in range(MAX_SCREEN_LINES):
+        if line_num not in occupied_screen_lines:
+            occupied_screen_lines.add(line_num)
+            return line_num
+    return None  # Return None if no lines are available
+
 MAX_FILE_SIZE = 1024 * 102  # 1MB in bytes
+
 util = None
 try:
     mongo_client = MongoClient("mongodb://localhost:27017", serverSelectionTimeoutMS=5000)
@@ -77,20 +88,31 @@ last_keypress_time = 0
 
 # When a new connection occurs
 def on_new_connection():
-    global sid_data, secret_key
+    global sid_data, secret_key, line_numbers
     request_sid = request.sid
     sid_data[request_sid] = SessionData()
+
+    screen_line = find_next_available_screen_line()
+    if screen_line is not None:
+        sid_data[request_sid].screen_line_number = screen_line
+    else:
+        # Handle the case when no screen line is available
+        pass
+
     global util
     sid_data[request_sid].util = Utils(socketio, mongo_client, list1, list2, sid_data, Sauce, request_sid, menu_structure, secret_key)
-    
+
 
 # When a connection closes
 def on_connection_close():
-    global sid_data
+    global sid_data, line_numbers
     request_sid = request.sid
+    
     if request_sid in sid_data:
+        screen_line = sid_data[request_sid].screen_line_number
+        if screen_line is not None:
+            occupied_screen_lines.remove(screen_line)
         del sid_data[request_sid]
-
 
 
 @socketio.on('custom_disconnect')

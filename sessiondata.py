@@ -47,6 +47,7 @@ class SessionData:
         self.outgoing_requests = []
         self.previous_action = None
         self.remaining_time = 180*60  # 3 hours in minutes
+        self.screen_line_number = None  # Add this line
         self.stored_time = 0  # Stored time in minutes
         self.sauceWidth = 80 # The loaded number of characters on the screen horizontally (effective editing width)
         self.sauceHeight = 25 # The loaded number of characters vertically in the sauce record (effective editing height)
