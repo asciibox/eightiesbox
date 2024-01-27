@@ -68,6 +68,14 @@ class ANSIEditor(BasicANSI):
     def start(self):
         self.clear_screen()
         self.update_first_line()
+
+        if self.util.sid_data.color_array == None:
+            self.util.sid_data.color_array = []
+        if self.util.sid_data.color_bgarray == None:
+            self.util.sid_data.color_bgarray = []
+        if self.util.sid_data.input_values == None:
+            self.util.sid_data.input_values = []
+
         self.display_editor(
             self.util.sid_data.color_array,
             self.util.sid_data.color_bgarray,
@@ -524,6 +532,12 @@ class ANSIEditor(BasicANSI):
         if self.current_line_index < self.max_height:
             self.current_line_index += 1
             self.set_cursor_y(self.current_line_index)
+        if self.current_line_index >= self.max_height:
+            self.max_height = self.current_line_index + 1
+            self.sid_data.sauceHeight = self.max_height
+            self.update_first_line()
+            self.set_cursor_y(self.current_line_index)  # Go to next line
+            return
         
     def arrow_up_pressed(self):
 
@@ -536,7 +550,7 @@ class ANSIEditor(BasicANSI):
                 if self.current_line_index < 4:
                     return
 
-        if self.current_line_index > 0 or self.current_page > 0:
+        if self.current_line_index > 0 or (self.sid_data.current_action == "wait_for_messageeditor" and self.current_page > 0):
             self.current_line_index -= 1
             self.set_cursor_y(self.current_line_index)
         

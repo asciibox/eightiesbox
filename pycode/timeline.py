@@ -140,7 +140,7 @@ class Timeline(ANSIEditor):
             if 'image_url' in original_entry:
                 img_top = current_line_pos
                 img_left = separator_pos if in_right_column else 0
-                self.util.emit_background_image("https://storage.googleapis.com/eightiesbox_uploaded/" + original_entry['image_url'], img_left, img_top, 0, 7, True)
+                self.util.emit_background_image("https://uploads.eightiesbox.com/" + original_entry['image_url'], img_left, img_top, 0, 7, True)
                 current_line_pos += image_height
 
             # Render the rest of the text below the image or timestamp
