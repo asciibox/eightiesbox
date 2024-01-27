@@ -1029,6 +1029,7 @@ def check_upload_date(today, processed_bucket, file_path, processed_bucket_name,
 @socketio.on('set_user_and_login')
 def set_user_and_login(data):
     global db, util
+    session_sid = data.get('sid')  # Get the session ID
     if data.get('jwtToken'):
         try:
             token = data.get('jwtToken')
@@ -1039,11 +1040,11 @@ def set_user_and_login(data):
                 users_collection = db['users']
                 user_document = users_collection.find_one({"_id": ObjectId(user_id)})
                 if user_document:
-                    sid_data[request.sid].user_document = user_document
-                    sid_data[request.sid].user_name = user_document['username']
-                    sid_data[request.sid].chosen_bbs = payload['chosen_bbs']
-                    sid_data[request.sid].util.create_defaults(payload['user_id'], db)
-                    sid_data[request.sid].util.login()
+                    sid_data[session_sid].user_document = user_document
+                    sid_data[session_sid].user_name = user_document['username']
+                    sid_data[session_sid].chosen_bbs = payload['chosen_bbs']
+                    sid_data[session_sid].util.create_defaults(payload['user_id'], db)
+                    sid_data[session_sid].util.login()
                     return
             # Proceed with user-specific actions
         except jwt.ExpiredSignatureError:
@@ -1053,8 +1054,8 @@ def set_user_and_login(data):
             # Handle invalid token
             pass
 
-    sid_data[request.sid].chosen_bbs = data.get('chosen_bbs')
-    sid_data[request.sid].bbschooser.login()
+    sid_data[session_sid].chosen_bbs = data.get('chosen_bbs')
+    sid_data[session_sid].bbschooser.login()
     #sid_data[request.sid].util.login()
 
 if __name__ == '__main__':

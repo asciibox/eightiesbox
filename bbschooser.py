@@ -199,64 +199,64 @@ class BBSChooser(BasicANSI):
                 originating_line_number = originating_session_sid_data.screen_line_number
 
                 if originating_line_number is not None:
-                    # Append key to the correct line of the originating session
-                    while len(originating_session_sid_data.current_text) <= originating_line_number:
-                        originating_session_sid_data.current_text.append("")
-                    while len(originating_session_sid_data.current_x) <= originating_line_number:
-                        originating_session_sid_data.current_x.append(0)
-                    originating_session_sid_data.current_text[originating_line_number] += key
-                    new_cursor_pos = len(originating_session_sid_data.current_text[originating_line_number])
-                    # Handling key press for the originating session
-                    if new_cursor_pos >= originating_session_sid_data.xxWidth:
-                        # Handle line break or text shift
-                        half_width = originating_session_sid_data.xxWidth // 2
-                        current_text = originating_session_sid_data.current_text[originating_line_number]
-                        
-                        # Get the last half_width characters of the current line
-                        shifted_text = current_text[-half_width:]
-                        
-                        self.util.clear_session_line(originating_session_sid_data.util.request_id, originating_session_sid_data, originating_line_number+self.TOP)
-                        
-                        # Update the line text with the shifted text
-                        originating_session_sid_data.current_text[originating_line_number] = shifted_text
+                    if originating_session_sid_data.current_action == "wait_for_bbschooser":
+                        # Append key to the correct line of the originating session
+                        while len(originating_session_sid_data.current_text) <= originating_line_number:
+                            originating_session_sid_data.current_text.append("")
+                        while len(originating_session_sid_data.current_x) <= originating_line_number:
+                            originating_session_sid_data.current_x.append(0)
+                        originating_session_sid_data.current_text[originating_line_number] += key
+                        new_cursor_pos = len(originating_session_sid_data.current_text[originating_line_number])
+                        # Handling key press for the originating session
+                        if new_cursor_pos >= originating_session_sid_data.xxWidth:
+                            # Handle line break or text shift
+                            half_width = originating_session_sid_data.xxWidth // 2
+                            current_text = originating_session_sid_data.current_text[originating_line_number]
+                            
+                            # Get the last half_width characters of the current line
+                            shifted_text = current_text[-half_width:]
+                            
+                            self.util.clear_session_line(originating_session_sid_data.util.request_id, originating_session_sid_data, originating_line_number+self.TOP)
+                            
+                            # Update the line text with the shifted text
+                            originating_session_sid_data.current_text[originating_line_number] = shifted_text
 
-                        # Set the cursor position to the end of the shifted text
-                        originating_session_sid_data.current_x[originating_line_number] = len(shifted_text)
-
-                        self.util.startX = 0
-                        self.util.startY = originating_line_number + self.TOP
-                        print(originating_session_sid_data.current_text[originating_line_number])
-                        self.util.output(originating_session_sid_data.current_text[originating_line_number], 7,0)
-                    else:
-                        originating_session_sid_data.current_x[originating_line_number] = new_cursor_pos
+                            # Set the cursor position to the end of the shifted text
+                            originating_session_sid_data.current_x[originating_line_number] = len(shifted_text)
+                            self.util.startX = 0
+                            self.util.startY = originating_line_number + self.TOP
+                            self.util.output(originating_session_sid_data.current_text[originating_line_number], 7,0)
+                        else:
+                            originating_session_sid_data.current_x[originating_line_number] = new_cursor_pos
 
                     # Broadcasting the key to all sessions
                     for sid, sid_data in self.util.all_sid_data.items():
-                        if sid != self.util.request_id: 
-                            # Ensure enough entries in current_text and current_x
-                            while len(sid_data.current_text) <= originating_line_number:
-                                sid_data.current_text.append("")
-                            while len(sid_data.current_x) <= originating_line_number:
-                                sid_data.current_x.append(0)
+                        if sid_data.current_action == "wait_for_bbschooser":
+                            if sid != self.util.request_id: 
+                                # Ensure enough entries in current_text and current_x
+                                while len(sid_data.current_text) <= originating_line_number:
+                                    sid_data.current_text.append("")
+                                while len(sid_data.current_x) <= originating_line_number:
+                                    sid_data.current_x.append(0)
 
-                            # Append key and update cursor position
-                            sid_data.current_text[originating_line_number] += key
-                            new_cursor_pos = len(sid_data.current_text[originating_line_number])
-                            if new_cursor_pos >= sid_data.xxWidth:
-                                # If new cursor position is beyond the width, handle line break and shift
-                                half_width = sid_data.xxWidth // 2
-                                current_text = self.get_current_line_text(sid_data, originating_line_number)
-                                shifted_text = current_text[-half_width:]
-                                self.redraw_text_at_line(sid, sid_data, shifted_text, originating_line_number)
-                                sid_data.current_text[originating_line_number] = shifted_text
-                                sid_data.current_x[originating_line_number] = half_width
-                            else:
-                                sid_data.current_x[originating_line_number] = new_cursor_pos
-
-                        # Update cursor position and output the key for each session
-                        sid_data.setStartX(sid_data.current_x[originating_line_number]-1)
-                        sid_data.setStartY(originating_line_number+ self.TOP)
-                        sid_data.util.output(key, 7, 0)
+                                # Append key and update cursor position
+                                sid_data.current_text[originating_line_number] += key
+                                new_cursor_pos = len(sid_data.current_text[originating_line_number])
+                                if new_cursor_pos >= sid_data.xxWidth:
+                                    # If new cursor position is beyond the width, handle line break and shift
+                                    half_width = sid_data.xxWidth // 2
+                                    current_text = self.get_current_line_text(sid_data, originating_line_number)
+                                    shifted_text = current_text[-half_width:]
+                                    self.redraw_text_at_line(sid, sid_data, shifted_text, originating_line_number)
+                                    sid_data.current_text[originating_line_number] = shifted_text
+                                    sid_data.current_x[originating_line_number] = half_width
+                                else:
+                                    sid_data.current_x[originating_line_number] = new_cursor_pos
+                            
+                            # Update cursor position and output the key for each session
+                            sid_data.setStartX(sid_data.current_x[originating_line_number]-1)
+                            sid_data.setStartY(originating_line_number+ self.TOP)
+                            sid_data.util.output(key, 7, 0)
 
                             
                 else:
@@ -273,14 +273,15 @@ class BBSChooser(BasicANSI):
 
     def update_session_line(self, sid, sid_data, text, line_number):
         # Clear the line for this session. Implement the logic to clear a line here if needed
-        self.util.clear_session_line(sid, sid_data, line_number)
+        if sid_data.current_action == "wait_for_bbschooser":
+            self.util.clear_session_line(sid, sid_data, line_number)
 
-        # Set the start X and Y for the text output
-        sid_data.setStartX(0)
-        sid_data.setStartY(line_number)
-        
-        # Output the updated text
-        sid_data.util.output(text, 7, 0)  # Assuming 7 is the text color and 0 is the background color
+            # Set the start X and Y for the text output
+            sid_data.setStartX(0)
+            sid_data.setStartY(line_number)
+            
+            # Output the updated text
+            sid_data.util.output(text, 7, 0)  # Assuming 7 is the text color and 0 is the background color
 
     def redraw_text_at_line(self, sid, sid_data, text, line_number):
         # Update the current session
@@ -308,7 +309,7 @@ class BBSChooser(BasicANSI):
         # Now you can emit the event with the string ID
         self.util.socketio.emit('set_chosen_bbs', {'chosen_bbs': self.sid_data.chosen_bbs})
 
-        self.util.socketio.emit('getJWTToken', {'chosen_bbs': self.sid_data.chosen_bbs}) 
+        self.util.socketio.emit('getJWTToken', {'chosen_bbs': self.sid_data.chosen_bbs, 'sid': self.util.request_id }) 
 
     def login(self):
         

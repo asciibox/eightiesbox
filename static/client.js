@@ -273,13 +273,14 @@ async function executeCommand(command) {
 }
 
 
-
-  socket.on("getJWTToken", function(data) {
-
-    let jwtToken = getCookie('jwtToken'+data.chosen_bbs);
-    socket.emit("set_user_and_login", { jwtToken : jwtToken, chosen_bbs : data.chosen_bbs });
-
-  })
+socket.on("getJWTToken", function(data) {
+  let jwtToken = getCookie('jwtToken' + data.chosen_bbs);
+  socket.emit("set_user_and_login", {
+      jwtToken: jwtToken,
+      chosen_bbs: data.chosen_bbs,
+      sid: data.sid  // Include the session ID
+  });
+});
 
   socket.on("connect", function () {
     console.log("Connected with SID:", window.socket.id);
