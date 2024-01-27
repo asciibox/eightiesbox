@@ -134,6 +134,9 @@ socket.on("waiting_for_input", async (data) => {
 });
 
 
+socket.on("clearline", (data) => {
+  enqueueCommand({ type: "clearline", data: data });
+});
 
 
 
@@ -204,6 +207,10 @@ async function executeCommand(command) {
           clearScreen();
           hrefs = []
           break;
+      case "clearline" : 
+        clearLine(command.data.y);
+        break;
+      break;
       case "waitingForInput" :
           if (keyboardPressAllowed == false && command.data.bool == true) {
             keyboardPressAllowed = true;
@@ -302,9 +309,6 @@ async function executeCommand(command) {
     enableTrackerKeyboard = true;
   });
 
-  socket.on("clearline", (data) => {
-    clearLine(data.y);
-  });
 
   socket.on("toggle_keyboard", () => {
     toggleKeyboard();

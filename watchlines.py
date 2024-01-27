@@ -83,8 +83,8 @@ class WatchLines:
 
                 for i, screen_data in enumerate(chosen_sid_data.screen_data_list):
                     if i > self.util.sid_data.last_emitted_index:
-                        self.util.command_sequence += 1                
-                        screen_data['sequence'] = self.util.command_sequence
+                        self.util.sid_data.command_sequence += 1                
+                        screen_data['sequence'] = self.util.sid_data.command_sequence
                         self.util.socketio.emit('draw', screen_data, room=self.util.request_id)
                         self.util.sid_data.last_emitted_index = i
             time.sleep(0.25)

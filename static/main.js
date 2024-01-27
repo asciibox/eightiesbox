@@ -497,6 +497,7 @@ function shiftTilesUp() {
   clearLine(TOTAL_HEIGHT_CHARACTERS-1);
 }
 function clearLine(y) {
+
   const defaultChar = 32; // ASCII code for space
   const defaultColor = 15; // Default foreground color
   const defaultBGColor = 0; // Default background color (black)

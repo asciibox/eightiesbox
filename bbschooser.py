@@ -87,7 +87,7 @@ class BBSChooser(BasicANSI):
 
         self.sid_data.startX = 2
         self.sid_data.startY = 2
-        self.util.output("Press C to create a new BBS", 6, 0)
+        self.util.output("Press Control-C to create a new BBS", 6, 0)
 
         if page == 0:
             self.sid_data.startX = 2
@@ -137,7 +137,7 @@ class BBSChooser(BasicANSI):
         self.util.sid_data.setStartX(2)
         self.util.output(self.bbs_on_page[index]['name'], fg_color, 0)
 
-    def handle_key(self, key):
+    def handle_key(self, key, key_status_array):
         print(key)
         if key == 'ArrowRight':
             if self.current_page < self.total_pages - 1:
@@ -185,7 +185,7 @@ class BBSChooser(BasicANSI):
 
             self.bbs_clicked(bbs_id_str)
             
-        elif key == 'C' or key =='c':
+        elif (key == 'C' or key == 'c') and key_status_array[1]==True:
             self.util.sid_data.chosen_bbs = ""
             self.login()
 
@@ -193,38 +193,108 @@ class BBSChooser(BasicANSI):
             originating_session_sid_data = self.util.all_sid_data.get(self.util.request_id)
             if originating_session_sid_data:
                 originating_line_number = originating_session_sid_data.screen_line_number
+
                 if originating_line_number is not None:
-                    # Update the X position for the originating session
-                    originating_session_sid_data.current_x += 1
+                    # Append key to the correct line of the originating session
+                    while len(originating_session_sid_data.current_text) <= originating_line_number:
+                        originating_session_sid_data.current_text.append("")
+                    while len(originating_session_sid_data.current_x) <= originating_line_number:
+                        originating_session_sid_data.current_x.append(0)
+                    originating_session_sid_data.current_text[originating_line_number] += key
+                    new_cursor_pos = len(originating_session_sid_data.current_text[originating_line_number])
+                    # Handling key press for the originating session
+                    if new_cursor_pos >= originating_session_sid_data.xxWidth:
+                        # Handle line break or text shift
+                        half_width = originating_session_sid_data.xxWidth // 2
+                        current_text = originating_session_sid_data.current_text[originating_line_number]
+                        
+                        # Get the last half_width characters of the current line
+                        shifted_text = current_text[-half_width:]
+                        
+                        self.util.clear_session_line(originating_session_sid_data.util.request_id, originating_session_sid_data, originating_line_number)
+                        
+                        # Update the line text with the shifted text
+                        originating_session_sid_data.current_text[originating_line_number] = shifted_text
 
-                    # Check if the end of the line is reached
-                    if originating_session_sid_data.current_x >= self.util.sid_data.xWidth - 1:
-                        # Shift the text to the left by half the width of the line
-                        half_width = self.util.sid_data.xWidth // 2
-                        current_text = self.get_current_line_text(originating_session_sid_data)  # Implement this function
-                        shifted_text = current_text[half_width:]
-                        self.redraw_text_at_line(shifted_text, originating_line_number, 0)  # Implement this function
-                        originating_session_sid_data.current_x = half_width
+                        # Set the cursor position to the end of the shifted text
+                        originating_session_sid_data.current_x[originating_line_number] = len(shifted_text)
 
-                    # Broadcast the key to other users
+                        self.util.startX = 0
+                        self.util.startY = originating_line_number
+                        print(originating_session_sid_data.current_text[originating_line_number])
+                        self.util.output(originating_session_sid_data.current_text[originating_line_number], 7,0)
+                    else:
+                        originating_session_sid_data.current_x[originating_line_number] = new_cursor_pos
+
+                    # Broadcasting the key to all sessions
                     for sid, sid_data in self.util.all_sid_data.items():
-                        # Check conditions for the current sid_data
-                        if sid_data.current_action == "wait_for_bbschooser" and sid_data.bbschooser.current_page == 0:
-                            sid_data.setStartX(originating_session_sid_data.current_x)
-                            sid_data.setStartY(originating_line_number)
-                            sid_data.util.output(key, 7, 0)  # Output the key with specified colors
-                            sid_data.current_text += key
-                        else:
-                            print("Error: Screen line number not found for session", sid)
+                        if sid != self.util.request_id: 
+                            # Ensure enough entries in current_text and current_x
+                            while len(sid_data.current_text) <= originating_line_number:
+                                sid_data.current_text.append("")
+                            while len(sid_data.current_x) <= originating_line_number:
+                                sid_data.current_x.append(0)
+
+                            # Append key and update cursor position
+                            sid_data.current_text[originating_line_number] += key
+                            new_cursor_pos = len(sid_data.current_text[originating_line_number])
+                            if new_cursor_pos >= sid_data.xxWidth:
+                                # If new cursor position is beyond the width, handle line break and shift
+                                half_width = sid_data.xxWidth // 2
+                                current_text = self.get_current_line_text(sid_data, originating_line_number)
+                                shifted_text = current_text[-half_width:]
+                                self.redraw_text_at_line(sid, sid_data, shifted_text, originating_line_number)
+                                sid_data.current_text[originating_line_number] = shifted_text
+                                sid_data.current_x[originating_line_number] = half_width
+                            else:
+                                sid_data.current_x[originating_line_number] = new_cursor_pos
+
+                        # Update cursor position and output the key for each session
+                        sid_data.setStartX(sid_data.current_x[originating_line_number])
+                        sid_data.setStartY(originating_line_number)
+                        sid_data.util.output(key, 7, 0)
+
+                            
                 else:
                     print("Error: Originating line number not found for session", self.util.request_id)
             else:
                 print("Error: Session data not found for request ID", self.util.request_id)
 
 
+                   
 
-    def get_current_line_text(self, session_sid_data):
-        return session_sid_data.current_text
+    def broadcast_update(self, text, line_number):
+        for sid, sid_data in self.util.all_sid_data.items():
+            self.update_session_line(sid, sid_data, text, line_number)
+
+    def update_session_line(self, sid, sid_data, text, line_number):
+        # Clear the line for this session. Implement the logic to clear a line here if needed
+        self.util.clear_session_line(sid, sid_data, line_number)
+
+        # Set the start X and Y for the text output
+        sid_data.setStartX(0)
+        sid_data.setStartY(line_number)
+        
+        # Output the updated text
+        sid_data.util.output(text, 7, 0)  # Assuming 7 is the text color and 0 is the background color
+
+    def redraw_text_at_line(self, sid, sid_data, text, line_number):
+        # Update the current session
+        self.update_session_line(sid, sid_data, text, line_number)
+
+        # Broadcast the update to all other sessions
+        self.broadcast_update(text, line_number)
+
+    def get_current_line_text(self, session_sid_data, line_number):
+        # Check if the line number is valid
+        if 0 <= line_number < len(session_sid_data.current_text):
+            # Return the text of the specified line
+            cltext = session_sid_data.current_text[line_number]
+            print("CLTEXT:"+cltext)
+            return cltext
+        else:
+            # Return an empty string or handle the error if the line number is invalid
+            return ""
 
     def bbs_clicked(self, bbs_id_str):
         # Store the string representation of the unique ID of the BBS

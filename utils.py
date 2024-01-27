@@ -36,7 +36,6 @@ class Utils:
         self.request_id = request_id
         self.menu_structure = menu_structure
         self.secret_key = secret_key
-        self.command_sequence = 0
 
     def askinput(self, mylen, callback, accept_keys, default_value=''):
         if self.sid_data.startX + mylen >= self.sid_data.xWidth:
@@ -660,7 +659,7 @@ class Utils:
                 'ascii_codes': [],
                 'x': x,
                 'y': y,
-                'sequence': self.command_sequence
+                'sequence': self.sid_data.command_sequence
         }, room=sid)
         self.sid_data.setCursorX(x)
         self.sid_data.setCursorY(y)
@@ -675,9 +674,9 @@ class Utils:
         sid = self.request_id  # Get the Session ID
 
         # Emit the original clear command
-        self.command_sequence += 1
+        self.sid_data.command_sequence += 1
         self.socketio.emit('clear', {
-            'sequence': self.command_sequence
+            'sequence': self.sid_data.command_sequence
         }, room=sid)
 
         # Set the clear command flag
@@ -689,7 +688,15 @@ class Utils:
 
     def clear_line(self, y):
         sid = self.request_id  # Get the Session ID
-        self.socketio.emit('clearline', {'y': y}, room=sid)
+        self.sid_data.command_sequence += 1
+        self.socketio.emit('clearline', {'y': y, 'sequence': self.sid_data.command_sequence}, room=sid)
+
+    def clear_session_line(self, sid, sid_data, y):
+        # Find the correct sid_data for the given sid
+        sid_data.command_sequence += 1
+                        
+        # Emit the clear line command for the specific session
+        self.socketio.emit('clearline', {'y': y, 'sequence': sid_data.command_sequence}, room=sid)
  
     def emit_toggle_keyboard(self):
         sid = self.request_id  # Get the Session ID
@@ -723,7 +730,7 @@ class Utils:
 
             if self.sid_data.map_character_set == True:
                 mapped_ascii_codes = [self.map_value(code, self.list2, self.list1) for code in ascii_codes]
-                self.command_sequence += 1
+                self.sid_data.command_sequence += 1
                 self.socketio.emit('draw', {
                     'ascii_codes': mapped_ascii_codes,
                     'currentColor': currentColor,
@@ -731,12 +738,12 @@ class Utils:
                     'blink': blink,
                     'x': x,
                     'y': y,
-                    'sequence': self.command_sequence
+                    'sequence': self.sid_data.command_sequence
                 }, room=sid)
                 self.sid_data.store_screen_data(mapped_ascii_codes, currentColor, backgroundColor, blink, x, y)
 
             else:
-                self.command_sequence += 1
+                self.sid_data.command_sequence += 1
                 self.socketio.emit('draw', {
                     'ascii_codes': ascii_codes,
                     'currentColor': currentColor,
@@ -744,7 +751,7 @@ class Utils:
                     'blink': blink,
                     'x': x,
                     'y': y,
-                    'sequence': self.command_sequence
+                    'sequence': self.sid_data.command_sequence
                 }, room=sid)
                 self.sid_data.store_screen_data(ascii_codes, currentColor, backgroundColor, blink, x, y)
 
@@ -752,12 +759,12 @@ class Utils:
 
     def emit_waiting_for_input(self, bool, identifier):
         sid = self.request_id  # Get the Session ID
-        self.command_sequence += 1
+        self.sid_data.command_sequence += 1
 
         self.socketio.emit('waiting_for_input', {
                     'bool': bool,
                     'identifier' : identifier,
-                    'sequence' : self.command_sequence
+                    'sequence' : self.sid_data.command_sequence
                 }, room=sid)
 
     def emit_status_bar(self, currentString, currentColor, backgroundColor):
@@ -1247,14 +1254,14 @@ class Utils:
         if not isinstance(x, int) or not isinstance(y, int):
             raise ValueError("Coordinates x and y must be integers")
 
-        self.command_sequence += 1
+        self.sid_data.command_sequence += 1
         self.util.socketio.emit('a', {
             'href': link,
             'length': length,
             'x': x,
             'y': y,
             'height': height,
-            'sequence': self.command_sequence
+            'sequence': self.sid_data.command_sequence
         }, room=self.util.request_id)
 
     def emit_link(self, length, parameter, callback, callback_name, x, y, height = 1):
@@ -1270,7 +1277,7 @@ class Utils:
         # Store the callback function and parameter in the dictionary
         self.sid_data.callbacks[callback_name] = {'callback': callback, 'parameter': parameter}
 
-        self.command_sequence += 1
+        self.sid_data.command_sequence += 1
         # Emit the socket event
         self.socketio.emit('a', {
             'callback_name': callback_name,
@@ -1278,7 +1285,7 @@ class Utils:
             'y': y,
             'length' : length,
             'height' : height,
-            'sequence': self.command_sequence
+            'sequence': self.sid_data.command_sequence
         }, room=self.request_id)
 
     def get_callback(self, callback_name):
@@ -1309,7 +1316,7 @@ class Utils:
             height = 0  # or some default value
 
         # Emit the background image data to the 'backgroundimage' event
-        self.command_sequence += 1
+        self.sid_data.command_sequence += 1
         self.socketio.emit('backgroundimage', {
             'filename': filename,
             'x': x,
@@ -1317,7 +1324,7 @@ class Utils:
             'width': width,
             'height': height,
             'dynamicWidth' : dynamicWidth,
-            'sequence': self.command_sequence
+            'sequence': self.sid_data.command_sequence
         }, room=self.request_id)
 
     def login(self):

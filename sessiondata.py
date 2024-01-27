@@ -23,6 +23,7 @@ class SessionData:
         self.inputType = ''
         self.input_values = []
         self.chat_partner = None
+        self.command_sequence = 0
         self.contacted_users = []
         self.copy_input_values = []
         self.copy_action = True
@@ -81,8 +82,10 @@ class SessionData:
         self.renderer = None
         self.timeline = None
         self.callbacks = {}
-        self.current_x = 0
-    
+        self.current_x = []
+        self.current_text = [""]  # Initialize as a list with one empty line
+        self.xxWidth = 79
+        
         
 
     def move_cursor_up(self):
@@ -272,3 +275,19 @@ class SessionData:
     
     def setTimeline(self, value):
         self.timeline = value
+
+         # Method to add text to the current line
+    def add_text(self, text):
+        self.current_text[self.screen_line_number] += text
+
+    # Method to handle line breaks
+    def line_break(self):
+        self.screen_line_number += 1
+        if self.screen_line_number >= len(self.current_text):
+            self.current_text.append("")  # Add a new line if needed
+
+    def get_current_line_text(self, session_sid_data):
+        if 0 <= session_sid_data.screen_line_number < len(session_sid_data.current_text):
+            return session_sid_data.current_text[session_sid_data.screen_line_number]
+        else:
+            return ""

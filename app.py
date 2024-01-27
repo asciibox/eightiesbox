@@ -110,6 +110,8 @@ def on_connection_close():
     
     if request_sid in sid_data:
         screen_line = sid_data[request_sid].screen_line_number
+        sid_data[request_sid].current_text = [""]
+        sid_data[request_sid].current_x = []
         if screen_line is not None:
             occupied_screen_lines.remove(screen_line)
         del sid_data[request_sid]
@@ -469,7 +471,7 @@ def handle_keypress(data):
         return
     elif siddata.current_action == "wait_for_bbschooser":
         key = data['key']
-        siddata.bbschooser.handle_key(key)
+        siddata.bbschooser.handle_key(key, keyStatusArray)
         return
     elif siddata.current_action == "wait_for_watching_escape":
         key = data['key']
