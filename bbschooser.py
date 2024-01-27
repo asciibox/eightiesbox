@@ -21,6 +21,8 @@ class BBSChooser(BasicANSI):
         self.total_bbs = self.mailboxes_collection.count_documents({})
         self.current_x = 0
 
+        self.TOP = 21
+
         # Calculate the number of entries on the first and subsequent pages
         entries_on_first_page = self.bbs_per_page
         entries_on_other_pages = self.util.sid_data.yHeight - 10
@@ -184,10 +186,12 @@ class BBSChooser(BasicANSI):
             bbs_id_str = str(selected_bbs['_id'])
 
             self.bbs_clicked(bbs_id_str)
+            return
             
         elif (key == 'C' or key == 'c') and key_status_array[1]==True:
             self.util.sid_data.chosen_bbs = ""
             self.login()
+            return
 
         elif len(key) == 1:
             originating_session_sid_data = self.util.all_sid_data.get(self.util.request_id)
@@ -211,7 +215,7 @@ class BBSChooser(BasicANSI):
                         # Get the last half_width characters of the current line
                         shifted_text = current_text[-half_width:]
                         
-                        self.util.clear_session_line(originating_session_sid_data.util.request_id, originating_session_sid_data, originating_line_number)
+                        self.util.clear_session_line(originating_session_sid_data.util.request_id, originating_session_sid_data, originating_line_number+self.TOP)
                         
                         # Update the line text with the shifted text
                         originating_session_sid_data.current_text[originating_line_number] = shifted_text
@@ -220,7 +224,7 @@ class BBSChooser(BasicANSI):
                         originating_session_sid_data.current_x[originating_line_number] = len(shifted_text)
 
                         self.util.startX = 0
-                        self.util.startY = originating_line_number
+                        self.util.startY = originating_line_number + self.TOP
                         print(originating_session_sid_data.current_text[originating_line_number])
                         self.util.output(originating_session_sid_data.current_text[originating_line_number], 7,0)
                     else:
@@ -250,8 +254,8 @@ class BBSChooser(BasicANSI):
                                 sid_data.current_x[originating_line_number] = new_cursor_pos
 
                         # Update cursor position and output the key for each session
-                        sid_data.setStartX(sid_data.current_x[originating_line_number])
-                        sid_data.setStartY(originating_line_number)
+                        sid_data.setStartX(sid_data.current_x[originating_line_number]-1)
+                        sid_data.setStartY(originating_line_number+ self.TOP)
                         sid_data.util.output(key, 7, 0)
 
                             
@@ -280,10 +284,10 @@ class BBSChooser(BasicANSI):
 
     def redraw_text_at_line(self, sid, sid_data, text, line_number):
         # Update the current session
-        self.update_session_line(sid, sid_data, text, line_number)
+        self.update_session_line(sid, sid_data, text, line_number+self.TOP)
 
         # Broadcast the update to all other sessions
-        self.broadcast_update(text, line_number)
+        self.broadcast_update(text, line_number+self.TOP)
 
     def get_current_line_text(self, session_sid_data, line_number):
         # Check if the line number is valid
