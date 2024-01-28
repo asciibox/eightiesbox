@@ -654,7 +654,7 @@ class Utils:
 
     def emit_gotoXY(self, x, y):
         sid = self.request_id  # Get the Session ID
-        self.command_sequence += 1
+        self.sid_data.command_sequence += 1
         self.socketio.emit('draw', {
                 'ascii_codes': [],
                 'x': x,
