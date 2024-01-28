@@ -199,7 +199,7 @@ class BBSChooser(BasicANSI):
                 originating_line_number = originating_session_sid_data.screen_line_number
 
                 if originating_line_number is not None:
-                    if originating_session_sid_data.current_action == "wait_for_bbschooser":
+                    if originating_session_sid_data.current_action == "wait_for_bbschooser" and originating_session_sid_data.xWidth > 50:
                         # Append key to the correct line of the originating session
                         while len(originating_session_sid_data.current_text) <= originating_line_number:
                             originating_session_sid_data.current_text.append("")
@@ -231,7 +231,7 @@ class BBSChooser(BasicANSI):
 
                     # Broadcasting the key to all sessions
                     for sid, sid_data in self.util.all_sid_data.items():
-                        if sid_data.current_action == "wait_for_bbschooser":
+                        if sid_data.current_action == "wait_for_bbschooser" and sid_data.xWidth > 50:
                             if sid != self.util.request_id: 
                                 # Ensure enough entries in current_text and current_x
                                 while len(sid_data.current_text) <= originating_line_number:
@@ -273,7 +273,7 @@ class BBSChooser(BasicANSI):
 
     def update_session_line(self, sid, sid_data, text, line_number):
         # Clear the line for this session. Implement the logic to clear a line here if needed
-        if sid_data.current_action == "wait_for_bbschooser":
+        if sid_data.current_action == "wait_for_bbschooser" and sid_data.xWidth > 50:
             self.util.clear_session_line(sid, sid_data, line_number)
 
             # Set the start X and Y for the text output
