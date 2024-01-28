@@ -223,8 +223,8 @@ class BBSChooser(BasicANSI):
 
                             # Set the cursor position to the end of the shifted text
                             originating_session_sid_data.current_x[originating_line_number] = len(shifted_text)
-                            self.util.startX = 0
-                            self.util.startY = originating_line_number + self.TOP
+                            self.util.sid_data.startX = 0
+                            self.util.sid_data.startY = originating_line_number + self.TOP
                             self.util.output(originating_session_sid_data.current_text[originating_line_number], 7,0)
                         else:
                             originating_session_sid_data.current_x[originating_line_number] = new_cursor_pos
@@ -249,7 +249,7 @@ class BBSChooser(BasicANSI):
                                     shifted_text = current_text[-half_width:]
                                     self.redraw_text_at_line(sid, sid_data, shifted_text, originating_line_number)
                                     sid_data.current_text[originating_line_number] = shifted_text
-                                    sid_data.current_x[originating_line_number] = half_width
+                                    sid_data.current_x[originating_line_number] = len(shifted_text)
                                 else:
                                     sid_data.current_x[originating_line_number] = new_cursor_pos
                             
