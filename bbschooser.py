@@ -140,7 +140,6 @@ class BBSChooser(BasicANSI):
         self.util.output(self.bbs_on_page[index]['name'], fg_color, 0)
 
     def handle_key(self, key, key_status_array):
-        print(key)
         if key == 'ArrowRight':
             if self.current_page < self.total_pages - 1:
                 self.util.clear_screen()
@@ -192,6 +191,29 @@ class BBSChooser(BasicANSI):
             self.util.sid_data.chosen_bbs = ""
             self.login()
             return
+        
+        elif key == 'Backspace':
+            originating_session_sid_data = self.util.all_sid_data.get(self.util.request_id)
+            if originating_session_sid_data:
+                originating_line_number = originating_session_sid_data.screen_line_number
+
+                if originating_line_number is not None:
+                    if originating_session_sid_data.current_action == "wait_for_bbschooser" and originating_session_sid_data.xWidth > 50:
+                        # Check if the current line is not empty
+                        if len(originating_session_sid_data.current_text[originating_line_number]) > 0:
+                            # Remove the last character
+                            originating_session_sid_data.current_text[originating_line_number] = \
+                                originating_session_sid_data.current_text[originating_line_number][:-1]
+
+                            # Update the cursor position
+                            new_cursor_pos = len(originating_session_sid_data.current_text[originating_line_number])
+                            originating_session_sid_data.current_x[originating_line_number] = new_cursor_pos
+
+                            # Broadcast the update
+                            self.broadcast_clear_line(originating_line_number+self.TOP)
+                            self.broadcast_update(originating_session_sid_data.current_text[originating_line_number], 
+                                                originating_line_number, 
+                                                self.util.request_id)
 
         elif len(key) == 1:
             originating_session_sid_data = self.util.all_sid_data.get(self.util.request_id)
@@ -235,16 +257,9 @@ class BBSChooser(BasicANSI):
 
     # Update session line method
     def update_session_line(self, sid, sid_data, text, line_number):
-        if sid_data.current_action == "wait_for_bbschooser" and sid_data.xWidth > 50:
-                self.util.clear_session_line(sid, sid_data, line_number)
-
         sid_data.setStartX(0)
         sid_data.setStartY(line_number+self.TOP)
         sid_data.util.output(text, 7, 0)  # Adjust colors as needed
-        while len(sid_data.current_x) <= line_number:
-            sid_data.current_x.append(0)
-        sid_data.current_x[line_number] = len(text)
-
 
     def redraw_text_at_line(self, sid, sid_data, text, line_number):
         # Update the current session
