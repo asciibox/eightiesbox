@@ -249,6 +249,7 @@ class BBSChooser(BasicANSI):
    # Broadcast update method
     def broadcast_update(self, text, line_number, origin_sid):
         for sid, sid_data in self.util.all_sid_data.items():
+            if sid_data.current_action == "wait_for_bbschooser" and sid_data.xWidth > 50:
                 self.update_session_line(sid, sid_data, text, line_number)
 
     def broadcast_clear_line(self, line_number):
