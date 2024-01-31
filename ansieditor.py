@@ -529,10 +529,10 @@ class ANSIEditor(BasicANSI):
             self.set_cursor_y(self.current_line_index)  # Go to next line
             
     def arrow_down_pressed(self):
-        if self.current_line_index < self.max_height:
+        if self.current_line_index < self.max_height - 3:
             self.current_line_index += 1
             self.set_cursor_y(self.current_line_index)
-        if self.current_line_index >= self.max_height:
+        if self.current_line_index >= self.max_height + 2:
             self.max_height = self.current_line_index + 1
             self.sid_data.sauceHeight = self.max_height
             self.update_first_line()

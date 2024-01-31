@@ -515,7 +515,6 @@ function clearLine(y) {
 
     // Clear the background layer
     const bgIndex = getCharIndex(defaultBGColor, 219);
-    console.log(bgIndex+"/"+x+"/"+y)
     layer.putTileAt(bgIndex, x, y);
     if (!drawcanvasbg[y]) drawcanvasbg[y] = [];
     drawcanvasbg[y][x] = defaultBGColor;
