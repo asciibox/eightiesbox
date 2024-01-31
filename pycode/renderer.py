@@ -734,7 +734,7 @@ class Renderer:
                 pass
                 #self.util.startX = left
                 #self.util.startY = mytop
-                # self.emit_background_image(element.get('src', ''), left, top, width, height)
+                # self.ound_image(element.get('src', ''), left, top, width, height)
                 #
                 #mytop, myleft, last_char, new_block = self.render_element(element, self.util.sid_data.startX, self.util.sid_data.startY, width, height, last_char=last_char)
             elif element.name == 'input':
@@ -934,9 +934,9 @@ class Renderer:
                     # Ensure the image does not go out of the div's boundaries
                     img_left = max(left, img_left)
                     img_top = max(top, img_top)
-                    self.util.emit_background_image(imgurl, img_left, img_top, imgwidth, imgheight)
+                    self.util.emit_background_image(imgurl, img_left, img_top, imgwidth, imgheight, False)
                 else:
-                    self.util.emit_background_image(imgurl, left, top, imgwidth, imgheight)
+                    self.util.emit_background_image(imgurl, left, top, imgwidth, imgheight, False)
                 return initial_top, left, last_char, new_block
           
 
@@ -962,7 +962,7 @@ class Renderer:
                        
                         if background_image != None and background_image != '':
                             cleaned_url = background_image.replace("url('", "").replace("')", "")
-                            self.util.emit_background_image(cleaned_url, left, top, default_width, height)
+                            self.util.emit_background_image(cleaned_url, left, top, default_width, height, inherited_link == None or len(inherited_link)==0)
                         else:
                             if backgroundColor != 0 or len(child_text.strip())>0:
                                 if unique_id not in self.processed_ids:
@@ -991,7 +991,7 @@ class Renderer:
                 
                 if background_image != None and background_image != '':
                     cleaned_url = background_image.replace("url('", "").replace("')", "")
-                    self.util.emit_background_image(cleaned_url, left, top, width, height)
+                    self.util.emit_background_image(cleaned_url, left, top, width, height, False)
                 else:
                     if backgroundColor != 0 or len(child_text.strip())>0 :
                         if unique_id not in self.processed_ids:

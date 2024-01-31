@@ -1306,7 +1306,7 @@ class Utils:
             'chosen_bbs': chosen_bbs
         }, room=self.request_id)
 
-    def emit_background_image(self, filename, x, y, width, height, dynamicWidth = False):
+    def emit_background_image(self, filename, x, y, width, height, openInPopup, dynamicWidth = False):
         """ Emit a socket event for a background image. """
 
         # Ensure width and height have default values if None
@@ -1324,6 +1324,7 @@ class Utils:
             'width': width,
             'height': height,
             'dynamicWidth' : dynamicWidth,
+            'openInPopup' : openInPopup,
             'sequence': self.sid_data.command_sequence
         }, room=self.request_id)
 

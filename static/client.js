@@ -221,7 +221,7 @@ async function executeCommand(command) {
           break;
       case "backgroundimage":
            // Extracting properties from the data object
-          const { filename, x, y, width, height, dynamicWidth } = command.data;
+          const { filename, x, y, width, height, dynamicWidth, openInPopup } = command.data;
 
           // Constants for tile dimensions in pixels
           const tileWidthInPixels = 8;
@@ -256,10 +256,12 @@ async function executeCommand(command) {
                   // Set image origin to top-left corner
                   image.setOrigin(0, 0);
 
-                  // Make the image interactive and add a click event
-                  image.setInteractive().on('pointerdown', () => {
-                      window.open(filename, '_blank');
-                  });
+                  if (openInPopup) {
+                    // Make the image interactive and add a click event
+                    image.setInteractive().on('pointerdown', () => {
+                        window.open(filename, '_blank');
+                    });
+                  }
               });
               currentScene.load.start();
           } else {
