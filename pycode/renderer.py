@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 import bs4.element
 import base64
 import math
+import random
 
 import dukpy
 import re
@@ -934,6 +935,7 @@ class Renderer:
                     # Ensure the image does not go out of the div's boundaries
                     img_left = max(left, img_left)
                     img_top = max(top, img_top)
+
                     self.util.emit_background_image(imgurl, img_left, img_top, imgwidth, imgheight, False)
                 else:
                     self.util.emit_background_image(imgurl, left, top, imgwidth, imgheight, False)
@@ -962,6 +964,19 @@ class Renderer:
                        
                         if background_image != None and background_image != '':
                             cleaned_url = background_image.replace("url('", "").replace("')", "")
+
+                        # Find the pattern 'rand(x,y)' in the string
+                            match = re.search(r'\{rand\((\d+),(\d+)\)\}', cleaned_url)
+                            if match:
+                                # Extract x and y values
+                                x, y = map(int, match.groups())
+                                # Generate a random number between x and y
+                                random_number = random.randint(x, y)
+                                # Replace the 'rand(x,y)' pattern with the random number
+                                cleaned_url = re.sub(r'\{rand\(\d+,\d+\)\}', str(random_number), cleaned_url)
+
+                            print("cleaned_url:"+cleaned_url);
+
                             self.util.emit_background_image(cleaned_url, left, top, default_width, height, inherited_link == None or len(inherited_link)==0)
                         else:
                             if backgroundColor != 0 or len(child_text.strip())>0:
