@@ -3,6 +3,8 @@ from usereditor import UserEditor
 from ansieditor import ANSIEditor
 from menu import Menu
 from menubox import MenuBox
+from pycode.onelinereditor import OnelinerEditor
+from pycode.mailboxeditor import MailboxEditor
 
 class AdminMenu(BasicANSI):
     def __init__(self, util, callback_on_exit):
@@ -48,10 +50,13 @@ class AdminMenu(BasicANSI):
             # Implement Menu editor functionality
             pass
         elif choice == '4':
-            # Implement Oneliner editor functionality
-            pass
+            # Assuming 'util' and 'callback_on_exit' are already defined in your current scope
+            oneliner_editor = OnelinerEditor(self.util, self.display_menu)
+            oneliner_editor.display_menu()
         elif choice == '5':
             # Implement BBS editor functionality
+            mailbox_editor = MailboxEditor(self.util, self.display_menu)
+            mailbox_editor.display_menu()
             pass
         elif choice == '6':
             self.util.clear_screen()
