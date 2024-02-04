@@ -22,6 +22,7 @@ import uuid
 import random
 from bbschooser import BBSChooser
 import jwt
+from pycode.adminmenu import AdminMenu
 
 class Utils:
     def __init__(self, sio, my_client, mylist1, mylist2, sdata, Sauce, request_id, menu_structure, secret_key):
@@ -569,9 +570,11 @@ class Utils:
             self.message_reader_new_messages_callback_on_exit()
 
     def message_reader_new_messages_callback_on_exit(self):
-        if self.sid_data.user_name=='sysop':
+        if self.sid_data.user_name == 'sysop':
             self.goto_next_line()
-            self.askYesNo('Do you want to edit the menu?', self.menuCallback)    
+            # Initialize and display the AdminMenu
+            admin_menu = AdminMenu(self, self.load_menu)
+            admin_menu.start()
         else:
             self.load_menu()
     
@@ -611,38 +614,8 @@ class Utils:
             print("LOADING MAIN.MNU")
             self.sid_data.menu.load_menu('MAIN.MNU')
         else:
-            self.goto_next_line()
-            self.menuCallback("y")
-
-    def menuCallback(self, input):
-        if input=='Y' or input=='y':
             self.sid_data.setMenu(Menu(self, [["" for _ in ['Type', 'Data', 'Key', 'Sec', 'Groups', 'HideOnSec']] for _ in range(50)], 50, None)) 
             self.sid_data.setMenuBox(MenuBox(self))
-        else:
-            self.goto_next_line()
-            self.askYesNo('Do you want to edit users?', self.userEditorCallback)   
-
-
-    def userEditorCallback(self, input):
-        if input=='Y' or input=='y':
-            self.sid_data.setUserEditor(UserEditor(self, self.doNothing))
-        else:
-            self.goto_next_line()
-            self.askYesNo('Do you want to logout?', self.logoutCallback)   
-            
-
-    def logoutCallback(self, input):
-        if input=='Y' or input=='y':
-            self.emit_clear_cookie(self.sid_data.chosen_bbs)
-            self.choose_bbs()
-            pass
-        else:
-            self.sid_data.setANSIEditor(ANSIEditor(self))
-            self.sid_data.ansi_editor.start()
-            self.sid_data.setCurrentAction("wait_for_ansieditor")
-
-    def doNothing(self):
-        pass
 
     def emit_ansi_mod_editor(self):
         sid = self.request_id  # Get the Session ID
