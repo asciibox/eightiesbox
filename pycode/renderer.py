@@ -549,7 +549,7 @@ class Renderer:
 
                     # Add 'height' style only if it doesn't already exist
                     if not height_already_exists:
-                        new_styles.append(f"height: {item_height}px;")
+                        new_styles.append(f"height1: {item_height}px;")
 
                     item['style'] = '; '.join(new_styles)
 
@@ -646,13 +646,21 @@ class Renderer:
                         if 'relative_top:' not in existing_style and 'relative_top :' not in existing_style:
                             existing_style += f" relative_top: {margin_top}px;"
 
-                        if 'height:' not in existing_style and 'height :' not in existing_style:
-                            existing_style += f" height: {height}px;"
+                        # Check if 'background-size: contain' is in the style
+                        is_contain = 'background-size: contain' in existing_style
+
+                        # If 'height' is not in the style, add it based on whether 'contain' is present
+                        if 'height:' not in existing_style:
+                            if not is_contain:
+                                existing_style += f" height: {height}px;"  # Convert height to pixels if 'contain' is not present
+                            else:
+                                existing_style += " height: 100%;"  # Keep as 100% if 'contain' is present
                         else:
-                             height = self.extract_percentage_value('height', existing_style, 1, height)
-                             existing_style += f" height: {height}px;"
-
-
+                            if not is_contain:
+                                # Extract the existing height percentage and convert it to pixels
+                                height_value = self.extract_percentage_value('height', existing_style, 1, height)
+                                # Update the existing style string with the new height in pixels
+                                existing_style = existing_style.replace(f'height: {height_value}%', f'height: {height}px')
 
                         element['style'] = existing_style
                 #nested_grids = element.find_all(["div"], style=self.has_grid_style, recursive=True)
@@ -946,38 +954,36 @@ class Renderer:
                 top += 1
                 left = 0
  
+           # Assuming this function is part of a class with self.util already defined
+
             for child in element.children:
                 if isinstance(child, bs4.element.Tag):
-                    # If the child is a Tag, recursively call render_element
+                    # Recursively call render_element for child tags
                     top, left, last_char, new_block = self.render_element(child, left, top, default_width, height, new_block=new_block, last_char=last_char)
-                    # After a tag, it's no longer the start of a new block
+                    
                 elif isinstance(child, bs4.NavigableString):
                     child_text = child
-                    if child_text: #  and backgroundColor != None and backgroundColor != 0:
+                    if child_text:
                         child_text = child_text.strip()
                         inherited_link = self.gather_inherited_tags(child)
+
                         if inherited_link:
-                            if len(inherited_link)>1:
+                            if len(inherited_link) > 1:
                                 self.util.emit_href(default_width, inherited_link, left, top, height)
                             else:
                                 self.util.emit_link(default_width, inherited_link, self.key_pressed, child.parent.get('uniqueid'), left, top, height)
-                       
-                        if background_image != None and background_image != '':
-                            cleaned_url = background_image.replace("url('", "").replace("')", "")
+                        
+                        if background_image:
+                            cleaned_url = self.clean_background_image_url(background_image)  # Assuming a method to clean the URL
 
-                        # Find the pattern 'rand(x,y)' in the string
-                            match = re.search(r'\{rand\((\d+),(\d+)\)\}', cleaned_url)
-                            if match:
-                                # Extract x and y values
-                                x, y = map(int, match.groups())
-                                # Generate a random number between x and y
-                                random_number = random.randint(x, y)
-                                # Replace the 'rand(x,y)' pattern with the random number
-                                cleaned_url = re.sub(r'\{rand\(\d+,\d+\)\}', str(random_number), cleaned_url)
+                            print(child.parent.get('style', ''))
+                            extracted_height = self.extract_style_value(child.parent.get('style', ''), 'height', None)
+                            is_grid_full_height = 'display: grid' in child.parent.get('style', '') and extracted_height == '100%'
+      
+                            dynamicHeight = is_grid_full_height  # Set dynamicHeight based on the extracted style
 
-                            print("cleaned_url:"+cleaned_url);
+                            self.util.emit_background_image(cleaned_url, left, top, default_width, height, False, False, dynamicHeight)
 
-                            self.util.emit_background_image(cleaned_url, left, top, default_width, height, inherited_link == None or len(inherited_link)==0)
                         else:
                             if backgroundColor != 0 or len(child_text.strip())>0:
                                 if unique_id not in self.processed_ids:
@@ -1019,7 +1025,24 @@ class Renderer:
         return top, left, last_char, new_block
 
 
+    def clean_background_image_url(self, background_image):
+        """
+        Cleans the background image URL by stripping specific patterns and handling 'rand(x,y)'.
+        """
+        # Strip url('') pattern
+        cleaned_url = background_image.replace("url('", "").replace("')", "")
 
+        # Find the pattern 'rand(x,y)' in the string and replace it with a random number
+        match = re.search(r'\{rand\((\d+),(\d+)\)\}', cleaned_url)
+        if match:
+            # Extract x and y values
+            x, y = map(int, match.groups())
+            # Generate a random number between x and y
+            random_number = random.randint(x, y)
+            # Replace the 'rand(x,y)' pattern with the random number
+            cleaned_url = re.sub(r'\{rand\(\d+,\d+\)\}', str(random_number), cleaned_url)
+
+        return cleaned_url
     def get_default_display(self, tag_name):
         # Define default display values for common tags
         default_display_values = {
