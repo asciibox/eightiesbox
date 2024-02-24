@@ -158,6 +158,11 @@
       canvas {
         touch-action: auto;
       }
+      #game-container {
+  display: flex;
+  justify-content: center;
+  width: 100%; /* Adjust as needed */
+}
       .spinner {
         margin: 100px auto;
         width: 50px;
@@ -189,32 +194,7 @@
         }
       }
 
-      /* For screen sizes less than 320px */
-      @media (max-width: 515px) {
-        #game-container {
-          max-width: 320px;
-          text-align: center;
-          margin: auto;
-        }
-      }
-
-      /* For screen sizes between 321px and 1280px */
-      @media (min-width: 321px) and (max-width: 1280px) {
-        #game-container {
-          max-width: 640px;
-          text-align: center;
-          margin: auto;
-        }
-      }
-
-      /* For screen sizes greater than 1280px */
-      @media (min-width: 1281px) {
-        #game-container {
-          max-width: 960px;
-          text-align: center;
-          margin: auto;
-        }
-      }
+     
 
       .spinner-overlay {
         position: fixed;

@@ -34,28 +34,9 @@ function updateSizes(x, y) {
   baseWidth = VISIBLE_WIDTH_CHARACTERS * 8; // The total width space plus 8px for the scrollbar
   baseHeight = VISIBLE_HEIGHT_CHARACTERS * 16; // 16px at the bottom for the scrollbar
 
-  config = {
-    title: "Ascii box",
-    type: Phaser.AUTO,
-    width: baseWidth,
-    height: baseHeight,
-    pixelArt: true,
-    parent: "game-container",
-    scene: {
-      preload: preload,
-      create: create,
-      update: update,
-    },
-    scale: {
-      mode: Phaser.Scale.NONE, // Use custom scaling
-      autoCenter: Phaser.Scale.CENTER_BOTH, // Center the canvas in both horizontal and vertical
-    },
-    input: {
-      touch: {
-          capture: false
-      }
-    }
-  };
+  // Don't calculate scaleX and scaleY here
+  // Just set the base dimensions for now
+  
 }
 
 mode = "html"; // html or editor
@@ -97,32 +78,349 @@ var ctrlKeyPressed = false;
 var altgrPressed = false;
 var game;
 
+
+class MyScene extends Phaser.Scene {
+  constructor() {
+    super('YourSceneKey'); // Assign a key to your scene
+  }
+
+  preload() {
+      this.load.image("tiles", "static/ansi.png");
+      this.load.image("ansibgs", "static/ansi.png");
+      this.load.image("underscore_white", "static/underscore_white.png");
+      window.loader = this.load;
+      window.adder = this.add;
+  }
+
+  create() {
+      // Load a map from a 2D array of tile indices
+      // prettier-ignore
+    
+      var map = [];
+    
+      for (var y = 0; y < 16 * 8 * 2; y++) {
+        var rowY = [];
+        for (var x = 0; x < 32 * 16; x++) {
+          rowY.push(32);
+        }
+        map.push(rowY);
+      }
+    
+    
+      map = this.make.tilemap({
+        data: map,
+        tileWidth: 8,
+        tileHeight: 16,
+        width: 512,
+        height: 128,
+      });
+      window.tiles = map.addTilesetImage("tiles");
+      window.layer = map.createDynamicLayer(0, tiles, 0, 0);
+      layer.setDepth(BACKGROUND_LAYER_DEPTH);
+      var map2 = [];
+    
+      for (var y = 0; y < 16 * 8 * 2; y++) {
+        var rowY2 = [];
+        for (var x = 0; x < 32 * 16; x++) {
+          rowY2.push(0);
+        }
+        map2.push(rowY2);
+      }
+    
+      
+      
+    
+      window.bgmap = this.make.tilemap({
+        data: map2,
+        tileWidth: 8,
+        tileHeight: 16,
+        width: 512,
+        height: 128,
+      });
+      window.bg = window.bgmap.addTilesetImage("ansibgs");
+      window.bglayer = window.bgmap.createDynamicLayer(0, bg, 0, 0);
+      window.bglayer.setDepth(BGLAYER_DEPTH);
+      console.log("Created bglayer");
+    
+    
+      window.sprite = this.add.sprite(4, 8, "underscore_white");
+    
+      window.cursorInterval = setInterval(function () {
+        window.sprite.visible = !window.sprite.visible;
+      }, 600);
+    
+      window.cam = this.cameras.main;
+    
+      // Calculate the thumb height based on the percentage of content that is visible
+      window.thumbHeight =
+        (VISIBLE_HEIGHT_CHARACTERS / TOTAL_HEIGHT_CHARACTERS) * baseHeight;
+      console.log("THUMBHEIGHT:" + thumbHeight + "/" + baseHeight);
+      if (window.thumbHeight < window.baseHeight) {
+        // Draw the scrollbar thumb
+        thumbVertical = this.add.graphics();
+        thumbVertical.fillStyle(0xffff00, 1);
+        thumbVertical.fillRect(window.baseWidth - 5, 0, 5, window.thumbHeight);
+      }
+    
+      // Calculate the thumb width based on the percentage of content that is visible horizontally
+      console.log(VISIBLE_WIDTH_CHARACTERS + " / " + TOTAL_WIDTH);
+      window.thumbWidth = (VISIBLE_WIDTH_CHARACTERS / TOTAL_WIDTH) * baseWidth;
+      if (window.thumbWidth < baseWidth) {
+        // Draw the horizontal scrollbar thumb
+        thumbHorizontal = this.add.graphics();
+        thumbHorizontal.fillStyle(0xffff00, 1);
+        thumbHorizontal.fillRect(0, baseHeight - 5, thumbWidth, 5);
+      }
+    
+    
+    
+    
+      socket.emit("onload", { x: TOTAL_WIDTH, y: TOTAL_HEIGHT_CHARACTERS });
+    
+    
+    
+    
+      this.input.on("pointerdown", function (pointer) {
+    
+         // Check for click in the last 16px of the screen
+        if (pointer.y >= baseHeight - 16) {
+          // Action to perform when the bottom-right 20px area is clicked
+          toggleKeyboard();
+        } else {
+    
+         let tileX = Math.floor(pointer.x /  8) + 1;
+         let tileY = Math.floor(pointer.y / 16) + 1;
+         for (let i = 0; i < hrefs.length; i++) {
+          let href = hrefs[i];
+          let hrefLength;
+          if (href.length) {
+            hrefLength = href.length; // Assuming length is the length of the string
+          } else {
+          hrefLength = href.href.length; // Assuming href string length corresponds to its display length
+          }
+          // Check if the click is within the horizontal range of the href and on the same vertical line
+          console.log(tileX + " >= " + href.x + " && " + tileX + " < " + (Number(href.x) + Number(hrefLength)));
+          console.log(tileY + " == " + (Number(href.y) + 1));
+          if (tileX >= parseInt(href.x) && 
+              tileX < (parseInt(href.x) + parseInt(hrefLength)) && 
+              tileY > parseInt(href.y) && 
+              tileY <= (parseInt(href.y) + parseInt(href.height))) {
+    
+              if (href.callback_name) {
+                  socket.emit("link_callback", { callback_name: href.callback_name });
+              } else {
+                  window.open(href.href, "_blank");
+              }
+              return; // Stop checking after finding a match
+          }
+    
+        }
+    
+         socket.emit("pointerdown", { x: tileX, y: tileY });
+    
+          if ( (popupOpened == false) && (popupClickCounter > 5) ) {
+    
+          if (getCookie("popupOpened")==null) {
+    
+          window.open(
+            "https://documentation.eightiesbox.com/index.html",
+            "_blank"
+          );
+           
+          setCookie("popupOpened", "true", 30);
+          }
+          popupOpened = true;
+    
+          }
+          popupClickCounter++;
+    
+        }
+    
+        return;
+    
+        // Check if clicked within the vertical thumb
+        if (
+          pointer.x >= baseWidth - 5 &&
+          pointer.x <= baseWidth &&
+          pointer.y >= thumbY &&
+          pointer.y <= thumbY + thumbHeight
+        ) {
+          isDraggingVertical = true;
+        }
+    
+        // Check if clicked within the horizontal thumb
+        if (
+          pointer.y >= baseHeight - 8 &&
+          pointer.y <= baseHeight &&
+          pointer.x >= thumbX &&
+          pointer.x <= thumbX + thumbWidth
+        ) {
+          //if ((cam.scrollY / maxScrollY) < 1) {
+          isDraggingHorizontal = true;
+          //}
+        }
+      });
+    
+    
+    
+      this.input.on("pointerup", function () {
+        isDraggingVertical = false;
+        isDraggingHorizontal = false;
+      });
+  }
+
+  update() {
+    if (initCalled == false) {
+      adjustGameSize(game);
+      // Update the canvas style to fit the window height
+      // Calculate the scale factor for vertical scaling
+  
+      if (window.matchMedia("(max-width: 515px)").matches) {
+        document.getElementById("simple-keyboard").style.display = "inline";
+      } else {
+        var verticalScale = window.innerHeight / baseHeight;
+        if (verticalScale > 1) verticalScale = 1;
+        var canvasElement = document.querySelector("#game-container canvas");
+        canvasElement.style.height = baseHeight * verticalScale + "px";
+      }
+      document.documentElement.style.height = null; // for the html tag
+      document.body.style.height = null; // for the body tag
+      document.getElementById("spinner").style.display = "none";
+  
+      var canvas = document.getElementById('game-container').querySelector('canvas');
+      var computedStyle = window.getComputedStyle(canvas);
+    
+      window.canvasScaleX = parseInt(computedStyle.width, 10) / baseWidth;
+      window.canvasScaleY = parseInt(computedStyle.height, 10) / baseHeight;
+  
+      
+      setupSocketEventListeners(socket);
+  
+      
+      initCalled = true;
+    }
+  
+    this.input.on("pointermove", function (pointer) {
+      if (isDraggingVertical) {
+        let newY = pointer.y - thumbHeight / 2;
+        moveVerticalThumb(newY);
+      }
+  
+      if (isDraggingHorizontal) {
+        let newX = pointer.x - thumbWidth / 2;
+        moveHorizontalThumb(newX);
+      }
+    });
+  }
+}
+
 function initPage(dataArray) {
   // Sort the array based on minWidth for easy comparison.
+
   dataArray.sort((a, b) => a.minWidth - b.minWidth);
 
+  // Find the suitable size configuration
   dataArray.forEach((data) => {
     if (window.innerWidth >= data.minWidth) {
-      // If window.innerWidth is greater than or equal to data.minWidth, update sizes.
       updateSizes(data.x, data.y);
     }
   });
 
-  game = new Phaser.Game(config);
-  displayWidth = game.scale.displaySize.width;
-  displayHeight = game.scale.displaySize.height;
+  console.log("VISIBLE_WIDTH_CHARACTERS * 8:"+VISIBLE_WIDTH_CHARACTERS * 8);
+  console.log("VISIBLE_HEIGHT_CHARACTERS * 16:"+VISIBLE_HEIGHT_CHARACTERS * 16);
+  // Initialize config with base dimensions
+  config = {
+    title: "Ascii box",
+    type: Phaser.AUTO,
+    width: VISIBLE_WIDTH_CHARACTERS * 8,
+    height: VISIBLE_HEIGHT_CHARACTERS * 16,
+    pixelArt: true,
+    parent: "game-container",
+    scene: [MyScene],
+    scale: {
+      mode: Phaser.Scale.NONE, // Use custom scaling
+      autoCenter: Phaser.Scale.CENTER_BOTH, // Center the canvas in both horizontal and vertical
+    },
+    input: {
+      touch: {
+          capture: false
+      }
+    }
+  };
 
-  scaleX = displayWidth / baseWidth;
-  scaleY = window.innerHeight / baseHeight;
+   // Create the game instance with initial config
+   game = new Phaser.Game(config);
 
-  DEFAULT_INSERT = false;
-  VISIBLE_HEIGHT = Math.floor(baseHeight / 16);
-  console.log("VISIBLE_HEIGHT:" + VISIBLE_HEIGHT);
+ 
+   // Remaining setup
+   DEFAULT_INSERT = false;
+   VISIBLE_HEIGHT = Math.floor(baseHeight / 16);
+   VISIBLE_WIDTH = Math.floor(baseWidth / 8);
+   setupKeypressListeners();
+   
+   
+ 
 
-  VISIBLE_WIDTH = Math.floor(baseWidth / 8);
-
-  setupKeypressListeners();
 }
+characterWidth = 8;
+characterHeight= 16;
+
+function adjustGameSize() {
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+
+  // Desired canvas dimensions
+  const maxCanvasWidth = VISIBLE_WIDTH_CHARACTERS * 8;
+  const maxCanvasHeight = VISIBLE_HEIGHT_CHARACTERS * 16;
+
+  // Calculate the scale for both width and height
+  let scaleX = viewportWidth / maxCanvasWidth;
+  let scaleY = viewportHeight / maxCanvasHeight;
+
+  // Use the smaller of the two scales to ensure the content fits
+  let finalScale = Math.min(scaleX, scaleY);
+
+  // Ensure the scale does not go above 1 to avoid enlarging the canvas beyond its intended size
+  finalScale = Math.min(finalScale, 1);
+
+  // Set the scale for the scene's main camera
+  const scene = game.scene.scenes[0];
+  scene.cameras.main.setZoom(finalScale);
+
+  // Calculate the final canvas dimensions
+  const finalCanvasWidth = maxCanvasWidth * finalScale;
+  const finalCanvasHeight = maxCanvasHeight * finalScale;
+ // Set the scale for the scene's main camera
+
+ // Adjust Phaser's world bounds if necessary
+ scene.cameras.main.setBounds(0, 0, finalCanvasWidth, finalCanvasHeight);
+ //scene.physics.world.setBounds(0, 0, finalCanvasWidth, finalCanvasHeight);
+
+ // Update the canvas element's size
+ game.scale.resize(finalCanvasWidth, finalCanvasHeight);
+
+ // Make sure the canvas style matches the new size
+ const canvas = game.canvas;
+ const canvasStyle = canvas.style;
+ canvasStyle.top = '0';
+ canvasStyle.left = '0';
+ canvasStyle.transform = 'none';
+ canvasStyle.imageRendering = 'pixelated';
+ canvasStyle.margin = '0';
+ canvas.width = finalCanvasWidth;
+ canvas.height = finalCanvasHeight;
+
+ // Log for debugging
+ console.log("Canvas resized and zoom applied with scale:", finalScale);
+}
+
+// Assuming 'game' is your Phaser game instance
+window.addEventListener('resize', () => adjustGameSize(game));
+
+
+
+
+
 
 function keyDownHandler(e) {
   var key = e.key;
@@ -165,13 +463,6 @@ function setupKeypressListeners() {
   document.body.addEventListener("keyup", keyUpHandler, false);
 }
 
-function preload() {
-  this.load.image("tiles", "static/ansi.png");
-  this.load.image("ansibgs", "static/ansi.png");
-  this.load.image("underscore_white", "static/underscore_white.png");
-  loader = this.load;
-  adder = this.add;
-}
 
 function writeString(string, x, y, color, func) {
   for (var i = 0; i < string.length; i++) {
@@ -238,184 +529,7 @@ function draw(index, x, y, currentColor) {
   canvasColor[y][x] = currentColor;
 }
 
-function create() {
-  // Load a map from a 2D array of tile indices
-  // prettier-ignore
 
-  var map = [];
-
-  for (var y = 0; y < 16 * 8 * 2; y++) {
-    var rowY = [];
-    for (var x = 0; x < 32 * 16; x++) {
-      rowY.push(32);
-    }
-    map.push(rowY);
-  }
-
-
-  map = this.make.tilemap({
-    data: map,
-    tileWidth: 8,
-    tileHeight: 16,
-    width: 512,
-    height: 128,
-  });
-  tiles = map.addTilesetImage("tiles");
-  layer = map.createDynamicLayer(0, tiles, 0, 0);
-  layer.setDepth(BACKGROUND_LAYER_DEPTH);
-  var map2 = [];
-
-  for (var y = 0; y < 16 * 8 * 2; y++) {
-    var rowY2 = [];
-    for (var x = 0; x < 32 * 16; x++) {
-      rowY2.push(0);
-    }
-    map2.push(rowY2);
-  }
-
-  
-  
-
-  bgmap = this.make.tilemap({
-    data: map2,
-    tileWidth: 8,
-    tileHeight: 16,
-    width: 512,
-    height: 128,
-  });
-  bg = bgmap.addTilesetImage("ansibgs");
-  bglayer = bgmap.createDynamicLayer(0, bg, 0, 0);
-  bglayer.setDepth(BGLAYER_DEPTH);
-  console.log("Created bglayer");
-
-
-  sprite = this.add.sprite(4, 8, "underscore_white");
-
-  cursorInterval = setInterval(function () {
-    sprite.visible = !sprite.visible;
-  }, 600);
-
-  cam = this.cameras.main;
-
-  clicks = 0;
-
-  // Calculate the thumb height based on the percentage of content that is visible
-  thumbHeight =
-    (VISIBLE_HEIGHT_CHARACTERS / TOTAL_HEIGHT_CHARACTERS) * baseHeight;
-  console.log("THUMBHEIGHT:" + thumbHeight + "/" + baseHeight);
-  if (thumbHeight < baseHeight) {
-    // Draw the scrollbar thumb
-    thumbVertical = this.add.graphics();
-    thumbVertical.fillStyle(0xffff00, 1);
-    thumbVertical.fillRect(baseWidth - 5, 0, 5, thumbHeight);
-  }
-
-  // Calculate the thumb width based on the percentage of content that is visible horizontally
-  console.log(VISIBLE_WIDTH_CHARACTERS + " / " + TOTAL_WIDTH);
-  thumbWidth = (VISIBLE_WIDTH_CHARACTERS / TOTAL_WIDTH) * baseWidth;
-  if (thumbWidth < baseWidth) {
-    // Draw the horizontal scrollbar thumb
-    thumbHorizontal = this.add.graphics();
-    thumbHorizontal.fillStyle(0xffff00, 1);
-    thumbHorizontal.fillRect(0, baseHeight - 5, thumbWidth, 5);
-  }
-
-
-
-
-  socket.emit("onload", { x: TOTAL_WIDTH, y: TOTAL_HEIGHT_CHARACTERS });
-
-
-
-
-  this.input.on("pointerdown", function (pointer) {
-
-     // Check for click in the last 16px of the screen
-    if (pointer.y >= baseHeight - 16) {
-      // Action to perform when the bottom-right 20px area is clicked
-      toggleKeyboard();
-    } else {
-
-     let tileX = Math.floor(pointer.x /  8) + 1;
-     let tileY = Math.floor(pointer.y / 16) + 1;
-     for (let i = 0; i < hrefs.length; i++) {
-      let href = hrefs[i];
-      let hrefLength;
-      if (href.length) {
-        hrefLength = href.length; // Assuming length is the length of the string
-      } else {
-      hrefLength = href.href.length; // Assuming href string length corresponds to its display length
-      }
-      // Check if the click is within the horizontal range of the href and on the same vertical line
-      console.log(tileX + " >= " + href.x + " && " + tileX + " < " + (Number(href.x) + Number(hrefLength)));
-      console.log(tileY + " == " + (Number(href.y) + 1));
-      if (tileX >= parseInt(href.x) && 
-          tileX < (parseInt(href.x) + parseInt(hrefLength)) && 
-          tileY > parseInt(href.y) && 
-          tileY <= (parseInt(href.y) + parseInt(href.height))) {
-
-          if (href.callback_name) {
-              socket.emit("link_callback", { callback_name: href.callback_name });
-          } else {
-              window.open(href.href, "_blank");
-          }
-          return; // Stop checking after finding a match
-      }
-
-    }
-
-     socket.emit("pointerdown", { x: tileX, y: tileY });
-
-      if ( (popupOpened == false) && (popupClickCounter > 5) ) {
-
-      if (getCookie("popupOpened")==null) {
-
-      window.open(
-        "https://documentation.eightiesbox.com/index.html",
-        "_blank"
-      );
-       
-      setCookie("popupOpened", "true", 30);
-      }
-      popupOpened = true;
-
-      }
-      popupClickCounter++;
-
-    }
-
-    return;
-
-    // Check if clicked within the vertical thumb
-    if (
-      pointer.x >= baseWidth - 5 &&
-      pointer.x <= baseWidth &&
-      pointer.y >= thumbY &&
-      pointer.y <= thumbY + thumbHeight
-    ) {
-      isDraggingVertical = true;
-    }
-
-    // Check if clicked within the horizontal thumb
-    if (
-      pointer.y >= baseHeight - 8 &&
-      pointer.y <= baseHeight &&
-      pointer.x >= thumbX &&
-      pointer.x <= thumbX + thumbWidth
-    ) {
-      //if ((cam.scrollY / maxScrollY) < 1) {
-      isDraggingHorizontal = true;
-      //}
-    }
-  });
-
-
-
-  this.input.on("pointerup", function () {
-    isDraggingVertical = false;
-    isDraggingHorizontal = false;
-  });
-}
 
 function updateThumbVertical() {
   // Get the camera
@@ -625,44 +739,6 @@ function clearScreen() {
   }
 }
 
-function update(time, delta) {
-  if (initCalled == false) {
-    // Update the canvas style to fit the window height
-    // Calculate the scale factor for vertical scaling
-
-    if (window.matchMedia("(max-width: 515px)").matches) {
-      document.getElementById("simple-keyboard").style.display = "inline";
-    } else {
-      var verticalScale = window.innerHeight / baseHeight;
-      if (verticalScale > 1) verticalScale = 1;
-      var canvasElement = document.querySelector("#game-container canvas");
-      canvasElement.style.height = baseHeight * verticalScale + "px";
-    }
-    document.documentElement.style.height = null; // for the html tag
-    document.body.style.height = null; // for the body tag
-    document.getElementById("spinner").style.display = "none";
-
-    var canvas = document.getElementById('game-container').querySelector('canvas');
-    var computedStyle = window.getComputedStyle(canvas);
-  
-    canvasScaleX = parseInt(computedStyle.width, 10) / baseWidth;
-    canvasScaleY = parseInt(computedStyle.height, 10) / baseHeight;
-    
-    initCalled = true;
-  }
-
-  this.input.on("pointermove", function (pointer) {
-    if (isDraggingVertical) {
-      let newY = pointer.y - thumbHeight / 2;
-      moveVerticalThumb(newY);
-    }
-
-    if (isDraggingHorizontal) {
-      let newX = pointer.x - thumbWidth / 2;
-      moveHorizontalThumb(newX);
-    }
-  });
-}
 
 function moveVerticalThumb(newY) {
   // Clamp the new Y position within the scrollbar track
@@ -729,15 +805,15 @@ function handleKeyCode(keyCode) {
 function redrawCursor() {
   if (currentY > VISIBLE_HEIGHT_CHARACTERS - 3)
     currentY = VISIBLE_HEIGHT_CHARACTERS - 2;
-  sprite.x = currentX * 8 + 4;
-  sprite.y = currentY * 16 + 4;
-  sprite.visible = true;
-  clearInterval(cursorInterval);
-  cursorInterval = setInterval(function () {
+  window.sprite.x = currentX * 8 + 4;
+  window.sprite.y = currentY * 16 + 4;
+  window.sprite.visible = true;
+  clearInterval(window.cursorInterval);
+  window.cursorInterval = setInterval(function () {
     if (!isColorPalette) {
-      sprite.visible = !sprite.visible;
+      window.sprite.visible = !window.sprite.visible;
     } else {
-      sprite.visible = false;
+      window.sprite.visible = false;
     }
   }, 600);
 }
