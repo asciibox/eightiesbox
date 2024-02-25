@@ -1,5 +1,9 @@
 * {
   margin: 0;
   padding: 0;
-  overflow: hidden;
+}
+#game-container canvas {
+width: 100% !important;
+height: 100% !important;
+  display: block; /* Remove extra space below the canvas */
 }

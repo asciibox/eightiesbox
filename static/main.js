@@ -364,58 +364,42 @@ function initPage(dataArray) {
 }
 characterWidth = 8;
 characterHeight= 16;
-
 function adjustGameSize() {
   const viewportWidth = window.innerWidth;
   const viewportHeight = window.innerHeight;
 
-  // Desired canvas dimensions
-  const maxCanvasWidth = VISIBLE_WIDTH_CHARACTERS * 8;
-  const maxCanvasHeight = VISIBLE_HEIGHT_CHARACTERS * 16;
+  const aspectRatio = 1313 / 960; // The aspect ratio of the canvas content
 
-  // Calculate the scale for both width and height
-  let scaleX = viewportWidth / maxCanvasWidth;
-  let scaleY = viewportHeight / maxCanvasHeight;
+  // Start by scaling based on width and calculate corresponding height
+  let finalScale = viewportWidth / 1313;
+  let finalCanvasWidth = viewportWidth;
+  let finalCanvasHeight = Math.round(960 * finalScale);
 
-  // Use the smaller of the two scales to ensure the content fits
-  let finalScale = Math.min(scaleX, scaleY);
+  // If the height exceeds the viewport height, scale based on height instead
+  if (finalCanvasHeight > viewportHeight) {
+    finalScale = viewportHeight / 960;
+    finalCanvasHeight = viewportHeight;
+    finalCanvasWidth = Math.round(1313 * finalScale);
+  }
 
-  // Ensure the scale does not go above 1 to avoid enlarging the canvas beyond its intended size
-  finalScale = Math.min(finalScale, 1);
+  // Update the canvas size and Phaser's internal size
+  game.scale.resize(finalCanvasWidth, finalCanvasHeight);
 
-  // Set the scale for the scene's main camera
+  // Update camera bounds and zoom factor
   const scene = game.scene.scenes[0];
-  scene.cameras.main.setZoom(finalScale);
+  if (scene && scene.cameras && scene.cameras.main) {
+    scene.cameras.main.setBounds(0, 0, 1313, 960);
+    scene.cameras.main.setZoom(finalScale);
+    scene.cameras.main.scrollX = 0;
+    scene.cameras.main.scrollY = 0;
+  }
 
-  // Calculate the final canvas dimensions
-  const finalCanvasWidth = maxCanvasWidth * finalScale;
-  const finalCanvasHeight = maxCanvasHeight * finalScale;
- // Set the scale for the scene's main camera
-
- // Adjust Phaser's world bounds if necessary
- scene.cameras.main.setBounds(0, 0, finalCanvasWidth, finalCanvasHeight);
- //scene.physics.world.setBounds(0, 0, finalCanvasWidth, finalCanvasHeight);
-
- // Update the canvas element's size
- game.scale.resize(finalCanvasWidth, finalCanvasHeight);
-
- // Make sure the canvas style matches the new size
- const canvas = game.canvas;
- const canvasStyle = canvas.style;
- canvasStyle.top = '0';
- canvasStyle.left = '0';
- canvasStyle.transform = 'none';
- canvasStyle.imageRendering = 'pixelated';
- canvasStyle.margin = '0';
- canvas.width = finalCanvasWidth;
- canvas.height = finalCanvasHeight;
-
- // Log for debugging
- console.log("Canvas resized and zoom applied with scale:", finalScale);
+  console.log("Canvas resized to:", finalCanvasWidth, finalCanvasHeight);
+  console.log("Zoom applied with scale:", finalScale);
 }
 
-// Assuming 'game' is your Phaser game instance
-window.addEventListener('resize', () => adjustGameSize(game));
+window.addEventListener('resize', adjustGameSize);
+
 
 
 
