@@ -3,7 +3,7 @@
   padding: 0;
 }
 #game-container canvas {
-width: 100% !important;
-height: 100% !important;
   display: block; /* Remove extra space below the canvas */
+  width: 100% !important; /* Canvas width is 100% of the container */
+  height: auto !important; /* Height is automatically adjusted */
 }
