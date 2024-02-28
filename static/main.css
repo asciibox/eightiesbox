@@ -2,8 +2,14 @@
   margin: 0;
   padding: 0;
 }
+
 #game-container canvas {
-  display: block; /* Remove extra space below the canvas */
-  width: 100% !important; /* Canvas width is 100% of the container */
-  height: auto !important; /* Height is automatically adjusted */
+  display: block;
+  /* Remove unnecessary margins */
+  width: 100%;
+  /* Width should be 100% of the container */
+  height: auto;
+  /* Height should be automatic to maintain aspect ratio */
+  max-height: 100vh;
+  /* Max height should not exceed the viewport height */
 }

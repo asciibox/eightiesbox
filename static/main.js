@@ -271,7 +271,6 @@ class MyScene extends Phaser.Scene {
 
   update() {
     if (initCalled == false) {
-      adjustGameSize(game);
       // Update the canvas style to fit the window height
       // Calculate the scale factor for vertical scaling
   
@@ -298,6 +297,8 @@ class MyScene extends Phaser.Scene {
   
       
       initCalled = true;
+      adjustGameSize(game);
+
     }
   
     this.input.on("pointermove", function (pointer) {
@@ -363,6 +364,9 @@ function initPage(dataArray) {
 
 }
 
+const horizontal = 1313;
+const vertical = 960;
+
 function adjustGameSize() {
   const TILE_HEIGHT = 16; // Assuming each character's height is 16 pixels
   const maxCanvasHeight = VISIBLE_HEIGHT_CHARACTERS * TILE_HEIGHT;
@@ -372,25 +376,25 @@ function adjustGameSize() {
   const viewportHeight = window.innerHeight;
 
   // Calculate the scale based on the width
-  let scale = viewportWidth / 1313; // 1313 should be replaced with your game's base width
+  let scale = viewportWidth / horizontal; // horizontal should be replaced with your game's base width
 
   // Calculate the scaled height
-  let scaledHeight = 960 * scale; // 960 should be replaced with your game's base height
+  let scaledHeight = vertical * scale; // vertical should be replaced with your game's base height
 
   // Constrain the height
   if (scaledHeight > maxCanvasHeight) {
-      scale = maxCanvasHeight / 960; // Adjust the scale to fit the height
+      scale = maxCanvasHeight / vertical; // Adjust the scale to fit the height
       scaledHeight = maxCanvasHeight;
   }
 
   // Ensure the scaled height does not exceed the viewport height
   if (scaledHeight > viewportHeight) {
-      scale = viewportHeight / 960;
+      scale = viewportHeight / vertical;
       scaledHeight = viewportHeight;
   }
 
   // Calculate the final canvas width
-  let finalCanvasWidth = Math.round(1313 * scale);
+  let finalCanvasWidth = Math.round(horizontal * scale);
   let finalCanvasHeight = Math.round(scaledHeight);
 
   // Update Phaser's internal size
@@ -399,7 +403,7 @@ function adjustGameSize() {
   // Update camera settings
   const scene = game.scene.scenes[0];
   if (scene && scene.cameras && scene.cameras.main) {
-      scene.cameras.main.setBounds(0, 0, 1313, 960);
+      scene.cameras.main.setBounds(0, 0, horizontal, vertical);
       scene.cameras.main.setZoom(scale);
       scene.cameras.main.scrollX = 0;
       scene.cameras.main.scrollY = 0;
@@ -407,6 +411,8 @@ function adjustGameSize() {
 
   console.log("Canvas resized to:", finalCanvasWidth, finalCanvasHeight);
   console.log("Zoom applied with scale:", scale);
+
+  document.getElementById('game-container').getElementsByTagName('canvas')[0].style.height = 'auto';
 }
 
 window.addEventListener('resize', adjustGameSize);
