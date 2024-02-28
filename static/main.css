@@ -1,5 +1,15 @@
 * {
   margin: 0;
   padding: 0;
-  overflow: hidden;
+}
+
+#game-container canvas {
+  display: block;
+  /* Remove unnecessary margins */
+  width: 100%;
+  /* Width should be 100% of the container */
+  height: auto;
+  /* Height should be automatic to maintain aspect ratio */
+  max-height: 100vh;
+  /* Max height should not exceed the viewport height */
 }

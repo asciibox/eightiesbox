@@ -271,7 +271,6 @@ class MyScene extends Phaser.Scene {
 
   update() {
     if (initCalled == false) {
-      adjustGameSize(game);
       // Update the canvas style to fit the window height
       // Calculate the scale factor for vertical scaling
   
@@ -298,6 +297,8 @@ class MyScene extends Phaser.Scene {
   
       
       initCalled = true;
+      adjustGameSize(game);
+
     }
   
     this.input.on("pointermove", function (pointer) {
@@ -362,10 +363,62 @@ function initPage(dataArray) {
  
 
 }
-characterWidth = 8;
-characterHeight= 16;
 
+const horizontal = 1313;
+const vertical = 960;
 function adjustGameSize() {
+
+  if ( (VISIBLE_WIDTH_CHARACTERS>=79) && (window.innerWidth > 1480) ) {
+    const TILE_HEIGHT = 16; // Assuming each character's height is 16 pixels
+    const maxCanvasHeight = window.innerHeight;
+
+    const gameContainer = document.getElementById('game-container');
+    const viewportWidth = gameContainer.clientWidth;
+    const viewportHeight = window.innerHeight;
+
+    // Define the aspect ratio of the game
+    const aspectRatio = horizontal / vertical;
+
+    // Calculate the maximum possible scale based on width and height
+    let scaleWidth = viewportWidth / horizontal;
+    let scaleHeight = viewportHeight / vertical;
+
+    // Use the smallest scale to maintain aspect ratio
+    let scale = Math.min(scaleWidth, scaleHeight);
+
+    // Calculate the final canvas width and height
+    let finalCanvasWidth = Math.round(horizontal * scale);
+    let finalCanvasHeight = Math.round(vertical * scale);
+
+    if (finalCanvasHeight > maxCanvasHeight) {
+      finalCanvasHeight = maxCanvasHeight;
+      finalCanvasWidth = Math.round(maxCanvasHeight * aspectRatio);
+      scale = maxCanvasHeight / vertical;
+    }
+
+    // Update Phaser's internal size
+    game.scale.resize(finalCanvasWidth, finalCanvasHeight);
+
+    
+    // Update camera settings
+    const scene = game.scene.scenes[0];
+    if (scene && scene.cameras && scene.cameras.main) {
+        scene.cameras.main.setBounds(0, 0, horizontal, vertical);
+        scene.cameras.main.setZoom(scale);
+        scene.cameras.main.scrollX = 0;
+        scene.cameras.main.scrollY = 0;
+    }
+
+    console.log("Canvas resized to:", finalCanvasWidth, finalCanvasHeight);
+    console.log("Zoom applied with scale:", scale);
+
+    // Adjust CSS to maintain aspect ratio
+    const canvasElement = document.getElementById('game-container').getElementsByTagName('canvas')[0];
+    canvasElement.style.width = `${finalCanvasWidth}px`;
+    canvasElement.style.height = `${finalCanvasHeight}px`;
+    canvasElement.style.maxWidth = '100%';
+    canvasElement.style.maxHeight = `${maxCanvasHeight}px`;
+} else {
   const viewportWidth = window.innerWidth;
   const viewportHeight = window.innerHeight;
 
@@ -410,12 +463,11 @@ function adjustGameSize() {
  canvas.width = finalCanvasWidth;
  canvas.height = finalCanvasHeight;
 
- // Log for debugging
- console.log("Canvas resized and zoom applied with scale:", finalScale);
+}
 }
 
-// Assuming 'game' is your Phaser game instance
-window.addEventListener('resize', () => adjustGameSize(game));
+window.addEventListener('resize', adjustGameSize);
+
 
 
 
