@@ -364,14 +364,13 @@ function initPage(dataArray) {
 
 }
 
-const horizontal = 1313;
+let resizeTimeout = null;
+const horizontal = 1312;
 const vertical = 960;
-function adjustGameSize() {
-
-  if ( (VISIBLE_WIDTH_CHARACTERS>=79) && (window.innerWidth > 1480) ) {
+function adjustGameSize() { 
+  
+  if ( (VISIBLE_WIDTH_CHARACTERS>=79) ) {
     const TILE_HEIGHT = 16; // Assuming each character's height is 16 pixels
-    const maxCanvasHeight = window.innerHeight;
-
     const gameContainer = document.getElementById('game-container');
     const viewportWidth = gameContainer.clientWidth;
     const viewportHeight = window.innerHeight;
@@ -379,27 +378,24 @@ function adjustGameSize() {
     // Define the aspect ratio of the game
     const aspectRatio = horizontal / vertical;
 
-    // Calculate the maximum possible scale based on width and height
-    let scaleWidth = viewportWidth / horizontal;
-    let scaleHeight = viewportHeight / vertical;
+    // Start by setting the canvas height to the innerHeight
+    let finalCanvasHeight = viewportHeight;
+    // Calculate the width based on the game's aspect ratio
+    let finalCanvasWidth = Math.round(finalCanvasHeight * aspectRatio);
 
-    // Use the smallest scale to maintain aspect ratio
-    let scale = Math.min(scaleWidth, scaleHeight);
-
-    // Calculate the final canvas width and height
-    let finalCanvasWidth = Math.round(horizontal * scale);
-    let finalCanvasHeight = Math.round(vertical * scale);
-
-    if (finalCanvasHeight > maxCanvasHeight) {
-      finalCanvasHeight = maxCanvasHeight;
-      finalCanvasWidth = Math.round(maxCanvasHeight * aspectRatio);
-      scale = maxCanvasHeight / vertical;
+    // If the calculated width exceeds the viewportWidth, adjust both width and height
+    if (finalCanvasWidth > viewportWidth) {
+        finalCanvasWidth = viewportWidth;
+        // Recalculate height to maintain the aspect ratio
+        finalCanvasHeight = Math.round(finalCanvasWidth / aspectRatio);
     }
+
+    // Calculate the scale
+    let scale = Math.min(finalCanvasWidth / horizontal, finalCanvasHeight / vertical);
 
     // Update Phaser's internal size
     game.scale.resize(finalCanvasWidth, finalCanvasHeight);
 
-    
     // Update camera settings
     const scene = game.scene.scenes[0];
     if (scene && scene.cameras && scene.cameras.main) {
@@ -417,7 +413,8 @@ function adjustGameSize() {
     canvasElement.style.width = `${finalCanvasWidth}px`;
     canvasElement.style.height = `${finalCanvasHeight}px`;
     canvasElement.style.maxWidth = '100%';
-    canvasElement.style.maxHeight = `${maxCanvasHeight}px`;
+    canvasElement.style.maxHeight = `${viewportHeight}px`;
+
 } else {
   const viewportWidth = window.innerWidth;
   const viewportHeight = window.innerHeight;
