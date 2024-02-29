@@ -85,12 +85,21 @@ class MyScene extends Phaser.Scene {
   }
 
   preload() {
-      this.load.image("tiles", "static/ansi.png");
-      this.load.image("ansibgs", "static/ansi.png");
-      this.load.image("underscore_white", "static/underscore_white.png");
-      window.loader = this.load;
-      window.adder = this.add;
-  }
+    this.load.image("tiles", "static/ansi.png");
+    this.load.image("ansibgs", "static/ansi.png");
+    this.load.image("underscore_white", "static/underscore_white.png");
+
+    // Set up an event listener for when files complete loading
+    this.load.on('filecomplete', (key, type, data) => {
+        if (key === 'tiles' || key === 'ansibgs') {
+            // Assuming you want NEAREST filter for pixel art
+            this.textures.get(key).setFilter(Phaser.ScaleModes.LINEAR);
+        }
+    });
+
+    window.loader = this.load;
+    window.adder = this.add;
+}
 
   create() {
       // Load a map from a 2D array of tile indices
@@ -115,7 +124,7 @@ class MyScene extends Phaser.Scene {
         height: 128,
       });
       window.tiles = map.addTilesetImage("tiles");
-      window.layer = map.createDynamicLayer(0, tiles, 0, 0);
+      window.layer = map.createLayer(0, tiles, 0, 0);
       layer.setDepth(BACKGROUND_LAYER_DEPTH);
       var map2 = [];
     
@@ -138,7 +147,7 @@ class MyScene extends Phaser.Scene {
         height: 128,
       });
       window.bg = window.bgmap.addTilesetImage("ansibgs");
-      window.bglayer = window.bgmap.createDynamicLayer(0, bg, 0, 0);
+      window.bglayer = window.bgmap.createLayer(0, bg, 0, 0);
       window.bglayer.setDepth(BGLAYER_DEPTH);
       console.log("Created bglayer");
     
@@ -274,6 +283,8 @@ class MyScene extends Phaser.Scene {
       // Update the canvas style to fit the window height
       // Calculate the scale factor for vertical scaling
   
+      
+
       if (window.matchMedia("(max-width: 515px)").matches) {
         document.getElementById("simple-keyboard").style.display = "inline";
       } else {
@@ -331,8 +342,10 @@ function initPage(dataArray) {
   console.log("VISIBLE_HEIGHT_CHARACTERS * 16:"+VISIBLE_HEIGHT_CHARACTERS * 16);
   // Initialize config with base dimensions
   config = {
+    roundPixels : false,
     title: "Ascii box",
     type: Phaser.AUTO,
+    antialias: false,
     width: VISIBLE_WIDTH_CHARACTERS * 8,
     height: VISIBLE_HEIGHT_CHARACTERS * 16,
     pixelArt: true,
@@ -351,7 +364,6 @@ function initPage(dataArray) {
 
    // Create the game instance with initial config
    game = new Phaser.Game(config);
-
  
    // Remaining setup
    DEFAULT_INSERT = false;
@@ -365,11 +377,19 @@ function initPage(dataArray) {
 }
 
 let resizeTimeout = null;
-const horizontal = 1312;
+const horizontal = 1920;
 const vertical = 960;
+
+const referenceHeight = 1320;
+const referenceWidth = 960;
+const proportionalityConstant = referenceWidth / referenceHeight;
+
 function adjustGameSize() { 
   
-  if ( (VISIBLE_WIDTH_CHARACTERS>=79) ) {
+    const dynamicWidth = window.innerHeight * proportionalityConstant;
+
+    if (VISIBLE_WIDTH_CHARACTERS >= 79 && window.innerWidth > dynamicWidth) {
+      
     const TILE_HEIGHT = 16; // Assuming each character's height is 16 pixels
     const gameContainer = document.getElementById('game-container');
     const viewportWidth = gameContainer.clientWidth;
@@ -395,7 +415,6 @@ function adjustGameSize() {
 
     // Update Phaser's internal size
     game.scale.resize(finalCanvasWidth, finalCanvasHeight);
-
     // Update camera settings
     const scene = game.scene.scenes[0];
     if (scene && scene.cameras && scene.cameras.main) {
@@ -566,7 +585,11 @@ function drawbg(index, x, y, backgroundColor) {
 function draw(index, x, y, currentColor) {
   y = y - removedYChars;
 
+  try {
   bglayer.putTileAt(index, x, y);
+  } catch (e) {
+    console.log(e);
+  }
 
   if (!drawcanvas[y]) {
     drawcanvas[y] = [];
