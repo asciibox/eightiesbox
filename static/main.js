@@ -386,14 +386,14 @@ const proportionalityConstant = referenceWidth / referenceHeight;
 
 function adjustGameSize() { 
   
-    const dynamicWidth = window.innerHeight * proportionalityConstant;
+    const dynamicWidth = (window.innerHeight * proportionalityConstant) * 2;
 
-    if (VISIBLE_WIDTH_CHARACTERS >= 79 && window.innerWidth > dynamicWidth) {
-      
+    if  ( (VISIBLE_WIDTH_CHARACTERS >= 79) || (window.innerWidth>800) ) {
+      console.log(window.innerWidth + "/" + dynamicWidth);
     const TILE_HEIGHT = 16; // Assuming each character's height is 16 pixels
     const gameContainer = document.getElementById('game-container');
-    const viewportWidth = gameContainer.clientWidth;
-    const viewportHeight = window.innerHeight;
+    const viewportWidth = gameContainer.clientWidth* 4; // superscaled by 4
+    const viewportHeight = window.innerHeight * 2 ; // superscaled by two
 
     // Define the aspect ratio of the game
     const aspectRatio = horizontal / vertical;
@@ -404,7 +404,7 @@ function adjustGameSize() {
     let finalCanvasWidth = Math.round(finalCanvasHeight * aspectRatio);
 
     // If the calculated width exceeds the viewportWidth, adjust both width and height
-    if (finalCanvasWidth > viewportWidth) {
+    if (finalCanvasWidth > viewportWidth / 2) {
         finalCanvasWidth = viewportWidth;
         // Recalculate height to maintain the aspect ratio
         finalCanvasHeight = Math.round(finalCanvasWidth / aspectRatio);
@@ -414,7 +414,7 @@ function adjustGameSize() {
     let scale = Math.min(finalCanvasWidth / horizontal, finalCanvasHeight / vertical);
 
     // Update Phaser's internal size
-    game.scale.resize(finalCanvasWidth, finalCanvasHeight);
+    game.scale.resize(finalCanvasWidth , finalCanvasHeight  * 2); // superscaled
     // Update camera settings
     const scene = game.scene.scenes[0];
     if (scene && scene.cameras && scene.cameras.main) {
@@ -435,6 +435,7 @@ function adjustGameSize() {
     canvasElement.style.maxHeight = `${viewportHeight}px`;
 
 } else {
+  console.log(2);
   const viewportWidth = window.innerWidth;
   const viewportHeight = window.innerHeight;
 
