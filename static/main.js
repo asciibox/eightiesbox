@@ -163,7 +163,6 @@ class MyScene extends Phaser.Scene {
       // Calculate the thumb height based on the percentage of content that is visible
       window.thumbHeight =
         (VISIBLE_HEIGHT_CHARACTERS / TOTAL_HEIGHT_CHARACTERS) * baseHeight;
-      console.log("THUMBHEIGHT:" + thumbHeight + "/" + baseHeight);
       if (window.thumbHeight < window.baseHeight) {
         // Draw the scrollbar thumb
         thumbVertical = this.add.graphics();
@@ -389,11 +388,16 @@ function adjustGameSize() {
     const dynamicWidth = (window.innerHeight * proportionalityConstant) * 2;
 
     if  ( (VISIBLE_WIDTH_CHARACTERS >= 79) || (window.innerWidth>800) ) {
-      console.log(window.innerWidth + "/" + dynamicWidth);
     const TILE_HEIGHT = 16; // Assuming each character's height is 16 pixels
     const gameContainer = document.getElementById('game-container');
-    const viewportWidth = gameContainer.clientWidth* 4; // superscaled by 4
-    const viewportHeight = window.innerHeight * 2 ; // superscaled by two
+    let viewportWidth = gameContainer.clientWidth;
+    let viewportHeight = window.innerHeight;
+    
+    if (window.innerWidth < 1400) {
+      viewportWidth = viewportWidth * 4;  // superscaled by 4
+      viewportHeight = viewportHeight * 2; // superscaled by two
+
+    }
 
     // Define the aspect ratio of the game
     const aspectRatio = horizontal / vertical;
@@ -413,8 +417,13 @@ function adjustGameSize() {
     // Calculate the scale
     let scale = Math.min(finalCanvasWidth / horizontal, finalCanvasHeight / vertical);
 
-    // Update Phaser's internal size
+    if (window.innerWidth < 1400) {
+      // Update Phaser's internal size
     game.scale.resize(finalCanvasWidth , finalCanvasHeight  * 2); // superscaled
+    } else {
+      game.scale.resize(finalCanvasWidth , finalCanvasHeight); // not superscaled
+      
+    }
     // Update camera settings
     const scene = game.scene.scenes[0];
     if (scene && scene.cameras && scene.cameras.main) {
