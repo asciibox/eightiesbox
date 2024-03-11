@@ -387,42 +387,53 @@ function adjustGameSize() {
 
   if  ( (VISIBLE_WIDTH_CHARACTERS >= 79) || (window.innerWidth>800) ) {
   
-  const gameContainer = document.getElementById('game-container');
-  let viewportWidth = gameContainer.clientWidth;
-  let viewportHeight = window.innerHeight;
-  
-  // Define the aspect ratio of the game
-  const aspectRatio = horizontal / vertical;
+    const gameContainer = document.getElementById('game-container');
+    let viewportWidth = gameContainer.clientWidth;
+    let viewportHeight = window.innerHeight;
 
-  // Use responsive scaling to calculate the new dimensions and scale factor
-  let scale = Math.min(viewportWidth / horizontal, viewportHeight / vertical);
-  let finalCanvasWidth = Math.round(horizontal * scale);
-  let finalCanvasHeight = Math.round(vertical * scale);
+    // Check for the condition to superscale
+    const shouldSuperscale = window.innerWidth < 1400;
 
-  // Check if the canvas will fit in the viewport after scaling, if not adjust the scale
-  if (finalCanvasWidth > viewportWidth || finalCanvasHeight > viewportHeight) {
-      scale = Math.min(viewportWidth / finalCanvasWidth, viewportHeight / finalCanvasHeight);
-      finalCanvasWidth = Math.round(horizontal * scale);
-      finalCanvasHeight = Math.round(vertical * scale);
-  }
+    // Define the aspect ratio of the game
+    const aspectRatio = horizontal / vertical;
 
-  // Adjust game's internal resolution and camera zoom if necessary
-  game.scale.resize(finalCanvasWidth, finalCanvasHeight);
-  const scene = game.scene.scenes[0];
-  if (scene && scene.cameras && scene.cameras.main) {
-      scene.cameras.main.setBounds(0, 0, horizontal, vertical);
-      scene.cameras.main.setZoom(scale);
-  }
+    // Calculate the initial scale
+    let scale = Math.min(viewportWidth / horizontal, viewportHeight / vertical);
 
-  // Adjust CSS to fit the canvas inside the game container and maintain aspect ratio
-  const canvasElement = gameContainer.getElementsByTagName('canvas')[0];
-  canvasElement.style.width = `${finalCanvasWidth}px`;
-  canvasElement.style.height = `${finalCanvasHeight}px`;
-  canvasElement.style.maxWidth = `${viewportWidth}px`;
-  canvasElement.style.maxHeight = `${viewportHeight}px`;
+    if (shouldSuperscale) {
+        // Superscale by increasing the target game resolution
+        scale = scale * 2;  // Assuming you want to double the detail
+    }
 
-  console.log("Canvas resized to:", finalCanvasWidth, finalCanvasHeight);
-  console.log("Zoom applied with scale:", scale);
+    let finalCanvasWidth = Math.round(horizontal * scale);
+    let finalCanvasHeight = Math.round(vertical * scale);
+
+    // If superscaled canvas is too big, recalculate scale to fit into the viewport
+    if (finalCanvasWidth > viewportWidth || finalCanvasHeight > viewportHeight) {
+        scale = Math.min(viewportWidth / finalCanvasWidth, viewportHeight / finalCanvasHeight);
+        finalCanvasWidth = Math.round(horizontal * scale);
+        finalCanvasHeight = Math.round(vertical * scale);
+    }
+
+    // Adjust game's internal resolution and camera zoom if necessary
+    game.scale.resize(finalCanvasWidth, finalCanvasHeight);
+
+    const scene = game.scene.scenes[0];
+    if (scene && scene.cameras && scene.cameras.main) {
+        scene.cameras.main.setBounds(0, 0, horizontal, vertical);
+        scene.cameras.main.setZoom(scale);
+    }
+
+    // Adjust CSS to fit the canvas inside the game container and maintain aspect ratio
+    const canvasElement = gameContainer.getElementsByTagName('canvas')[0];
+    canvasElement.style.width = `${finalCanvasWidth}px`;
+    canvasElement.style.height = `${finalCanvasHeight}px`;
+    canvasElement.style.maxWidth = `${viewportWidth}px`;
+    canvasElement.style.maxHeight = `${viewportHeight}px`;
+
+    console.log("Canvas resized to:", finalCanvasWidth, finalCanvasHeight);
+    console.log("Zoom applied with scale:", scale);
+
 
 } else {
   console.log(2);
