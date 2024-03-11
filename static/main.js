@@ -384,64 +384,45 @@ const referenceWidth = 960;
 const proportionalityConstant = referenceWidth / referenceHeight;
 
 function adjustGameSize() { 
+
+  if  ( (VISIBLE_WIDTH_CHARACTERS >= 79) || (window.innerWidth>800) ) {
   
-    const dynamicWidth = (window.innerHeight * proportionalityConstant) * 2;
+  const gameContainer = document.getElementById('game-container');
+  let viewportWidth = gameContainer.clientWidth;
+  let viewportHeight = window.innerHeight;
+  
+  // Define the aspect ratio of the game
+  const aspectRatio = horizontal / vertical;
 
-    if  ( (VISIBLE_WIDTH_CHARACTERS >= 79) || (window.innerWidth>800) ) {
-    const TILE_HEIGHT = 16; // Assuming each character's height is 16 pixels
-    const gameContainer = document.getElementById('game-container');
-    let viewportWidth = gameContainer.clientWidth;
-    let viewportHeight = window.innerHeight;
-    
-    if (window.innerWidth < 1400) {
-      viewportWidth = viewportWidth * 4;  // superscaled by 4
-      viewportHeight = viewportHeight * 2; // superscaled by two
+  // Use responsive scaling to calculate the new dimensions and scale factor
+  let scale = Math.min(viewportWidth / horizontal, viewportHeight / vertical);
+  let finalCanvasWidth = Math.round(horizontal * scale);
+  let finalCanvasHeight = Math.round(vertical * scale);
 
-    }
+  // Check if the canvas will fit in the viewport after scaling, if not adjust the scale
+  if (finalCanvasWidth > viewportWidth || finalCanvasHeight > viewportHeight) {
+      scale = Math.min(viewportWidth / finalCanvasWidth, viewportHeight / finalCanvasHeight);
+      finalCanvasWidth = Math.round(horizontal * scale);
+      finalCanvasHeight = Math.round(vertical * scale);
+  }
 
-    // Define the aspect ratio of the game
-    const aspectRatio = horizontal / vertical;
+  // Adjust game's internal resolution and camera zoom if necessary
+  game.scale.resize(finalCanvasWidth, finalCanvasHeight);
+  const scene = game.scene.scenes[0];
+  if (scene && scene.cameras && scene.cameras.main) {
+      scene.cameras.main.setBounds(0, 0, horizontal, vertical);
+      scene.cameras.main.setZoom(scale);
+  }
 
-    // Start by setting the canvas height to the innerHeight
-    let finalCanvasHeight = viewportHeight;
-    // Calculate the width based on the game's aspect ratio
-    let finalCanvasWidth = Math.round(finalCanvasHeight * aspectRatio);
+  // Adjust CSS to fit the canvas inside the game container and maintain aspect ratio
+  const canvasElement = gameContainer.getElementsByTagName('canvas')[0];
+  canvasElement.style.width = `${finalCanvasWidth}px`;
+  canvasElement.style.height = `${finalCanvasHeight}px`;
+  canvasElement.style.maxWidth = `${viewportWidth}px`;
+  canvasElement.style.maxHeight = `${viewportHeight}px`;
 
-    // If the calculated width exceeds the viewportWidth, adjust both width and height
-    if (finalCanvasWidth > viewportWidth / 2) {
-        finalCanvasWidth = viewportWidth;
-        // Recalculate height to maintain the aspect ratio
-        finalCanvasHeight = Math.round(finalCanvasWidth / aspectRatio);
-    }
-
-    // Calculate the scale
-    let scale = Math.min(finalCanvasWidth / horizontal, finalCanvasHeight / vertical);
-
-    if (window.innerWidth < 1400) {
-      // Update Phaser's internal size
-    game.scale.resize(finalCanvasWidth , finalCanvasHeight  * 2); // superscaled
-    } else {
-      game.scale.resize(finalCanvasWidth , finalCanvasHeight); // not superscaled
-      
-    }
-    // Update camera settings
-    const scene = game.scene.scenes[0];
-    if (scene && scene.cameras && scene.cameras.main) {
-        scene.cameras.main.setBounds(0, 0, horizontal, vertical);
-        scene.cameras.main.setZoom(scale);
-        scene.cameras.main.scrollX = 0;
-        scene.cameras.main.scrollY = 0;
-    }
-
-    console.log("Canvas resized to:", finalCanvasWidth, finalCanvasHeight);
-    console.log("Zoom applied with scale:", scale);
-
-    // Adjust CSS to maintain aspect ratio
-    const canvasElement = document.getElementById('game-container').getElementsByTagName('canvas')[0];
-    canvasElement.style.width = `${finalCanvasWidth}px`;
-    canvasElement.style.height = `${finalCanvasHeight}px`;
-    canvasElement.style.maxWidth = '100%';
-    canvasElement.style.maxHeight = `${viewportHeight}px`;
+  console.log("Canvas resized to:", finalCanvasWidth, finalCanvasHeight);
+  console.log("Zoom applied with scale:", scale);
 
 } else {
   console.log(2);
