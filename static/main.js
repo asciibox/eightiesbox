@@ -392,7 +392,7 @@ function adjustGameSize() {
     let viewportHeight = window.innerHeight;
 
     // Check for the condition to superscale
-    const shouldSuperscale = window.innerWidth < 1400;
+    const shouldSuperscale = window.innerWidth < 1920;
 
     // Define the aspect ratio of the game
     const aspectRatio = horizontal / vertical;
