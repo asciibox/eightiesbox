@@ -385,14 +385,14 @@ const proportionalityConstant = referenceWidth / referenceHeight;
 
 function adjustGameSize() { 
 
-  if  ( (VISIBLE_WIDTH_CHARACTERS >= 79) || (window.innerWidth>800) ) {
+if  ( (VISIBLE_WIDTH_CHARACTERS >= 51) ) {
   
     const gameContainer = document.getElementById('game-container');
     let viewportWidth = gameContainer.clientWidth;
     let viewportHeight = window.innerHeight;
 
     // Check for the condition to superscale
-    const shouldSuperscale = window.innerWidth < 1920;
+    const shouldSuperscale = window.innerWidth < 960;
 
     // Define the aspect ratio of the game
     const aspectRatio = horizontal / vertical;
