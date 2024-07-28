@@ -278,7 +278,8 @@ class MyScene extends Phaser.Scene {
   }
 
   update() {
-    if (initCalled == false) {
+    if (initCalled == false) 
+    {
       // Update the canvas style to fit the window height
       // Calculate the scale factor for vertical scaling
   
@@ -863,6 +864,7 @@ function getCharIndex(foreground, asciiCode) {
 
 
 function emitKeyPress(keyCode) {
+  updateInputField(keyCode);
   socket.emit("input_keypress", { key: keyCode, shiftPressed: shiftPressed, ctrlKeyPressed: ctrlKeyPressed, altgrPressed: altgrPressed });
 }
 

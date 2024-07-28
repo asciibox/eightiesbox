@@ -155,6 +155,11 @@
     <script src="./static/bundle.js"></script>
 
     <style>
+       #input-container {
+            display: flex;
+            padding: 10px;
+            background-color: #333;
+        }
       canvas {
         touch-action: auto;
       }
@@ -210,7 +215,7 @@
       }
     </style>
   </head>
-  <body onload="processQueue();">
+  <body onload="processQueue();document.getElementById('terminal-input').focus();">
     <style>
       html,
       body {
@@ -563,6 +568,18 @@
           window.d = draw;
         }
       }
+
+      function updateInputField(key) {
+          const inputField = document.getElementById('terminal-input');
+          
+          if (key === 'Backspace') {
+              inputField.value = inputField.value.slice(0, -1);
+          } else if (key.length === 1) {
+              inputField.value += key;
+          }
+          // For special keys like arrows, we don't modify the input field
+      }
+
     </script>
     <!-- Tracker stuff end ## -- -->
 
@@ -600,6 +617,11 @@
       </form>
     </div>
     <div id="game-container"></div>
+    <div id="input-container">
+      <label for="terminal-input" id="input-label" class="sr-only">Enter command:</label>
+      <input type="text" id="terminal-input" onkeyup="this.value = '';" aria-describedby="input-label" placeholder="Enter command">
+      <button id="submit-btn" onclick="document.getElementById('terminal-input').value='';emitKeyPress('Enter');">Submit</button>
+    </div>
     <div class="spinner" id="spinner"></div>
     <div
       class="simple-keyboard"
