@@ -155,6 +155,17 @@
     <script src="./static/bundle.js"></script>
 
     <style>
+      #screen-reader-container {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
        #input-container {
             display: flex;
             padding: 10px;
@@ -616,6 +627,7 @@
         </div>
       </form>
     </div>
+    <div id="screen-reader-container" aria-live="polite" aria-atomic="true"></div>
     <div id="game-container"></div>
     <div id="input-container">
       <label for="terminal-input" id="input-label" class="sr-only">Enter command:</label>

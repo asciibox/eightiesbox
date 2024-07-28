@@ -654,7 +654,9 @@ function updateThumbHorizontal() {
   }
 }
 
-function writeAsciiHTML(string, currentColor, backgroundColor) {
+/*function writeAsciiHTML(string, currentColor, backgroundColor) {
+  let screenReaderText = '';
+  
   for (var i = 0; i < string.length; i++) {
     var index = getCharIndex(currentColor, string.charCodeAt(i));
 
@@ -662,8 +664,15 @@ function writeAsciiHTML(string, currentColor, backgroundColor) {
 
     var charIndex = getCharIndex(backgroundColor, 219);
     drawbg(charIndex, currentX + i, currentY, backgroundColor);
+    
+    // Add the character to the screen reader text
+    screenReaderText += String.fromCharCode(string.charCodeAt(i));
   }
-}
+  
+  // Update the screen reader text area
+  alert(screenReaderText);
+  document.getElementById('screen-reader-output').value += screenReaderText + ' ';
+}*/
 
 function shiftTilesUp() {
   // Start shifting from the second row to the second-last row
@@ -741,7 +750,6 @@ function writeAsciiHTMLPos(ascii_codes, currentColor, backgroundColor, x, y) {
         canvasColor.shift();
 
         shiftTilesUp(); // Shift the tiles up in bglayer
-        //shiftTilesUp(layer); // Shift the tiles up in layer
 
         removedYChars++;
         maxReachedY++;
@@ -758,13 +766,20 @@ function writeAsciiHTMLPos(ascii_codes, currentColor, backgroundColor, x, y) {
       return;
     }
     try {
+      let screenReaderText = '';
       for (var i = 0; i < ascii_codes.length; i++) {
         var index = getCharIndex(currentColor, ascii_codes[i]);
 
         draw(index, x + i, y, currentColor);
         var charIndex = getCharIndex(backgroundColor, 219);
         drawbg(charIndex, x + i, y, backgroundColor);
+
+        // Add the character to the screen reader text
+        screenReaderText += String.fromCharCode(ascii_codes[i]);
       }
+
+      updateScreenReader(screenReaderText);
+   
       currentX = x + ascii_codes.length;
       currentY = y;
       redrawCursor();
@@ -802,6 +817,18 @@ function writeAsciiToStatusBar(ascii_codes, currentColor, backgroundColor) {
   });
 }
 
+function updateScreenReader(text) {
+  const screenReaderContainer = document.getElementById('screen-reader-container');
+  const newContent = document.createElement('div');
+  newContent.textContent = text;
+  screenReaderContainer.appendChild(newContent);
+
+  // Keep only the last few updates to prevent the DOM from growing too large
+  while (screenReaderContainer.childNodes.length > 10) {
+    screenReaderContainer.removeChild(screenReaderContainer.firstChild);
+  }
+}
+
 function clearScreen() {
   removedYChars = 0;
   maxReachedY = 0;
@@ -812,6 +839,9 @@ function clearScreen() {
       layer.putTileAt(index, x, y);
     }
   }
+
+  // Clear the screen reader text area
+  document.getElementById('screen-reader-container').innerHTML = '';
 }
 
 
