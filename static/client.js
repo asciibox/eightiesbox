@@ -127,7 +127,15 @@ socket.on("a", function (data) {
 
 
 socket.on("waiting_for_input", async (data) => {
+   
   enqueueCommand({ type: "waitingForInput", data: data });
+  
+});
+
+socket.on("waiting", async (data) => {
+   
+  enqueueCommand({ type: "waiting", data: data });
+  
 });
 
 
@@ -153,7 +161,8 @@ window.processQueue = function() {
   // Check if the queue is empty
   if (commandQueue.length === 0) {
     // Schedule to check the queue again after a short delay
-    setTimeout(processQueue, 100); // 100 ms delay or adjust as needed
+    setTimeout(processQueue, 250); // 100 ms delay or adjust as needed
+    
     return;
   } 
 
@@ -169,7 +178,8 @@ window.processQueue = function() {
     });
   } else {
     // No command with the expected sequence, wait a bit before checking again
-    setTimeout(processQueue, 100); // 100 ms delay or adjust as needed
+    setTimeout(processQueue, 250); // 100 ms delay or adjust as needed
+
   }
 };
 
@@ -177,6 +187,7 @@ window.processQueue = function() {
 
 
 async function executeCommand(command) {
+
   switch (command.type) {
       case "draw":
         if (command.data.command && command.data.command === 'clear') {
@@ -193,6 +204,7 @@ async function executeCommand(command) {
               command.data.x,
               command.data.y
           );
+
         }
           break;
       case "a":
@@ -207,8 +219,14 @@ async function executeCommand(command) {
       case "clearline" : 
         clearLine(command.data.y);
         break;
+      case "waiting" :
+        // Scan the visible portion of the screen and build the screen reader text
+          scanScreenReader();
+          processStoredKeyPresses();
       break;
       case "waitingForInput" :
+        // Scan the visible portion of the screen and build the screen reader text
+          scanScreenReader();
           if (keyboardPressAllowed == false && command.data.bool == true) {
             keyboardPressAllowed = true;
             processStoredKeyPresses();

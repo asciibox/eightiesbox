@@ -120,10 +120,10 @@ class Utils:
         self.askinput(mylen, callback, accept_keys)
 
     def askYesNo(self, question, callback):
-        self.sid_data.setCurrentAction("wait_for_yes_no")
         self.output_wrap(question+" (Y/N)", 6, 0)
         self.sid_data.setCallback(callback)
-
+        self.sid_data.setCurrentAction("wait_for_yes_no")
+        
     def wait(self, callback):
         self.sid_data.setCurrentAction("wait_for_any_button")
         self.sid_data.setCallback(callback)
@@ -728,6 +728,8 @@ class Utils:
                 }, room=sid)
                 self.sid_data.store_screen_data(ascii_codes, currentColor, backgroundColor, blink, x, y)
 
+        self.emit_waiting()
+
         return []
 
     def emit_waiting_for_input(self, bool, identifier):
@@ -739,6 +741,14 @@ class Utils:
                     'identifier' : identifier,
                     'sequence' : self.sid_data.command_sequence
                 }, room=sid)
+
+    def emit_waiting(self):
+        sid = self.request_id  # Get the Session ID
+        self.sid_data.command_sequence += 1
+
+        self.socketio.emit('waiting', {
+            'sequence': self.sid_data.command_sequence
+        }, room=sid)
 
     def emit_status_bar(self, currentString, currentColor, backgroundColor):
         #  input("Press Enter to continue...")

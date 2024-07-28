@@ -69,11 +69,15 @@ class Timeline(ANSIEditor):
             self.util.output("Press C to create a new timeline entry and the arrow keys to navigate", 11, 0)
             self.util.goto_next_line()
             self.util.output("Press I to upload an image to the timeline", 11, 0)
+            self.util.emit_waiting()
         else:
             self.util.sid_data.startY = self.util.sid_data.yHeight - 3
             self.util.output("[C] - create entry [I] - upload img", 11, 0)
             self.util.goto_next_line()
+            
             self.util.output("use cursorkeys for pagenav", 6, 0)
+            self.util.emit_waiting()
+            
 
     def word_wrap_entries(self, entries, max_width):
         modified_entries = []

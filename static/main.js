@@ -25,6 +25,7 @@ const BGLAYER_DEPTH = 20;          // Highest depth
 
 
 function updateSizes(x, y) {
+
   TOTAL_WIDTH = x;
   VISIBLE_WIDTH_CHARACTERS = x;
   VISIBLE_HEIGHT_CHARACTERS = y;
@@ -34,7 +35,8 @@ function updateSizes(x, y) {
   baseWidth = VISIBLE_WIDTH_CHARACTERS * 8; // The total width space plus 8px for the scrollbar
   baseHeight = VISIBLE_HEIGHT_CHARACTERS * 16; // 16px at the bottom for the scrollbar
 
-  // Don't calculate scaleX and scaleY here
+   initializeScreenBuffer();
+// Don't calculate scaleX and scaleY here
   // Just set the base dimensions for now
   
 }
@@ -736,18 +738,75 @@ function flushStoredAsciiHTML() {
 }*/
 
 
+// Create a 2D array to store character codes
+let screenBuffer = Array(TOTAL_HEIGHT_CHARACTERS).fill().map(() => Array(TOTAL_WIDTH).fill(32)); // Fill with space (ASCII 32) initially
+
+// Function to get character code at a specific position
+function getCharCodeAt(x, y) {
+  if (y >= 0 && y < TOTAL_HEIGHT_CHARACTERS && x >= 0 && x < TOTAL_WIDTH) {
+    return screenBuffer[y][x];
+  }
+  return null;
+}
+
+
+function clearScreen() {
+  removedYChars = 0;
+  maxReachedY = 0;
+  var index = getCharIndex(0, 32);
+  for (var x = 0; x < TOTAL_WIDTH; x++) {
+    for (var y = 0; y < TOTAL_HEIGHT_CHARACTERS; y++) {
+      bglayer.putTileAt(index, x, y);
+      layer.putTileAt(index, x, y);
+    }
+  }
+ document.getElementById('screen-reader-container').innerHTML='';
+ initializeScreenBuffer();
+}
+
+
+function scanScreenReader() {
+
+  let screenReaderText = '';
+  for (let scanY = 0; scanY < VISIBLE_HEIGHT_CHARACTERS; scanY++) {
+    for (let scanX = 0; scanX < VISIBLE_WIDTH_CHARACTERS; scanX++) {
+      let charCode = getCharCodeAt(scanX, scanY);
+      if (charCode) {
+        screenReaderText += String.fromCharCode(charCode);
+      }
+    }
+    screenReaderText += '\n'; // Add a newline at the end of each row
+  }
+  document.getElementById('screen-reader-container').innerHTML='';
+  updateScreenReader(screenReaderText);
+
+}
+
+// Initialize screen buffer
+function initializeScreenBuffer() {
+  screenBuffer = Array(TOTAL_HEIGHT_CHARACTERS).fill().map(() => Array(TOTAL_WIDTH).fill(32));
+  console.log(`Screen buffer initialized: ${TOTAL_HEIGHT_CHARACTERS}x${TOTAL_WIDTH}`);
+}
+
+
+// Function to set character code at a specific position
+function setCharCodeAt(x, y, charCode) {
+  if (y >= 0 && y < TOTAL_HEIGHT_CHARACTERS && x >= 0 && x < TOTAL_WIDTH) {
+    screenBuffer[y][x] = charCode;
+  }
+}
+
 function writeAsciiHTMLPos(ascii_codes, currentColor, backgroundColor, x, y) {
   return new Promise((resolve, reject) => {
     if (enableScrolling) {
-      if (y < TOTAL_HEIGHT_CHARACTERS - 1) {
+      if (y < VISIBLE_HEIGHT_CHARACTERS - 1) {
         maxReachedY = y - 1;
       }
       // Scroll until we've made room for the y-coordinate we're trying to reach
-      while (y > maxReachedY + 1 && y >= TOTAL_HEIGHT_CHARACTERS - 1) {
+      while (y > maxReachedY + 1 && y >= VISIBLE_HEIGHT_CHARACTERS - 1) {
         // Shift all lines up by one
-        drawcanvas.shift();
-        drawcanvasbg.shift();
-        canvasColor.shift();
+        screenBuffer.shift();
+        screenBuffer.push(Array(TOTAL_WIDTH).fill(32)); // Add new empty line at the bottom
 
         shiftTilesUp(); // Shift the tiles up in bglayer
 
@@ -766,7 +825,6 @@ function writeAsciiHTMLPos(ascii_codes, currentColor, backgroundColor, x, y) {
       return;
     }
     try {
-      let screenReaderText = '';
       for (var i = 0; i < ascii_codes.length; i++) {
         var index = getCharIndex(currentColor, ascii_codes[i]);
 
@@ -774,11 +832,11 @@ function writeAsciiHTMLPos(ascii_codes, currentColor, backgroundColor, x, y) {
         var charIndex = getCharIndex(backgroundColor, 219);
         drawbg(charIndex, x + i, y, backgroundColor);
 
-        // Add the character to the screen reader text
-        screenReaderText += String.fromCharCode(ascii_codes[i]);
+        // Set the character in our screenBuffer
+        setCharCodeAt(x + i, y, ascii_codes[i]);
       }
 
-      updateScreenReader(screenReaderText);
+    
    
       currentX = x + ascii_codes.length;
       currentY = y;
@@ -818,7 +876,9 @@ function writeAsciiToStatusBar(ascii_codes, currentColor, backgroundColor) {
 }
 
 function updateScreenReader(text) {
+
   const screenReaderContainer = document.getElementById('screen-reader-container');
+
   const newContent = document.createElement('div');
   newContent.textContent = text;
   screenReaderContainer.appendChild(newContent);
@@ -828,22 +888,6 @@ function updateScreenReader(text) {
     screenReaderContainer.removeChild(screenReaderContainer.firstChild);
   }
 }
-
-function clearScreen() {
-  removedYChars = 0;
-  maxReachedY = 0;
-  var index = getCharIndex(0, 32);
-  for (var x = 0; x < TOTAL_WIDTH; x++) {
-    for (var y = 0; y < TOTAL_HEIGHT_CHARACTERS; y++) {
-      bglayer.putTileAt(index, x, y);
-      layer.putTileAt(index, x, y);
-    }
-  }
-
-  // Clear the screen reader text area
-  document.getElementById('screen-reader-container').innerHTML = '';
-}
-
 
 function moveVerticalThumb(newY) {
   // Clamp the new Y position within the scrollbar track
