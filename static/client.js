@@ -109,6 +109,11 @@ socket.on("draw", async (data) => {
 
 });
 
+socket.on("hotkeys", async (data) => {
+  enqueueCommand({ type: "hotkeys", data: data });
+  
+});
+
 socket.on("backgroundimage", async (data) => {
   enqueueCommand({ type: "backgroundimage", data: data });
 
@@ -189,6 +194,28 @@ window.processQueue = function() {
 async function executeCommand(command) {
 
   switch (command.type) {
+      case "hotkeys" :
+        const buttonContainer = document.getElementById("buttons");
+        buttonContainer.innerHTML = ''; // Clear existing buttons
+        let tabIndex = 1;
+        
+    if (!command.data || !command.data.hotkeys) return;
+    if (!Array.isArray(command.data.hotkeys)) {
+      console.error('command.data.hotkeys is not an array');
+      return;
+    }
+       command.data.hotkeys.push({ hotkey : 'Escape', display_text: 'ESC'})
+       command.data.hotkeys.forEach(item => {
+            const button = document.createElement('button');
+            button.id = item.hotkey;
+            button.tabIndex = tabIndex;
+            tabIndex++;
+            button.textContent = `${item.hotkey} (${item.display_text})`;
+            button.onclick = () => emitKeyPress(item.hotkey);
+            document.getElementById('terminal-input').value = '';
+            buttonContainer.appendChild(button);
+        });
+  break;
       case "draw":
         if (command.data.command && command.data.command === 'clear') {
           loadedImages.forEach(image => image.destroy());

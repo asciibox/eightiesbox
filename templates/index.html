@@ -631,8 +631,11 @@
     <div id="game-container"></div>
     <div id="input-container">
       <label for="terminal-input" id="input-label" class="sr-only">Enter command:</label>
-      <input type="text" id="terminal-input" onkeyup="this.value = '';" aria-describedby="input-label" placeholder="Enter command">
-      <button id="submit-btn" onclick="document.getElementById('terminal-input').value='';emitKeyPress('Enter');">Submit</button>
+      <input type="text" id="terminal-input" aria-describedby="input-label" placeholder="Enter command">
+      <button id="submit-btn" tabIndex="0" aria-labe="Submit" onclick="document.getElementById('terminal-input').value='';emitKeyPress('Enter');">Submit</button>
+      <div id="buttons">
+
+      </div>
     </div>
     <div class="spinner" id="spinner"></div>
     <div

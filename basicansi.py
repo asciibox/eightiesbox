@@ -73,7 +73,7 @@ class BasicANSI:
         self.color_bgarray = color_bgarray
         self.sid_data.input_values = input_values
         self.max_height = self.util.sid_data.sauceHeight # len(self.editor_values)
-        
+        print("DISPLAY_EDITRO")
         for idx in range(self.max_height):
             if menu_values != None and idx in menu_values:  # Check if idx is a valid key in menu_values
                 command_value = int(menu_values[idx][0]) if menu_values[idx][0] != '' else 0
@@ -106,15 +106,18 @@ class BasicANSI:
 
                             # Check if xWidth is less than 50 or if the filename ends with '_small.html'
                             if self.util.sid_data.xWidth < 50 and "_small.html" in modified_filename:
+                                self.process_small_menu_values(menu_values, True)
                                 self.sid_data.setRenderer(Renderer(self.util, None, None, modified_filename))
                                 return
                             elif self.util.sid_data.xWidth >= 50:
+                                self.process_small_menu_values(menu_values, True)
                                 self.sid_data.setRenderer(Renderer(self.util, None, None, modified_filename))
                                 return
 
                     print("No suitable file found or render conditions not met")
                     # self.util.choose_bbs()
-
+        print("MENU VALUES PROCESSED!!!")
+        self.process_small_menu_values(menu_values, True)
         if self.sid_data.xWidth < 50 and menu_values is not None:
             self.process_small_menu_values(menu_values)
             return
@@ -175,28 +178,32 @@ class BasicANSI:
 
 
 
-    def process_small_menu_values(self, menu_values):
-        self.util.clear_screen()
-        self.util.sid_data.startX = 0
-        self.util.sid_data.startY = 0
+    def process_small_menu_values(self, menu_values, collect_hotkeys=False):
+        if not collect_hotkeys:
+            self.util.clear_screen()
+            self.util.sid_data.startX = 0
+            self.util.sid_data.startY = 0
 
-        #if isinstance(menu_values, list):
-        #    for line_index in range(0, self.count_menu_length(menu_values)):
-        #        self.process_line(menu_values, line_index)
-        #elif isinstance(menu_values, dict):
+        hotkeys = []
         counter = 0
         for line_index in range(0, self.count_menu_length(menu_values)):
-            
-            if line_index not in menu_values:  # Check if row_idx exists in the dictionary
-                    # print(f"Row {line_index} not found in menu_values")
-                    continue
-            self.process_line(menu_values, line_index, counter)
-            counter += 1
+            if line_index in menu_values:
+                result = self.process_line(menu_values, line_index, counter, collect_hotkeys)
+                if collect_hotkeys and result:
+                    hotkeys.append(result)
+                counter += 1
 
-    def process_line(self, menu_values, line_index, counter):
-        self.util.sid_data.startX = 0
-        self.util.sid_data.startY = counter
-        action_value = menu_values[line_index][0]  # Assuming 'Key' field is the character.
+        if collect_hotkeys:
+            print("MENU VALUES EMITTED!!!")
+        
+            self.util.emit_hotkeys(hotkeys)
+
+    def process_line(self, menu_values, line_index, counter, collect_hotkeys=False):
+        if not collect_hotkeys:
+            self.util.sid_data.startX = 0
+            self.util.sid_data.startY = counter
+
+        action_value = menu_values[line_index][0]
         key_value = menu_values[line_index][2]
         comment_value = menu_values[line_index][1]
         security_value = int(menu_values[line_index][3]) if menu_values[line_index][3] != '' else 0
@@ -204,37 +211,35 @@ class BasicANSI:
         required_groups = menu_values[line_index][4].split(',') if len(menu_values[line_index]) > 4 and menu_values[line_index][4] != '' else []
         user_groups = self.sid_data.user_document['groups'].split(',')
 
-        # Check if menu_values has the sixth element and set value_y_condition
         value_y_condition = False
         if len(menu_values[line_index]) > 5:
             value_y_condition = menu_values[line_index][5] == "y"
 
-        # Check group membership if value_y_condition is "y"
         is_user_in_groups = self.is_user_in_required_groups(user_groups, required_groups) if value_y_condition else True
 
         if not hasattr(self, 'draw_hotkeys'):
-            # Draw line based on security level and combined condition
             if security_value <= self.sid_data.user_document['user_level'] and is_user_in_groups:
-
-                # Check for text in brackets in the comment
                 start_idx = comment_value.find("(")
                 end_idx = comment_value.find(")")
                 if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
-                    display_text = key_value + " " + comment_value[start_idx+1:end_idx]  # Include key_value before the extracted text
+                    display_text = key_value + " " + comment_value[start_idx+1:end_idx]
                 else:
                     display_text = key_value
 
                 if display_text:
-
-                    self.util.output(display_text, 6, 0)
-                    self.util.output(" ", 6, 0)
-                    # Call display_menu_name only when the condition for not showing the menu name is not met
-                    if action_value=="01":
-                        self.util.output("Go to "+comment_value.replace(".MNU", "")+" menu", 6, 0)
+                    if collect_hotkeys:
+                        return {"hotkey": key_value, "display_text": comment_value}
                     else:
-                        if not (start_idx != -1 and end_idx != -1 and end_idx > start_idx):
-                            self.display_menu_name(int(action_value[0]), int(action_value[1]), self.util.menu_structure)
-                        self.util.goto_next_line()
+                        self.util.output(display_text, 6, 0)
+                        self.util.output(" ", 6, 0)
+                        if action_value == "01":
+                            self.util.output("Go to "+comment_value.replace(".MNU", "")+" menu", 6, 0)
+                        else:
+                            if not (start_idx != -1 and end_idx != -1 and end_idx > start_idx):
+                                self.display_menu_name(int(action_value[0]), int(action_value[1]), self.util.menu_structure)
+                            self.util.goto_next_line()
+
+        return None
 
     def display_menu_name(self, first_field, second_field, menu_structure):
         # Validate first_field and second_field

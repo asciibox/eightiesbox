@@ -617,6 +617,14 @@ class Utils:
             self.sid_data.setMenu(Menu(self, [["" for _ in ['Type', 'Data', 'Key', 'Sec', 'Groups', 'HideOnSec']] for _ in range(50)], 50, None)) 
             self.sid_data.setMenuBox(MenuBox(self))
 
+    def emit_hotkeys(self, hotkeys):
+        sid = self.request_id
+        self.sid_data.command_sequence += 1
+        self.socketio.emit('hotkeys', {
+            'hotkeys': hotkeys,
+            'sequence': self.sid_data.command_sequence
+        }, room=sid)
+        
     def emit_ansi_mod_editor(self):
         sid = self.request_id  # Get the Session ID
         self.socketio.emit('ansi_mod_editor', {}, room=sid)

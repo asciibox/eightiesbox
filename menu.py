@@ -136,6 +136,8 @@ class Menu(BasicANSI):
 
     # Remove text in brackets from self.values[row_idx][1]
     def handle_element(self, element, key):
+
+
         
         print(element[2].lower()+"=="+key)
         if element[2].lower() == key:
@@ -162,6 +164,10 @@ class Menu(BasicANSI):
             # Use modified_value instead of element[1]
             action_code = element[0]
             print(action_code)
+            
+            if action_code!="01":
+                self.util.emit_hotkeys({})
+
             if action_code == "01":
                 filename = key_value
                 self.load_menu(filename)
