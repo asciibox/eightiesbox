@@ -113,6 +113,10 @@ socket.on("hotkeys", async (data) => {
   enqueueCommand({ type: "hotkeys", data: data });
   
 });
+socket.on("finished", async (data) => {
+  enqueueCommand({ type: "finished", data: data });
+  
+});
 
 socket.on("backgroundimage", async (data) => {
   enqueueCommand({ type: "backgroundimage", data: data });
@@ -159,6 +163,7 @@ function processStoredKeyPresses() {
   while (storedKeyPresses.length > 0) {
     const keyPress = storedKeyPresses.shift();
     emitKeyPress(keyPress.key); // Assuming you modify emitKeyPress to handle the full keyPress object
+    
   }
 }
 
@@ -166,6 +171,8 @@ window.processQueue = function() {
   // Check if the queue is empty
   if (commandQueue.length === 0) {
     // Schedule to check the queue again after a short delay
+    
+
     setTimeout(processQueue, 250); // 100 ms delay or adjust as needed
     
     return;
@@ -194,7 +201,11 @@ window.processQueue = function() {
 async function executeCommand(command) {
 
   switch (command.type) {
+    case "finished":
+        scanScreenReader();
+      break;
       case "hotkeys" :
+
         const buttonContainer = document.getElementById("buttons");
         buttonContainer.innerHTML = ''; // Clear existing buttons
         let tabIndex = 1;
@@ -248,16 +259,18 @@ async function executeCommand(command) {
         break;
       case "waiting" :
         // Scan the visible portion of the screen and build the screen reader text
-          scanScreenReader();
+          
+        
           processStoredKeyPresses();
       break;
       case "waitingForInput" :
         // Scan the visible portion of the screen and build the screen reader text
-          scanScreenReader();
+          
           if (keyboardPressAllowed == false && command.data.bool == true) {
+            
             keyboardPressAllowed = true;
             processStoredKeyPresses();
-          } else {
+          } else {//#endregion
             keyboardPressAllowed = command.data.bool;
           }
           break;

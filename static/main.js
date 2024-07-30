@@ -753,6 +753,7 @@ function getCharCodeAt(x, y) {
 function clearScreen() {
   removedYChars = 0;
   maxReachedY = 0;
+  lastScannedY = 0; // Reset the lastScannedY when clearing the screen
   var index = getCharIndex(0, 32);
   for (var x = 0; x < TOTAL_WIDTH; x++) {
     for (var y = 0; y < TOTAL_HEIGHT_CHARACTERS; y++) {
@@ -760,13 +761,10 @@ function clearScreen() {
       layer.putTileAt(index, x, y);
     }
   }
- document.getElementById('screen-reader-container').innerHTML='';
- initializeScreenBuffer();
+  document.getElementById('screen-reader-container').innerHTML = '';
+  initializeScreenBuffer();
 }
-
-
 function scanScreenReader() {
-
   let screenReaderText = '';
   for (let scanY = 0; scanY < VISIBLE_HEIGHT_CHARACTERS; scanY++) {
     for (let scanX = 0; scanX < VISIBLE_WIDTH_CHARACTERS; scanX++) {
@@ -777,9 +775,38 @@ function scanScreenReader() {
     }
     screenReaderText += '\n'; // Add a newline at the end of each row
   }
-  document.getElementById('screen-reader-container').innerHTML='';
-  updateScreenReader(screenReaderText);
+  
+  // Extract usefusl text
+  let usefulText = extractUsefulText(screenReaderText);
+  
+  // Update the screen reader content
+  document.getElementById('screen-reader-container').innerHTML = '';
+  updateScreenReader(usefulText);
+}
 
+function extractUsefulText(text) {
+  // Split the text into lines
+  let lines = text.split('\n');
+  
+  // Initialize an array to store useful lines
+  let usefulLines = [];
+  
+  // Regular expression to match lines with useful content
+  let usefulLinePattern = /^(?!.*[│┌┐└┘├┤─┬┴┼]).*[a-zA-Z0-9]+.*$/;
+  
+  // Iterate through each line
+  for (let line of lines) {
+    // Remove leading/trailing whitespace
+    line = line.trim();
+    
+    // If the line matches the pattern and isn't empty, add it
+    if (usefulLinePattern.test(line) && line !== '') {
+      usefulLines.push(line);
+    }
+  }
+  
+  // Join the useful lines back into a single string
+  return usefulLines.join('\n');
 }
 
 // Initialize screen buffer
@@ -801,6 +828,8 @@ function writeAsciiHTMLPos(ascii_codes, currentColor, backgroundColor, x, y) {
     if (enableScrolling) {
       if (y < VISIBLE_HEIGHT_CHARACTERS - 1) {
         maxReachedY = y - 1;
+        
+
       }
       // Scroll until we've made room for the y-coordinate we're trying to reach
       while (y > maxReachedY + 1 && y >= VISIBLE_HEIGHT_CHARACTERS - 1) {
@@ -821,6 +850,7 @@ function writeAsciiHTMLPos(ascii_codes, currentColor, backgroundColor, x, y) {
       currentX = x;
       currentY = y;
       redrawCursor();
+      scanScreenReader();
       resolve();
       return;
     }

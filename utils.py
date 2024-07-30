@@ -736,6 +736,11 @@ class Utils:
                 }, room=sid)
                 self.sid_data.store_screen_data(ascii_codes, currentColor, backgroundColor, blink, x, y)
 
+        self.sid_data.command_sequence += 1
+        self.socketio.emit('finished', {
+            'sequence': self.sid_data.command_sequence
+        }, room=sid)
+        
         self.emit_waiting()
 
         return []
